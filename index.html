@@ -50,9 +50,10 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .radius-chip.on{border-color:#4fc3f7;color:#4fc3f7;background:rgba(79,195,247,.1)}
 #radiusCount{font-size:.7rem;font-family:var(--mono);color:var(--d);margin-left:auto;white-space:nowrap}
 
-/* Filter bar */
-.filterbar{background:var(--surface);border-bottom:1px solid var(--border);
-           padding:6px 12px;display:flex;gap:5px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+/* Filter bar — unten, Daumen-erreichbar */
+.filterbar{background:var(--surface);border-top:1px solid var(--border);
+           padding:6px 12px;display:flex;gap:5px;overflow-x:auto;flex-shrink:0;
+           scrollbar-width:none;order:1}
 .filterbar::-webkit-scrollbar{display:none}
 .chip{display:inline-flex;align-items:center;gap:3px;padding:4px 10px;border-radius:20px;
       border:1px solid var(--border);background:var(--surface2);color:var(--d);
@@ -92,16 +93,33 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
        z-index:2000;display:flex;flex-direction:column;overflow:hidden}
 #panel.open{transform:translateX(0)}
 @media(max-width:640px){
-  #panel{top:auto;bottom:0;right:0;left:0;width:100%;height:85dvh;
+  #panel{top:auto;bottom:0;right:0;left:0;width:100%;
+         height:180px;
          border-left:none;border-top:1px solid var(--border);border-radius:16px 16px 0 0;
-         transform:translateY(100%)}
+         transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1),height .3s cubic-bezier(.4,0,.2,1)}
   #panel.open{transform:translateY(0)}
+  #panel.expanded{height:55vh}
   header{padding:8px 10px}
   .logo{font-size:.82rem}
 }
+/* Teaser: nur in Stufe 1 sichtbar */
+.panel-teaser{display:none}
+@media(max-width:640px){
+  .panel-teaser{display:flex;flex-direction:column;gap:4px;
+                padding:0 16px 10px;flex-shrink:0}
+  /* Details in Stufe 1 verstecken */
+  #panel:not(.expanded) .panel-body{display:none}
+  #panel:not(.expanded) .panel-head .meta-row{display:none}
+  /* Panel-Close in Stufe 1 verstecken */
+  #panel:not(.expanded) .panel-close{display:none}
+}
 .drag-handle{width:40px;height:4px;background:var(--border);border-radius:2px;
-             margin:10px auto 0;flex-shrink:0;display:none}
+             margin:10px auto 6px;flex-shrink:0;display:none;cursor:pointer}
+.drag-handle:hover{background:var(--d)}
 @media(max-width:640px){.drag-handle{display:block}}
+/* Tap-Zone für Handle vergrößern */
+.drag-handle-wrap{display:none;padding:6px 0 2px;cursor:pointer;flex-shrink:0}
+@media(max-width:640px){.drag-handle-wrap{display:block}}
 .panel-head{padding:14px 16px 0;flex-shrink:0}
 .panel-close{position:absolute;top:10px;right:12px;background:var(--surface2);
              border:1px solid var(--border);border-radius:50%;width:30px;height:30px;
@@ -183,7 +201,19 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 @keyframes spin{to{transform:rotate(360deg)}}
 #loading p{color:var(--d);font-size:.8rem;font-family:var(--mono)}
 
-/* Layer control custom */
+/* Suchvorschläge */
+#searchSuggestions{position:absolute;top:100%;left:0;right:0;
+                   background:var(--surface);border:1px solid var(--border);
+                   border-top:none;border-radius:0 0 8px 8px;
+                   max-height:200px;overflow-y:auto;z-index:1100;
+                   scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+                   display:none}
+.suggestion-item{padding:8px 12px;font-size:.8rem;color:var(--t);cursor:pointer;
+                 border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.suggestion-item:last-child{border-bottom:none}
+.suggestion-item:hover,.suggestion-item.active{background:var(--surface2);color:var(--accent)}
+.suggestion-nr{font-family:var(--mono);font-size:.65rem;color:var(--d);margin-left:6px}
+#searchWrap{position:relative;flex:1;min-width:0}
 .layer-toggle{position:absolute;top:80px;right:10px;z-index:999;
               display:flex;flex-direction:column;gap:4px}
 .layer-btn{background:var(--surface);border:1px solid var(--border);border-radius:7px;
@@ -198,7 +228,10 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 
 <header>
   <div class="logo">🎣 Fred <span>angelt</span></div>
-  <input type="text" id="searchBox" placeholder="Gewässer suchen…" autocomplete="off">
+  <div id="searchWrap">
+    <input type="text" id="searchBox" placeholder="Gewässer suchen…" autocomplete="off">
+    <div id="searchSuggestions"></div>
+  </div>
   <div class="header-right">
     <button class="icon-btn active" id="gpsBtn" onclick="toggleGps()" title="GPS ein/ausschalten">📍</button>
     <div class="header-count" id="headerCount">— Gewässer</div>
@@ -217,21 +250,6 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
   <span id="radiusCount"></span>
 </div>
 
-<div class="filterbar">
-  <div class="chip on"     data-filter="all">Alle</div>
-  <div class="chip"        data-filter="hecht">🐟 Hecht</div>
-  <div class="chip"        data-filter="zander">🎣 Zander</div>
-  <div class="chip"        data-filter="barsch">🐠 Barsch</div>
-  <div class="chip"        data-filter="wels">🦈 Wels</div>
-  <div class="chip"        data-filter="aal">🐍 Aal</div>
-  <div class="chip"        data-filter="karpfen">🐡 Karpfen</div>
-  <div class="chip"        data-filter="schleie">🐟 Schleie</div>
-  <div class="chip"        data-filter="forelle">🌊 Forelle</div>
-  <div class="chip"        data-filter="maraene">🐟 Maräne</div>
-  <div class="chip warn-chip" data-filter="vertragsgewaesser">⚠ Vertrag</div>
-  <div class="chip sal-chip"  data-filter="salmonide">🌊 Salmonide</div>
-</div>
-
 <div id="map">
   <!-- Layer toggle -->
   <div class="layer-toggle">
@@ -245,8 +263,21 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 
 <!-- Panel -->
 <div id="panel">
-  <div class="drag-handle"></div>
+  <div class="drag-handle-wrap" onclick="togglePanel()">
+    <div class="drag-handle"></div>
+  </div>
   <button class="panel-close" onclick="closePanel()">✕</button>
+  <!-- Teaser (Stufe 1, nur Mobile) -->
+  <div class="panel-teaser">
+    <div style="display:flex;align-items:baseline;gap:8px">
+      <div class="gw-name" id="p-name-teaser" style="font-size:1rem;margin:0"></div>
+      <div class="gw-nr" id="p-nr-teaser" style="margin:0"></div>
+    </div>
+    <div id="p-dist-teaser"></div>
+    <a class="btn-primary" id="p-route-teaser" href="#" target="_blank" rel="noopener"
+       style="margin-top:6px;padding:8px 16px;font-size:.78rem">🚗 Route starten</a>
+  </div>
+  <!-- Vollansicht (Stufe 2) -->
   <div class="panel-head">
     <div class="gw-nr" id="p-nr"></div>
     <div class="gw-name" id="p-name"></div>
@@ -265,6 +296,22 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
     <a class="btn-primary"   id="p-route"  href="#" target="_blank" rel="noopener">🚗 Route in Google Maps</a>
     <a class="btn-secondary" id="p-maps"   href="#" target="_blank" rel="noopener">📍 Auf Karte zeigen</a>
   </div>
+</div>
+
+<!-- Fisch-Filterbar — unten, Daumen-erreichbar -->
+<div class="filterbar">
+  <div class="chip on"     data-filter="all">Alle</div>
+  <div class="chip"        data-filter="hecht">🐟 Hecht</div>
+  <div class="chip"        data-filter="zander">🎣 Zander</div>
+  <div class="chip"        data-filter="barsch">🐠 Barsch</div>
+  <div class="chip"        data-filter="wels">🦈 Wels</div>
+  <div class="chip"        data-filter="aal">🐍 Aal</div>
+  <div class="chip"        data-filter="karpfen">🐡 Karpfen</div>
+  <div class="chip"        data-filter="schleie">🐟 Schleie</div>
+  <div class="chip"        data-filter="forelle">🌊 Forelle</div>
+  <div class="chip"        data-filter="maraene">🐟 Maräne</div>
+  <div class="chip warn-chip" data-filter="vertragsgewaesser">⚠ Vertrag</div>
+  <div class="chip sal-chip"  data-filter="salmonide">🌊 Salmonide</div>
 </div>
 
 <script>
@@ -38442,12 +38489,20 @@ function renderMarkers(){
     if(radiusKm>0&&userLat&&userLon){
       if(haversine(userLat,userLon,lat,lon)>radiusKm)return false;
     }
-    // Kombinierte Filter (alle müssen erfüllt sein)
+    // Filter-Logik:
+    // — Vertrag / Salmonide: AND (müssen beide erfüllt sein wenn aktiv)
+    // — Fischarten: OR (mindestens eine muss "ja" sein)
     if(activeFilters.size>0){
-      for(var f of activeFilters){
-        if(f==='vertragsgewaesser'){if(!row.Gewässer_Nr.match(/^V[CFP]/))return false;}
-        else if(f==='salmonide'){if(row.ist_salmonide!=='ja'&&!row.Gewässer_Nr.startsWith('Salmo-'))return false;}
-        else{if(row['fisch_'+f]!=='ja')return false;}
+      // Sonderfilter zuerst (AND)
+      if(activeFilters.has('vertragsgewaesser')&&!row.Gewässer_Nr.match(/^V[CFP]/))return false;
+      if(activeFilters.has('salmonide')&&row.ist_salmonide!=='ja'&&!row.Gewässer_Nr.startsWith('Salmo-'))return false;
+      // Fischarten-Filter (OR)
+      var fishFilters=['hecht','zander','barsch','wels','aal','karpfen','schleie','forelle','maraene',
+                       'rapfen','döbel','quappe','weissfisch','aesche'];
+      var activeFish=fishFilters.filter(function(f){return activeFilters.has(f);});
+      if(activeFish.length>0){
+        var hasOne=activeFish.some(function(f){return row['fisch_'+f]==='ja';});
+        if(!hasOne)return false;
       }
     }
     return true;
@@ -38552,16 +38607,74 @@ function openPanel(row){
 
   document.getElementById('panel').classList.add('open');
   document.getElementById('overlay').classList.add('show');
-  if(window.innerWidth<=640&&lat&&lon)
+  // Mobile: Teaser befüllen, kein flyTo
+  if(window.innerWidth<=640){
+    document.getElementById('p-name-teaser').textContent=name;
+    document.getElementById('p-nr-teaser').textContent=nr;
+    // Teaser-Distanz parallel befüllen
+    var td=document.getElementById('p-dist-teaser');
+    if(userLat&&userLon){
+      var luf=haversine(userLat,userLon,lat,lon);
+      td.innerHTML='<div class="dist-badge" style="margin:0">🦅 '+luf.toFixed(1)+' km</div>';
+    } else { td.innerHTML=''; }
+    if(lat&&lon){
+      var rUrl=userLat&&userLon?
+        'https://www.google.com/maps/dir/'+userLat+','+userLon+'/'+lat+','+lon:
+        'https://www.google.com/maps/dir//'+lat+','+lon;
+      document.getElementById('p-route-teaser').href=rUrl;
+    }
+    document.getElementById('panel').classList.remove('expanded');
+  } else {
     map.flyTo([lat,lon],Math.max(map.getZoom(),13),{duration:.8});
+  }
+}
+
+function togglePanel(){
+  // Handle-Tap: zwischen Stufe 1 und 2 wechseln
+  if(window.innerWidth>640)return;
+  document.getElementById('panel').classList.toggle('expanded');
 }
 
 function closePanel(){
   document.getElementById('panel').classList.remove('open');
+  document.getElementById('panel').classList.remove('expanded');
   document.getElementById('overlay').classList.remove('show');
 }
 document.getElementById('overlay').addEventListener('click',closePanel);
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── Suchvorschläge ────────────────────────────────────────────────────────────
+var suggestionIndex=-1;
+function showSuggestions(val){
+  var box=document.getElementById('searchSuggestions');
+  if(!val||val.length<2){box.style.display='none';return;}
+  var matches=allData.filter(function(r){
+    return (r.Gewässername||'').toLowerCase().includes(val.toLowerCase());
+  }).slice(0,8);
+  if(matches.length===0){box.style.display='none';return;}
+  box.innerHTML=matches.map(function(r){
+    return '<div class="suggestion-item" data-nr="'+escHtml(r.Gewässer_Nr)+'">'+
+           escHtml(r.Gewässername)+
+           '<span class="suggestion-nr">'+escHtml(r.Gewässer_Nr)+'</span></div>';
+  }).join('');
+  box.style.display='block';
+  suggestionIndex=-1;
+  box.querySelectorAll('.suggestion-item').forEach(function(item){
+    item.addEventListener('mousedown',function(e){
+      e.preventDefault();
+      var nr=item.getAttribute('data-nr');
+      var row=allData.find(function(r){return r.Gewässer_Nr===nr;});
+      document.getElementById('searchBox').value=item.querySelector('.suggestion-item')? item.childNodes[0].textContent.trim() : item.textContent.trim();
+      box.style.display='none';
+      searchTerm='';
+      renderMarkers();
+      if(row)openPanel(row);
+    });
+  });
+}
+document.getElementById('searchBox').addEventListener('blur',function(){
+  setTimeout(function(){document.getElementById('searchSuggestions').style.display='none';},150);
+});
 
 // ── Filters ───────────────────────────────────────────────────────────────────
 document.querySelectorAll('.chip[data-filter]').forEach(function(chip){
@@ -38585,6 +38698,7 @@ document.querySelectorAll('.chip[data-filter]').forEach(function(chip){
       }
     }
     renderMarkers();
+    zoomToFilterOverview();
   });
 });
 document.querySelectorAll('.radius-chip').forEach(function(chip){
@@ -38597,8 +38711,21 @@ document.querySelectorAll('.radius-chip').forEach(function(chip){
 });
 
 document.getElementById('searchBox').addEventListener('input',function(e){
-  searchTerm=e.target.value.toLowerCase().trim();renderMarkers();
+  searchTerm=e.target.value.toLowerCase().trim();
+  showSuggestions(e.target.value.trim());
+  renderMarkers();
 });
+
+// Filter-Rückzoomen: bei Filterwechsel Brandenburg-Übersicht
+function zoomToFilterOverview(){
+  if(activeFilters.size>0&&userLat&&userLon){
+    // Mit GPS: auf Nutzer zentriert, Übersicht
+    map.setView([userLat,userLon],9);
+  } else if(activeFilters.size>0){
+    // Ohne GPS: Brandenburg-Übersicht
+    map.fitBounds(L.latLngBounds([51.2,11.0],[53.7,15.0]),{padding:[20,20]});
+  }
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 function loadCSV(){
