@@ -18,20 +18,28 @@
 body{background:var(--bg);color:var(--t);font-family:var(--sans);height:100dvh;overflow:hidden;display:flex;flex-direction:column}
 
 /* Header */
-header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 14px;
-       display:flex;align-items:center;gap:10px;z-index:1000;flex-shrink:0}
-.logo{font-family:var(--mono);font-size:.9rem;font-weight:700;color:var(--accent);white-space:nowrap}
+header{background:var(--surface);border-bottom:1px solid var(--border);
+       padding:8px 12px;display:flex;flex-direction:column;gap:6px;z-index:1000;flex-shrink:0}
+.header-top{display:flex;align-items:center;gap:8px}
+.logo{font-family:var(--mono);font-size:.9rem;font-weight:700;color:var(--accent);white-space:nowrap;flex-shrink:0}
 .logo span{color:var(--d);font-weight:400}
-#searchBox{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-           color:var(--t);font-family:var(--sans);font-size:.82rem;padding:7px 11px;outline:none;min-width:0}
-#searchBox:focus{border-color:var(--accent)}
-#searchBox::placeholder{color:var(--d)}
-.header-right{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.header-right{display:flex;gap:6px;align-items:center;flex-shrink:0;margin-left:auto}
 .icon-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;
           padding:6px 9px;cursor:pointer;color:var(--d);font-size:1rem;transition:all .15s;white-space:nowrap}
 .icon-btn:hover{border-color:var(--accent);color:var(--accent)}
 .icon-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(61,153,112,.12)}
 .header-count{font-family:var(--mono);font-size:.7rem;color:var(--d);white-space:nowrap}
+.header-search{display:flex;gap:6px;align-items:center}
+
+#searchBox{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+           color:var(--t);font-family:var(--sans);font-size:.82rem;padding:7px 11px;outline:none}
+#searchBox:focus{border-color:var(--accent)}
+#searchBox::placeholder{color:var(--d)}
+/* Plan-Modus Badge */
+#planBadge{display:none;align-items:center;gap:5px;padding:3px 8px;border-radius:20px;
+           background:rgba(79,195,247,.12);border:1px solid rgba(79,195,247,.3);
+           color:#4fc3f7;font-size:.65rem;font-family:var(--mono);white-space:nowrap;cursor:pointer;flex-shrink:0}
+#planBadge.show{display:flex}
 
 /* GPS Status bar */
 #gpsBar{background:rgba(61,153,112,.1);border-bottom:1px solid rgba(61,153,112,.25);
@@ -98,9 +106,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
          border-left:none;border-top:1px solid var(--border);border-radius:16px 16px 0 0;
          transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
   #panel.open{transform:translateY(0)}
-  header{padding:8px 10px}
   .logo{font-size:.82rem}
-  /* Mobile: panel-body scrollbar */
   .panel-body{scrollbar-width:thin;scrollbar-color:var(--border) transparent}
 }
 .drag-handle{width:40px;height:4px;background:var(--border);border-radius:2px;
@@ -240,6 +246,10 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .act-section{margin-top:7px;padding-top:7px;border-top:1px solid rgba(36,48,68,.6)}
 .act-badge{font-size:.72rem;font-family:var(--mono);color:var(--t);padding:3px 0;line-height:1.4}
 .act-badge strong{color:var(--t)}
+.forecast-bar{margin-top:7px;padding-top:6px;border-top:1px solid rgba(36,48,68,.6);
+              font-size:.68rem;font-family:var(--mono);color:var(--d);line-height:1.6}
+.forecast-bar strong{color:var(--t);margin-right:3px}
+.fc-day{display:inline-flex;align-items:center;gap:3px;margin-right:6px}
 </style>
 </head>
 <body>
@@ -247,15 +257,20 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 <div id="loading"><div class="spinner"></div><p>Gewässer werden geladen…</p></div>
 
 <header>
-  <div class="logo">🎣 Fred <span>angelt</span></div>
-  <div id="searchWrap">
-    <input type="text" id="searchBox" placeholder="Gewässer suchen…" autocomplete="off">
-    <div id="searchSuggestions"></div>
+  <div class="header-top">
+    <div class="logo">🎣 Fred <span>angelt</span></div>
+    <div class="header-right">
+      <button class="icon-btn active" id="gpsBtn" onclick="toggleGps()" title="GPS ein/ausschalten">📍</button>
+      <button class="icon-btn" id="listToggleBtn" onclick="toggleList()" title="Listenansicht">☰</button>
+      <div class="header-count" id="headerCount">— Gewässer</div>
+    </div>
   </div>
-  <div class="header-right">
-    <button class="icon-btn active" id="gpsBtn" onclick="toggleGps()" title="GPS ein/ausschalten">📍</button>
-    <button class="icon-btn" id="listToggleBtn" onclick="toggleList()" title="Listenansicht">☰</button>
-    <div class="header-count" id="headerCount">— Gewässer</div>
+  <div class="header-search">
+    <div id="searchWrap">
+      <input type="text" id="searchBox" placeholder="Gewässer oder Ort suchen…" autocomplete="off">
+      <div id="searchSuggestions"></div>
+    </div>
+    <div id="planBadge" onclick="clearPlanMode()" title="Plan-Modus beenden">📍 <span id="planBadgeText">Ort</span> ✕</div>
   </div>
 </header>
 
@@ -38505,8 +38520,9 @@ function renderMarkers(){
       if(!h.includes(searchTerm))return false;
     }
     // Radius-Filter
-    if(radiusKm>0&&userLat&&userLon){
-      if(haversine(userLat,userLon,lat,lon)>radiusKm)return false;
+    if(radiusKm>0){
+      var ref=getRefCoords();
+      if(ref&&haversine(ref.lat,ref.lon,lat,lon)>radiusKm)return false;
     }
     // Filter-Logik:
     // — Vertrag / Salmonide: AND (müssen beide erfüllt sein wenn aktiv)
@@ -38781,6 +38797,70 @@ var ActivityEngine = {
     if (fish === 'karpfen') return ActivityEngine.karpfen(w);
     return null;
   },
+
+  getForecast: function(activeFish, hourly, daily) {
+    if (!hourly || !hourly.time || !daily) return null;
+    var FISH_KEYS = ['hecht','zander','barsch','forelle','karpfen'];
+    var fish = activeFish.filter(function(f) { return FISH_KEYS.indexOf(f) > -1; });
+    var results = [];
+    var today = new Date();
+    today.setHours(0,0,0,0);
+    for (var dayOffset = 1; dayOffset <= 3; dayOffset++) {
+      var targetDay = new Date(today.getTime() + dayOffset * 86400000);
+      var dateStr = targetDay.toISOString().slice(0,10);
+      var sunriseStr = null, sunsetStr = null;
+      if (daily.sunrise) {
+        for (var di = 0; di < daily.sunrise.length; di++) {
+          if (daily.sunrise[di] && daily.sunrise[di].startsWith(dateStr)) {
+            sunriseStr = daily.sunrise[di];
+            sunsetStr  = daily.sunset ? daily.sunset[di] : null;
+            break;
+          }
+        }
+      }
+      var checkHours = [6, 12, 22];
+      if (sunsetStr) checkHours.push(new Date(sunsetStr).getHours());
+      var dayScores = [];
+      checkHours.forEach(function(h) {
+        var targetTime = dateStr + 'T' + (h < 10 ? '0' + h : h) + ':00';
+        var idx = hourly.time.indexOf(targetTime);
+        if (idx === -1) return;
+        var w = {
+          temp:     hourly.temperature_2m   ? hourly.temperature_2m[idx]   : 15,
+          wind:     hourly.wind_speed_10m   ? hourly.wind_speed_10m[idx]   : 0,
+          clouds:   hourly.cloud_cover      ? hourly.cloud_cover[idx]      : 50,
+          pressure: hourly.surface_pressure ? hourly.surface_pressure[idx] : 1013,
+          precip:   0,
+          sunrise:  sunriseStr,
+          sunset:   sunsetStr,
+          pressureTrend: (function() {
+            var i24 = idx - 24;
+            if (i24 >= 0 && hourly.surface_pressure && hourly.surface_pressure[i24]) {
+              return hourly.surface_pressure[idx] - hourly.surface_pressure[i24];
+            }
+            return 0;
+          })()
+        };
+        var score;
+        if (fish.length === 0) {
+          score = ActivityEngine.general(w);
+        } else {
+          var scores = fish.map(function(f) { return ActivityEngine.scoreForFish(f, w); });
+          score = Math.min.apply(null, scores);
+        }
+        dayScores.push(score);
+      });
+      if (dayScores.length === 0) continue;
+      var weekdays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+      results.push({
+        label: weekdays[targetDay.getDay()],
+        score: Math.max.apply(null, dayScores),
+        light: ActivityEngine.getTrafficLight(Math.max.apply(null, dayScores))
+      });
+    }
+    return results;
+  },
+
   renderBadges: function(w) {
     var FISH_KEYS = ['hecht','zander','barsch','forelle','karpfen'];
     var activeFish = FISH_KEYS.filter(function(f) { return activeFilters.has(f); });
@@ -38814,8 +38894,9 @@ async function fetchWeatherData(lat, lon) {
   var url = 'https://api.open-meteo.com/v1/forecast' +
     '?latitude=' + lat + '&longitude=' + lon +
     '&current=temperature_2m,surface_pressure,precipitation_probability,weathercode,wind_speed_10m,cloud_cover' +
-    '&hourly=surface_pressure&daily=sunrise,sunset' +
-    '&forecast_days=1&past_days=1&wind_speed_unit=kmh&timezone=Europe%2FBerlin';
+    '&hourly=surface_pressure,temperature_2m,wind_speed_10m,cloud_cover' +
+    '&daily=sunrise,sunset' +
+    '&forecast_days=4&past_days=1&wind_speed_unit=kmh&timezone=Europe%2FBerlin';
   var resp = await fetchWithTimeout(url, 8000);
   if (!resp.ok) throw new Error('HTTP ' + resp.status);
   var json = await resp.json();
@@ -38833,7 +38914,9 @@ async function fetchWeatherData(lat, lon) {
     clouds:        json.current.cloud_cover || 0,
     pressureTrend: ActivityEngine.pressureTrend(pressureNow, pressure24h),
     sunrise:       json.daily && json.daily.sunrise ? json.daily.sunrise[0] : null,
-    sunset:        json.daily && json.daily.sunset  ? json.daily.sunset[0]  : null
+    sunset:        json.daily && json.daily.sunset  ? json.daily.sunset[0]  : null,
+    hourly:        json.hourly || null,
+    daily:         json.daily  || null
   };
   _weatherCache[key] = { ts: now, data: data };
   return data;
@@ -38856,7 +38939,20 @@ async function updateWeatherPanel(lat, lon) {
       '<div class="weather-item"><span>Wind</span> ' + w.wind.toFixed(0) + ' km/h</div>' +
       '<div class="weather-item"><span>Regen</span> ' + w.precip + ' %</div>';
     var actEl = document.getElementById('p-activity');
-    if (actEl) actEl.innerHTML = ActivityEngine.renderBadges(w);
+    if (actEl) {
+      var badges = ActivityEngine.renderBadges(w);
+      // Forecast bar
+      var activeFishArr = ['hecht','zander','barsch','forelle','karpfen'].filter(function(f){return activeFilters.has(f);});
+      var fcDays = (w.hourly && w.daily) ? ActivityEngine.getForecast(activeFishArr, w.hourly, w.daily) : null;
+      var fcHtml = '';
+      if (fcDays && fcDays.length > 0) {
+        var dayHtml = fcDays.map(function(d) {
+          return '<span class="fc-day">' + d.label + ' ' + d.light.emoji + '</span>';
+        }).join('');
+        fcHtml = '<div class="forecast-bar"><strong>&#x1F52E; Aussichten:</strong> ' + dayHtml + '</div>';
+      }
+      actEl.innerHTML = badges + fcHtml;
+    }
   } catch(e) {
     box.className = 'weather-box error';
     content.innerHTML = '<span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Keine Wetterdaten verf&uuml;gbar</span>';
@@ -38895,15 +38991,16 @@ function renderList(filtered) {
     return;
   }
   var rows = filtered.slice();
-  if (userLat && userLon) {
+  var refC = getRefCoords();
+  if (refC) {
     rows.sort(function(a, b) {
-      return haversine(userLat, userLon, parseFloat(a.lat), parseFloat(a.lon))
-           - haversine(userLat, userLon, parseFloat(b.lat), parseFloat(b.lon));
+      return haversine(refC.lat, refC.lon, parseFloat(a.lat), parseFloat(a.lon))
+           - haversine(refC.lat, refC.lon, parseFloat(b.lat), parseFloat(b.lon));
     });
   }
   container.innerHTML = rows.map(function(row) {
-    var dist = (userLat && userLon)
-      ? haversine(userLat, userLon, parseFloat(row.lat), parseFloat(row.lon)).toFixed(1) + ' km'
+    var dist = refC
+      ? haversine(refC.lat, refC.lon, parseFloat(row.lat), parseFloat(row.lon)).toFixed(1) + ' km'
       : null;
     var distHtml = dist
       ? '<span class="li-dist">' + dist + '</span>'
@@ -38924,35 +39021,132 @@ function renderList(filtered) {
   });
 }
 
-// ── Suchvorschläge ────────────────────────────────────────────────────────────
+// ── Plan-Modus (Ortssuche als Referenzpunkt) ─────────────────────────────────
+var planMode = false;
+var planLat = null, planLon = null, planName = '';
+
+function setPlanMode(lat, lon, name) {
+  planMode = true;
+  planLat  = lat;
+  planLon  = lon;
+  planName = name;
+  var badge = document.getElementById('planBadge');
+  var badgeText = document.getElementById('planBadgeText');
+  badge.classList.add('show');
+  badgeText.textContent = name;
+  // RadiusBar anzeigen falls nicht schon sichtbar
+  document.getElementById('radiusBar').style.display = 'flex';
+  // Karte auf Ort zentrieren
+  map.setView([lat, lon], 11);
+  renderMarkers();
+}
+
+function clearPlanMode() {
+  planMode = false;
+  planLat  = null;
+  planLon  = null;
+  planName = '';
+  document.getElementById('planBadge').classList.remove('show');
+  document.getElementById('searchBox').value = '';
+  searchTerm = '';
+  renderMarkers();
+}
+
+// Effektive Referenz-Koordinaten (GPS oder Plan-Modus)
+function getRefCoords() {
+  if (planMode && planLat) return { lat: planLat, lon: planLon };
+  if (userLat && userLon)  return { lat: userLat, lon: userLon };
+  return null;
+}
+
+// ── Suchvorschläge (Gewässer + Orte) ─────────────────────────────────────────
 var suggestionIndex=-1;
+var _ortSearchTimer = null;
+
 function showSuggestions(val){
   var box=document.getElementById('searchSuggestions');
   if(!val||val.length<2){box.style.display='none';return;}
+
+  // Gewässer-Treffer (lokal, sofort)
   var matches=allData.filter(function(r){
     return (r.Gewässername||'').toLowerCase().includes(val.toLowerCase());
-  }).slice(0,8);
-  if(matches.length===0){box.style.display='none';return;}
-  box.innerHTML=matches.map(function(r){
-    return '<div class="suggestion-item" data-nr="'+escHtml(r.Gewässer_Nr)+'">'+
+  }).slice(0,6);
+
+  var html = matches.map(function(r){
+    return '<div class="suggestion-item" data-nr="'+escHtml(r.Gewässer_Nr)+'" data-type="gewaesser">'+
            escHtml(r.Gewässername)+
            '<span class="suggestion-nr">'+escHtml(r.Gewässer_Nr)+'</span></div>';
   }).join('');
-  box.style.display='block';
-  suggestionIndex=-1;
-  box.querySelectorAll('.suggestion-item').forEach(function(item){
+
+  // Trennlinie wenn Gewässer gefunden
+  if (matches.length > 0 && val.length >= 3) {
+    html += '<div class="suggestion-item" style="color:var(--d);font-size:.65rem;cursor:default;background:none;pointer-events:none">&#x1F4CD; Orte suchen&hellip;</div>';
+  }
+
+  box.innerHTML = html || '<div class="suggestion-item" style="color:var(--d);cursor:default">Suche läuft&hellip;</div>';
+  box.style.display = 'block';
+  suggestionIndex = -1;
+
+  bindSuggestionClicks(box);
+
+  // Ortssuche via Nominatim (debounced)
+  if (_ortSearchTimer) clearTimeout(_ortSearchTimer);
+  if (val.length >= 3) {
+    _ortSearchTimer = setTimeout(function() {
+      searchOrt(val, matches.length, box);
+    }, 400);
+  }
+}
+
+function searchOrt(val, existingCount, box) {
+  var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=4' +
+    '&countrycodes=de&q=' + encodeURIComponent(val);
+  fetchWithTimeout(url, 5000).then(function(r){ return r.json(); }).then(function(results) {
+    // Nur Orte (nicht Gewässer die schon drin sind)
+    var orte = results.filter(function(r) {
+      return r.type === 'city' || r.type === 'town' || r.type === 'village' ||
+             r.type === 'municipality' || r.class === 'place' || r.class === 'boundary';
+    }).slice(0, 3);
+    if (orte.length === 0) return;
+    // Aktuelle Gewässer-Einträge behalten
+    var currentHtml = box.innerHTML;
+    var ortHtml = orte.map(function(o) {
+      var shortName = o.display_name.split(',').slice(0,2).join(',');
+      return '<div class="suggestion-item" data-type="ort" data-lat="'+o.lat+'" data-lon="'+o.lon+'" data-name="'+escHtml(shortName)+'">' +
+        '&#x1F4CD; ' + escHtml(shortName) + '</div>';
+    }).join('');
+    // Trennlinie entfernen + Orte anhängen
+    box.innerHTML = currentHtml.replace('<div class="suggestion-item" style="color:var(--d);font-size:.65rem;cursor:default;background:none;pointer-events:none">&#x1F4CD; Orte suchen&hellip;</div>', '') + ortHtml;
+    bindSuggestionClicks(box);
+  }).catch(function(){});
+}
+
+function bindSuggestionClicks(box) {
+  box.querySelectorAll('.suggestion-item[data-type]').forEach(function(item){
     item.addEventListener('mousedown',function(e){
       e.preventDefault();
-      var nr=item.getAttribute('data-nr');
-      var row=allData.find(function(r){return r.Gewässer_Nr===nr;});
-      document.getElementById('searchBox').value=item.querySelector('.suggestion-item')? item.childNodes[0].textContent.trim() : item.textContent.trim();
-      box.style.display='none';
-      searchTerm='';
-      renderMarkers();
-      if(row)openPanel(row);
+      var type = item.getAttribute('data-type');
+      if (type === 'gewaesser') {
+        var nr = item.getAttribute('data-nr');
+        var row = allData.find(function(r){return r.Gewässer_Nr===nr;});
+        document.getElementById('searchBox').value = row ? row.Gewässername : '';
+        box.style.display='none';
+        searchTerm='';
+        renderMarkers();
+        if(row) openPanel(row);
+      } else if (type === 'ort') {
+        var lat = parseFloat(item.getAttribute('data-lat'));
+        var lon = parseFloat(item.getAttribute('data-lon'));
+        var name = item.getAttribute('data-name');
+        document.getElementById('searchBox').value = '';
+        box.style.display = 'none';
+        searchTerm = '';
+        setPlanMode(lat, lon, name);
+      }
     });
   });
 }
+
 document.getElementById('searchBox').addEventListener('blur',function(){
   setTimeout(function(){document.getElementById('searchSuggestions').style.display='none';},150);
 });
