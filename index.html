@@ -209,6 +209,34 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
            padding:6px 9px;font-size:.68rem;font-family:var(--mono);color:var(--d);
            cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center}
 .layer-btn.on{border-color:var(--accent);color:var(--accent);background:rgba(61,153,112,.1)}
+
+/* ── Listenansicht ─────────────────────────────────────────────────────────── */
+#listView{background:var(--surface);border-top:1px solid var(--border);
+          max-height:38vh;overflow-y:auto;flex-shrink:0;display:none;order:0;
+          scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+#listView::-webkit-scrollbar{width:3px}
+#listView::-webkit-scrollbar-thumb{background:var(--border)}
+.list-header{display:flex;align-items:center;justify-content:space-between;
+             padding:6px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
+             font-size:.65rem;font-family:var(--mono);color:var(--d);
+             position:sticky;top:0;background:var(--surface);z-index:1}
+.list-header span{font-weight:700;color:var(--t)}
+.list-toggle{background:none;border:none;color:var(--d);cursor:pointer;font-size:.8rem;padding:0 4px}
+.list-item{display:flex;align-items:center;gap:10px;padding:8px 12px;
+           border-bottom:1px solid rgba(36,48,68,.5);cursor:pointer;transition:background .12s}
+.list-item:hover{background:var(--surface2)}
+.list-item:last-child{border-bottom:none}
+.li-ampel{font-size:1rem;flex-shrink:0;width:18px;text-align:center}
+.li-name{flex:1;font-size:.78rem;color:var(--t);white-space:nowrap;
+         overflow:hidden;text-overflow:ellipsis;min-width:0}
+.li-sub{font-size:.63rem;color:var(--d);font-family:var(--mono)}
+.li-dist{font-size:.68rem;font-family:var(--mono);color:var(--accent);
+         white-space:nowrap;flex-shrink:0}
+.li-dist.no-gps{color:var(--d)}
+#listToggleBtn{background:var(--surface2);border:1px solid var(--border);
+               border-radius:8px;padding:5px 9px;cursor:pointer;color:var(--d);
+               font-size:.75rem;font-family:var(--mono);transition:all .15s;white-space:nowrap}
+#listToggleBtn.active{border-color:var(--accent);color:var(--accent);background:rgba(61,153,112,.12)}
 </style>
 </head>
 <body>
@@ -223,6 +251,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
   </div>
   <div class="header-right">
     <button class="icon-btn active" id="gpsBtn" onclick="toggleGps()" title="GPS ein/ausschalten">📍</button>
+    <button class="icon-btn" id="listToggleBtn" onclick="toggleList()" title="Listenansicht">☰</button>
     <div class="header-count" id="headerCount">— Gewässer</div>
   </div>
 </header>
@@ -249,6 +278,15 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
   </div>
 </div>
 <div id="overlay"></div>
+
+<!-- Listenansicht -->
+<div id="listView">
+  <div class="list-header">
+    <span id="listCount">0 Gewässer</span>
+    <button class="list-toggle" onclick="toggleList()" title="Liste schließen">✕</button>
+  </div>
+  <div id="listItems"></div>
+</div>
 
 <!-- Panel (Variante B: direkt 58vh, alles sofort sichtbar) -->
 <div id="panel">
@@ -38479,7 +38517,7 @@ function renderMarkers(){
                        'rapfen','döbel','quappe','weissfisch','aesche'];
       var activeFish=fishFilters.filter(function(f){return activeFilters.has(f);});
       if(activeFish.length>0){
-        var hasOne=activeFish.some(function(f){return row['fisch_'+f]==='ja';});
+        var hasOne=activeFish.every(function(f){return row['fisch_'+f]==='ja';});
         if(!hasOne)return false;
       }
     }
@@ -38520,6 +38558,7 @@ function renderMarkers(){
     }));
     if(bounds.isValid()) map.fitBounds(bounds, {padding:[60,60], maxZoom:14});
   }
+  renderList(filtered);
 }
 
 // ── Panel ─────────────────────────────────────────────────────────────────────
@@ -38597,6 +38636,68 @@ function closePanel(){
 }
 document.getElementById('overlay').addEventListener('click',closePanel);
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── Listenansicht ──────────────────────────────────────────────────────────────
+var listVisible = false;
+var _lastFiltered = [];
+
+function toggleList() {
+  listVisible = !listVisible;
+  var lv = document.getElementById('listView');
+  lv.style.display = listVisible ? 'flex' : 'none';
+  lv.style.flexDirection = 'column';
+  document.getElementById('listToggleBtn').classList.toggle('active', listVisible);
+  if (listVisible) renderList(_lastFiltered);
+}
+
+function ampelIcon(row) {
+  var nr = row.Gewässer_Nr || '';
+  if (nr.startsWith('Salmo-') || row.ist_salmonide === 'ja') return '🔵';
+  if (nr.match(/^V[CFP]/)) return '🟡';
+  return '🟢';
+}
+
+function renderList(filtered) {
+  _lastFiltered = filtered;
+  if (!listVisible) return;
+  var container = document.getElementById('listItems');
+  var countEl   = document.getElementById('listCount');
+  countEl.textContent = filtered.length + ' Gewässer';
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="padding:16px;text-align:center;font-size:.75rem;color:var(--d);font-family:var(--mono)">Keine Gewässer 🎣</div>';
+    return;
+  }
+  var rows = filtered.slice();
+  if (userLat && userLon) {
+    rows.sort(function(a, b) {
+      return haversine(userLat, userLon, parseFloat(a.lat), parseFloat(a.lon))
+           - haversine(userLat, userLon, parseFloat(b.lat), parseFloat(b.lon));
+    });
+  }
+  container.innerHTML = rows.map(function(row) {
+    var dist = (userLat && userLon)
+      ? haversine(userLat, userLon, parseFloat(row.lat), parseFloat(row.lon)).toFixed(1) + ' km'
+      : null;
+    var distHtml = dist
+      ? '<span class="li-dist">' + dist + '</span>'
+      : '<span class="li-dist no-gps">—</span>';
+    return '<div class="list-item" data-nr="' + escHtml(row.Gewässer_Nr) + '">' +
+      '<span class="li-ampel">' + ampelIcon(row) + '</span>' +
+      '<div class="li-name">' + escHtml(row.Gewässername) +
+        '<div class="li-sub">' + escHtml(row.Gewässer_Nr) +
+        (row.gewässer_art ? ' · ' + escHtml(row.gewässer_art) : '') + '</div>' +
+      '</div>' +
+      distHtml +
+      '</div>';
+  }).join('');
+  container.querySelectorAll('.list-item').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var nr = el.getAttribute('data-nr');
+      var row = allData.find(function(r) { return r.Gewässer_Nr === nr; });
+      if (row) openPanel(row);
+    });
+  });
+}
 
 // ── Suchvorschläge ────────────────────────────────────────────────────────────
 var suggestionIndex=-1;
