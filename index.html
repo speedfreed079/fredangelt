@@ -237,6 +237,19 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
                border-radius:8px;padding:5px 9px;cursor:pointer;color:var(--d);
                font-size:.75rem;font-family:var(--mono);transition:all .15s;white-space:nowrap}
 #listToggleBtn.active{border-color:var(--accent);color:var(--accent);background:rgba(61,153,112,.12)}
+
+/* ── Wetter-Panel ──────────────────────────────────────────────────────────── */
+.weather-box{background:rgba(56,139,253,.06);border:1px solid rgba(56,139,253,.2);
+             border-radius:8px;padding:9px 12px;margin-bottom:10px}
+.weather-box.loading{background:rgba(107,128,153,.06);border-color:var(--border)}
+.weather-box.error{background:transparent;border-color:var(--border)}
+.weather-title{font-size:.63rem;font-family:var(--mono);text-transform:uppercase;
+               letter-spacing:1px;color:var(--d);margin-bottom:6px}
+.weather-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.weather-item{display:flex;align-items:center;gap:4px;font-size:.75rem;
+              font-family:var(--mono);color:var(--t)}
+.weather-item span{color:var(--d);font-size:.68rem}
+.weather-icon{font-size:1.1rem;line-height:1}
 </style>
 </head>
 <body>
@@ -308,6 +321,12 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
     <div id="p-kav-section">
       <div class="section-title">Zuständig</div>
       <div style="font-size:.78rem;color:var(--d)" id="p-kav"></div>
+    </div>
+    <div id="p-weather" class="weather-box loading">
+      <div class="weather-title">Wetterlage am Spot</div>
+      <div class="weather-row" id="p-weather-content">
+        <span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Wird geladen…</span>
+      </div>
     </div>
     <a class="btn-primary"   id="p-route"  href="#" target="_blank" rel="noopener">🚗 Route in Google Maps</a>
     <a class="btn-secondary" id="p-maps"   href="#" target="_blank" rel="noopener">📍 Auf Karte zeigen</a>
@@ -38575,6 +38594,8 @@ function openPanel(row){
 
   // Distance (async)
   getDrivingInfo(lat,lon);
+  // Wetter (async, non-blocking)
+  updateWeatherPanel(lat,lon);
 
   // Meta pills
   var meta='';
@@ -38636,6 +38657,71 @@ function closePanel(){
 }
 document.getElementById('overlay').addEventListener('click',closePanel);
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+
+// ── Wetter-Cache (In-Memory, kein localStorage) ────────────────────────────
+var _weatherCache = {};
+var WEATHER_TTL = 30 * 60 * 1000; // 30 Minuten
+
+function weatherIcon(code) {
+  // WMO Weather Code → Icon
+  if (code === 0)            return '☀️';
+  if (code <= 2)             return '⛅';
+  if (code <= 3)             return '☁️';
+  if (code <= 49)            return '🌫️';
+  if (code <= 59)            return '🌦️';
+  if (code <= 69)            return '🌧️';
+  if (code <= 79)            return '🌨️';
+  if (code <= 84)            return '🌧️';
+  if (code <= 99)            return '⛈️';
+  return '🌡️';
+}
+
+async function fetchWeatherData(lat, lon) {
+  var key = lat.toFixed(3) + '_' + lon.toFixed(3);
+  var now = Date.now();
+  // Cache prüfen
+  if (_weatherCache[key] && (now - _weatherCache[key].ts) < WEATHER_TTL) {
+    return _weatherCache[key].data;
+  }
+  var url = 'https://api.open-meteo.com/v1/forecast' +
+    '?latitude=' + lat +
+    '&longitude=' + lon +
+    '&current=temperature_2m,surface_pressure,precipitation_probability,weathercode' +
+    '&wind_speed_unit=kmh&timezone=Europe%2FBerlin';
+  var resp = await fetchWithTimeout(url, 6000);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  var json = await resp.json();
+  var data = {
+    temp:    json.current.temperature_2m,
+    pressure: Math.round(json.current.surface_pressure),
+    precip:  json.current.precipitation_probability,
+    code:    json.current.weathercode
+  };
+  _weatherCache[key] = { ts: now, data: data };
+  return data;
+}
+
+async function updateWeatherPanel(lat, lon) {
+  var box     = document.getElementById('p-weather');
+  var content = document.getElementById('p-weather-content');
+  if (!box || !content) return;
+  // Loading-State
+  box.className = 'weather-box loading';
+  content.innerHTML = '<span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Wird geladen…</span>';
+  try {
+    var w = await fetchWeatherData(lat, lon);
+    box.className = 'weather-box';
+    content.innerHTML =
+      '<div class="weather-icon">' + weatherIcon(w.code) + '</div>' +
+      '<div class="weather-item"><span>Temp</span> ' + w.temp.toFixed(1) + ' °C</div>' +
+      '<div class="weather-item"><span>Druck</span> ' + w.pressure + ' hPa</div>' +
+      '<div class="weather-item"><span>Regen</span> ' + w.precip + ' %</div>';
+  } catch(e) {
+    box.className = 'weather-box error';
+    content.innerHTML = '<span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Keine aktuellen Wetterdaten</span>';
+  }
+}
 
 // ── Listenansicht ──────────────────────────────────────────────────────────────
 var listVisible = false;
