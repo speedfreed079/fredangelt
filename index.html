@@ -210,46 +210,36 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
            cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center}
 .layer-btn.on{border-color:var(--accent);color:var(--accent);background:rgba(61,153,112,.1)}
 
-/* ── Listenansicht ─────────────────────────────────────────────────────────── */
-#listView{background:var(--surface);border-top:1px solid var(--border);
-          max-height:38vh;overflow-y:auto;flex-shrink:0;display:none;order:0;
-          scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+/* Listenansicht */
+#listView{background:var(--surface);border-top:1px solid var(--border);max-height:38vh;overflow-y:auto;flex-shrink:0;display:none;order:0;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
 #listView::-webkit-scrollbar{width:3px}
 #listView::-webkit-scrollbar-thumb{background:var(--border)}
-.list-header{display:flex;align-items:center;justify-content:space-between;
-             padding:6px 12px;border-bottom:1px solid var(--border);flex-shrink:0;
-             font-size:.65rem;font-family:var(--mono);color:var(--d);
-             position:sticky;top:0;background:var(--surface);z-index:1}
+.list-header{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;border-bottom:1px solid var(--border);flex-shrink:0;font-size:.65rem;font-family:var(--mono);color:var(--d);position:sticky;top:0;background:var(--surface);z-index:1}
 .list-header span{font-weight:700;color:var(--t)}
 .list-toggle{background:none;border:none;color:var(--d);cursor:pointer;font-size:.8rem;padding:0 4px}
-.list-item{display:flex;align-items:center;gap:10px;padding:8px 12px;
-           border-bottom:1px solid rgba(36,48,68,.5);cursor:pointer;transition:background .12s}
+.list-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(36,48,68,.5);cursor:pointer;transition:background .12s}
 .list-item:hover{background:var(--surface2)}
 .list-item:last-child{border-bottom:none}
 .li-ampel{font-size:1rem;flex-shrink:0;width:18px;text-align:center}
-.li-name{flex:1;font-size:.78rem;color:var(--t);white-space:nowrap;
-         overflow:hidden;text-overflow:ellipsis;min-width:0}
+.li-name{flex:1;font-size:.78rem;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .li-sub{font-size:.63rem;color:var(--d);font-family:var(--mono)}
-.li-dist{font-size:.68rem;font-family:var(--mono);color:var(--accent);
-         white-space:nowrap;flex-shrink:0}
+.li-dist{font-size:.68rem;font-family:var(--mono);color:var(--accent);white-space:nowrap;flex-shrink:0}
 .li-dist.no-gps{color:var(--d)}
-#listToggleBtn{background:var(--surface2);border:1px solid var(--border);
-               border-radius:8px;padding:5px 9px;cursor:pointer;color:var(--d);
-               font-size:.75rem;font-family:var(--mono);transition:all .15s;white-space:nowrap}
+#listToggleBtn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 9px;cursor:pointer;color:var(--d);font-size:.75rem;font-family:var(--mono);transition:all .15s;white-space:nowrap}
 #listToggleBtn.active{border-color:var(--accent);color:var(--accent);background:rgba(61,153,112,.12)}
 
-/* ── Wetter-Panel ──────────────────────────────────────────────────────────── */
-.weather-box{background:rgba(56,139,253,.06);border:1px solid rgba(56,139,253,.2);
-             border-radius:8px;padding:9px 12px;margin-bottom:10px}
+/* Wetter + Aktivitaets-Panel */
+.weather-box{background:rgba(56,139,253,.06);border:1px solid rgba(56,139,253,.2);border-radius:8px;padding:9px 12px;margin-bottom:10px}
 .weather-box.loading{background:rgba(107,128,153,.06);border-color:var(--border)}
 .weather-box.error{background:transparent;border-color:var(--border)}
-.weather-title{font-size:.63rem;font-family:var(--mono);text-transform:uppercase;
-               letter-spacing:1px;color:var(--d);margin-bottom:6px}
+.weather-title{font-size:.63rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;color:var(--d);margin-bottom:6px}
 .weather-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.weather-item{display:flex;align-items:center;gap:4px;font-size:.75rem;
-              font-family:var(--mono);color:var(--t)}
+.weather-item{display:flex;align-items:center;gap:4px;font-size:.75rem;font-family:var(--mono);color:var(--t)}
 .weather-item span{color:var(--d);font-size:.68rem}
 .weather-icon{font-size:1.1rem;line-height:1}
+.act-section{margin-top:7px;padding-top:7px;border-top:1px solid rgba(36,48,68,.6)}
+.act-badge{font-size:.72rem;font-family:var(--mono);color:var(--t);padding:3px 0;line-height:1.4}
+.act-badge strong{color:var(--t)}
 </style>
 </head>
 <body>
@@ -291,13 +281,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
   </div>
 </div>
 <div id="overlay"></div>
-
-<!-- Listenansicht -->
 <div id="listView">
-  <div class="list-header">
-    <span id="listCount">0 Gewässer</span>
-    <button class="list-toggle" onclick="toggleList()" title="Liste schließen">✕</button>
-  </div>
+  <div class="list-header"><span id="listCount">0 Gew&auml;sser</span><button class="list-toggle" onclick="toggleList()">&#x2715;</button></div>
   <div id="listItems"></div>
 </div>
 
@@ -324,12 +309,11 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
     </div>
     <div id="p-weather" class="weather-box loading">
       <div class="weather-title">Wetterlage am Spot</div>
-      <div class="weather-row" id="p-weather-content">
-        <span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Wird geladen…</span>
-      </div>
+      <div class="weather-row" id="p-weather-content"><span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Wird geladen&hellip;</span></div>
+      <div class="act-section" id="p-activity"></div>
     </div>
-    <a class="btn-primary"   id="p-route"  href="#" target="_blank" rel="noopener">🚗 Route in Google Maps</a>
-    <a class="btn-secondary" id="p-maps"   href="#" target="_blank" rel="noopener">📍 Auf Karte zeigen</a>
+    <a class="btn-primary"   id="p-route"  href="#" target="_blank" rel="noopener">&#x1F697; Route in Google Maps</a>
+    <a class="btn-secondary" id="p-maps"   href="#" target="_blank" rel="noopener">&#x1F4CD; Auf Karte zeigen</a>
   </div>
 </div>
 
@@ -38594,7 +38578,7 @@ function openPanel(row){
 
   // Distance (async)
   getDrivingInfo(lat,lon);
-  // Wetter (async, non-blocking)
+  // Wetter + ActivityEngine (async, non-blocking)
   updateWeatherPanel(lat,lon);
 
   // Meta pills
@@ -38658,45 +38642,198 @@ function closePanel(){
 document.getElementById('overlay').addEventListener('click',closePanel);
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-
-// ── Wetter-Cache (In-Memory, kein localStorage) ────────────────────────────
 var _weatherCache = {};
 var WEATHER_TTL = 30 * 60 * 1000; // 30 Minuten
 
 function weatherIcon(code) {
-  // WMO Weather Code → Icon
-  if (code === 0)            return '☀️';
-  if (code <= 2)             return '⛅';
-  if (code <= 3)             return '☁️';
-  if (code <= 49)            return '🌫️';
-  if (code <= 59)            return '🌦️';
-  if (code <= 69)            return '🌧️';
-  if (code <= 79)            return '🌨️';
-  if (code <= 84)            return '🌧️';
-  if (code <= 99)            return '⛈️';
-  return '🌡️';
+  if (code === 0)  return '&#9728;&#65039;';
+  if (code <= 2)   return '&#9925;';
+  if (code <= 3)   return '&#9729;&#65039;';
+  if (code <= 49)  return '&#127787;&#65039;';
+  if (code <= 59)  return '&#127782;&#65039;';
+  if (code <= 69)  return '&#127783;&#65039;';
+  if (code <= 79)  return '&#127784;&#65039;';
+  if (code <= 84)  return '&#127783;&#65039;';
+  if (code <= 99)  return '&#9928;&#65039;';
+  return '&#127777;&#65039;';
 }
 
+// Mondphase (reine JS-Berechnung)
+function getMoonPhase() {
+  var REF = new Date(Date.UTC(2000, 0, 6, 18, 14));
+  var CYCLE = 29.530588853;
+  var elapsed = (Date.now() - REF.getTime()) / (1000 * 60 * 60 * 24);
+  return ((elapsed % CYCLE) + CYCLE) % CYCLE;
+}
+
+// ActivityEngine
+var ActivityEngine = {
+  pressureTrend: function(now, ago) {
+    if (!ago) return 0;
+    return now - ago;
+  },
+  isDusk: function(sunriseStr, sunsetStr, windowMin) {
+    windowMin = windowMin || 45;
+    if (!sunriseStr || !sunsetStr) return false;
+    var now  = new Date();
+    var rise = new Date(sunriseStr);
+    var set  = new Date(sunsetStr);
+    return Math.abs(now - rise) / 60000 <= windowMin ||
+           Math.abs(now - set)  / 60000 <= windowMin;
+  },
+  hecht: function(w) {
+    var score = 5;
+    if (w.wind > 25)       score += 2.5;
+    else if (w.wind > 15)  score += 1.5;
+    else if (w.wind < 5)   score -= 1;
+    if (w.temp < 12)       score += 1.5;
+    else if (w.temp > 22)  score -= 1.5;
+    var moon = getMoonPhase();
+    var isNight = (function() {
+      if (!w.sunrise || !w.sunset) return false;
+      var n = new Date();
+      return n < new Date(w.sunrise) || n > new Date(w.sunset);
+    })();
+    if (moon >= 13 && moon <= 17 && isNight) score += 1.5;
+    if (w.pressureTrend < -3) score += 1;
+    return Math.max(0, Math.min(10, score));
+  },
+  zander: function(w) {
+    var score = 4;
+    if (ActivityEngine.isDusk(w.sunrise, w.sunset, 60)) score += 3.5;
+    if (w.temp > 18)       score += 1.5;
+    else if (w.temp > 14)  score += 0.5;
+    else if (w.temp < 8)   score -= 1.5;
+    if (w.clouds > 70)     score += 1;
+    if (w.pressureTrend > -2 && w.pressureTrend < 4) score += 0.5;
+    return Math.max(0, Math.min(10, score));
+  },
+  barsch: function(w) {
+    var score = 5;
+    if (w.clouds > 75)          score += 2.5;
+    else if (w.clouds > 50)     score += 1;
+    else if (w.clouds < 20)     score -= 1;
+    if (w.temp >= 16 && w.temp <= 24) score += 2;
+    else if (w.temp >= 12)      score += 0.5;
+    else if (w.temp < 8)        score -= 2;
+    return Math.max(0, Math.min(10, score));
+  },
+  forelle: function(w) {
+    var diff = Math.abs(w.temp - 14);
+    return Math.max(0, Math.min(10, 10 - diff * 1.2));
+  },
+  karpfen: function(w) {
+    var score = 3;
+    if (w.temp >= 22)      score += 4;
+    else if (w.temp >= 18) score += 2.5;
+    else if (w.temp >= 14) score += 1;
+    else if (w.temp < 10)  score -= 2;
+    if (w.clouds < 30)     score += 1.5;
+    return Math.max(0, Math.min(10, score));
+  },
+  general: function(w) {
+    var score = 5;
+    if (w.precip < 20)          score += 1;
+    if (w.precip > 60)          score -= 2;
+    if (w.wind > 30)            score -= 1;
+    if (w.pressureTrend > 2)    score += 1;
+    if (w.pressureTrend < -4)   score -= 1;
+    return Math.max(0, Math.min(10, score));
+  },
+  getTrafficLight: function(score) {
+    if (score >= 8) return { emoji: '&#128994;', label: 'Hoch' };
+    if (score >= 4) return { emoji: '&#128993;', label: 'Mittel' };
+    return { emoji: '&#128308;', label: 'Gering' };
+  },
+  getContext: function(fish, w) {
+    if (fish === 'hecht') {
+      if (w.wind > 20) return 'Viel Wind';
+      var moon = getMoonPhase();
+      if (moon >= 13 && moon <= 17) return 'Vollmond-Phase';
+      if (w.temp < 12) return 'Kuehl = gut';
+      return '';
+    }
+    if (fish === 'zander') {
+      return ActivityEngine.isDusk(w.sunrise, w.sunset, 60) ? 'Daemmerungszeit!' : 'Ausserhalb Daemmerung';
+    }
+    if (fish === 'barsch') {
+      if (w.clouds > 75) return 'Hohe Bewoelkung';
+      if (w.temp >= 16) return 'Gute Temperatur';
+      return '';
+    }
+    if (fish === 'forelle') {
+      if (w.temp >= 12 && w.temp <= 16) return 'Optimale Temperatur';
+      if (w.temp > 18) return 'Zu warm';
+      return 'Suboptimal';
+    }
+    if (fish === 'karpfen') {
+      if (w.temp >= 22) return 'Ideal warm';
+      if (w.temp < 14) return 'Zu kuehl';
+      return '';
+    }
+    return '';
+  },
+  scoreForFish: function(fish, w) {
+    if (fish === 'hecht')   return ActivityEngine.hecht(w);
+    if (fish === 'zander')  return ActivityEngine.zander(w);
+    if (fish === 'barsch')  return ActivityEngine.barsch(w);
+    if (fish === 'forelle') return ActivityEngine.forelle(w);
+    if (fish === 'karpfen') return ActivityEngine.karpfen(w);
+    return null;
+  },
+  renderBadges: function(w) {
+    var FISH_KEYS = ['hecht','zander','barsch','forelle','karpfen'];
+    var activeFish = FISH_KEYS.filter(function(f) { return activeFilters.has(f); });
+    if (activeFish.length === 0) {
+      var gs = ActivityEngine.general(w);
+      var gl = ActivityEngine.getTrafficLight(gs);
+      return '<div class="act-badge">' + gl.emoji +
+        ' Wetterlage: <strong>' + gl.label + '</strong> (' + gs.toFixed(1) + '/10)</div>';
+    }
+    return activeFish.map(function(f) {
+      var score = ActivityEngine.scoreForFish(f, w);
+      var light = ActivityEngine.getTrafficLight(score);
+      var ctx   = ActivityEngine.getContext(f, w);
+      var label = f.charAt(0).toUpperCase() + f.slice(1);
+      var lufttempHint = (f === 'karpfen' || f === 'forelle')
+        ? ' <span style="opacity:.55;font-size:.58rem">(Lufttemp.)</span>' : '';
+      return '<div class="act-badge">' + light.emoji +
+        ' ' + label + ': <strong>' + light.label + '</strong>' +
+        (ctx ? ' &ndash; ' + ctx : '') + lufttempHint + '</div>';
+    }).join('');
+  }
+};
+
+// Wetter-Fetch (erweitert)
 async function fetchWeatherData(lat, lon) {
   var key = lat.toFixed(3) + '_' + lon.toFixed(3);
   var now = Date.now();
-  // Cache prüfen
   if (_weatherCache[key] && (now - _weatherCache[key].ts) < WEATHER_TTL) {
     return _weatherCache[key].data;
   }
   var url = 'https://api.open-meteo.com/v1/forecast' +
-    '?latitude=' + lat +
-    '&longitude=' + lon +
-    '&current=temperature_2m,surface_pressure,precipitation_probability,weathercode' +
-    '&wind_speed_unit=kmh&timezone=Europe%2FBerlin';
-  var resp = await fetchWithTimeout(url, 6000);
+    '?latitude=' + lat + '&longitude=' + lon +
+    '&current=temperature_2m,surface_pressure,precipitation_probability,weathercode,wind_speed_10m,cloud_cover' +
+    '&hourly=surface_pressure&daily=sunrise,sunset' +
+    '&forecast_days=1&past_days=1&wind_speed_unit=kmh&timezone=Europe%2FBerlin';
+  var resp = await fetchWithTimeout(url, 8000);
   if (!resp.ok) throw new Error('HTTP ' + resp.status);
   var json = await resp.json();
+  var pressureNow = json.current.surface_pressure;
+  var pressure24h = null;
+  if (json.hourly && json.hourly.surface_pressure && json.hourly.surface_pressure.length >= 25) {
+    pressure24h = json.hourly.surface_pressure[json.hourly.surface_pressure.length - 25];
+  }
   var data = {
-    temp:    json.current.temperature_2m,
-    pressure: Math.round(json.current.surface_pressure),
-    precip:  json.current.precipitation_probability,
-    code:    json.current.weathercode
+    temp:          json.current.temperature_2m,
+    pressure:      Math.round(pressureNow),
+    precip:        json.current.precipitation_probability,
+    code:          json.current.weathercode,
+    wind:          json.current.wind_speed_10m || 0,
+    clouds:        json.current.cloud_cover || 0,
+    pressureTrend: ActivityEngine.pressureTrend(pressureNow, pressure24h),
+    sunrise:       json.daily && json.daily.sunrise ? json.daily.sunrise[0] : null,
+    sunset:        json.daily && json.daily.sunset  ? json.daily.sunset[0]  : null
   };
   _weatherCache[key] = { ts: now, data: data };
   return data;
@@ -38706,24 +38843,28 @@ async function updateWeatherPanel(lat, lon) {
   var box     = document.getElementById('p-weather');
   var content = document.getElementById('p-weather-content');
   if (!box || !content) return;
-  // Loading-State
   box.className = 'weather-box loading';
-  content.innerHTML = '<span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Wird geladen…</span>';
+  content.innerHTML = '<span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Wird geladen&hellip;</span>';
   try {
     var w = await fetchWeatherData(lat, lon);
     box.className = 'weather-box';
+    var trend = w.pressureTrend > 1 ? '&uarr;' : w.pressureTrend < -1 ? '&darr;' : '&rarr;';
     content.innerHTML =
       '<div class="weather-icon">' + weatherIcon(w.code) + '</div>' +
-      '<div class="weather-item"><span>Temp</span> ' + w.temp.toFixed(1) + ' °C</div>' +
-      '<div class="weather-item"><span>Druck</span> ' + w.pressure + ' hPa</div>' +
+      '<div class="weather-item"><span>Temp</span> ' + w.temp.toFixed(1) + ' &deg;C</div>' +
+      '<div class="weather-item"><span>Druck</span> ' + w.pressure + ' hPa ' + trend + '</div>' +
+      '<div class="weather-item"><span>Wind</span> ' + w.wind.toFixed(0) + ' km/h</div>' +
       '<div class="weather-item"><span>Regen</span> ' + w.precip + ' %</div>';
+    var actEl = document.getElementById('p-activity');
+    if (actEl) actEl.innerHTML = ActivityEngine.renderBadges(w);
   } catch(e) {
     box.className = 'weather-box error';
-    content.innerHTML = '<span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Keine aktuellen Wetterdaten</span>';
+    content.innerHTML = '<span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Keine Wetterdaten verf&uuml;gbar</span>';
   }
 }
 
-// ── Listenansicht ──────────────────────────────────────────────────────────────
+
+// Listenansicht
 var listVisible = false;
 var _lastFiltered = [];
 
@@ -38738,9 +38879,9 @@ function toggleList() {
 
 function ampelIcon(row) {
   var nr = row.Gewässer_Nr || '';
-  if (nr.startsWith('Salmo-') || row.ist_salmonide === 'ja') return '🔵';
-  if (nr.match(/^V[CFP]/)) return '🟡';
-  return '🟢';
+  if (nr.startsWith('Salmo-') || row.ist_salmonide === 'ja') return '&#x1F535;';
+  if (nr.match(/^V[CFP]/)) return '&#x1F7E1;';
+  return '&#x1F7E2;';
 }
 
 function renderList(filtered) {
@@ -38750,7 +38891,7 @@ function renderList(filtered) {
   var countEl   = document.getElementById('listCount');
   countEl.textContent = filtered.length + ' Gewässer';
   if (filtered.length === 0) {
-    container.innerHTML = '<div style="padding:16px;text-align:center;font-size:.75rem;color:var(--d);font-family:var(--mono)">Keine Gewässer 🎣</div>';
+    container.innerHTML = '<div style="padding:16px;text-align:center;font-size:.75rem;color:var(--d);font-family:var(--mono)">Keine Gewässer</div>';
     return;
   }
   var rows = filtered.slice();
@@ -38766,15 +38907,13 @@ function renderList(filtered) {
       : null;
     var distHtml = dist
       ? '<span class="li-dist">' + dist + '</span>'
-      : '<span class="li-dist no-gps">—</span>';
+      : '<span class="li-dist no-gps">&mdash;</span>';
     return '<div class="list-item" data-nr="' + escHtml(row.Gewässer_Nr) + '">' +
       '<span class="li-ampel">' + ampelIcon(row) + '</span>' +
       '<div class="li-name">' + escHtml(row.Gewässername) +
         '<div class="li-sub">' + escHtml(row.Gewässer_Nr) +
-        (row.gewässer_art ? ' · ' + escHtml(row.gewässer_art) : '') + '</div>' +
-      '</div>' +
-      distHtml +
-      '</div>';
+        (row.gewässer_art ? ' &middot; ' + escHtml(row.gewässer_art) : '') + '</div>' +
+      '</div>' + distHtml + '</div>';
   }).join('');
   container.querySelectorAll('.list-item').forEach(function(el) {
     el.addEventListener('click', function() {
