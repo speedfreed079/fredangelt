@@ -50,14 +50,13 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 #planBadge.show{display:flex}
 
 /* GPS Toast (ersetzt GPS-Bar) */
-#gpsToast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-8px);
+#gpsToast{position:fixed;top:70px;left:12px;right:12px;
           background:#1e2d3d;border:1px solid var(--border);border-radius:10px;
           padding:9px 16px;font-size:.82rem;font-family:var(--sans);color:var(--t);
-          display:flex;align-items:flex-start;gap:8px;z-index:3000;
-          opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
-          white-space:normal;max-width:calc(100vw - 24px);
-          box-shadow:0 4px 20px rgba(0,0,0,.6)}
-#gpsToast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+          display:none;align-items:flex-start;gap:8px;z-index:3000;
+          transition:opacity .2s;white-space:normal;
+          box-shadow:0 4px 20px rgba(0,0,0,.6);opacity:0}
+#gpsToast.show{display:flex;opacity:1}
 #gpsToast.error{border-color:rgba(192,137,42,.7);color:#f0c060;background:#1e1a10}
 #gpsToast .toast-close{background:none;border:none;color:var(--d);cursor:pointer;
                        font-size:1rem;padding:0 0 0 8px;line-height:1}
@@ -291,7 +290,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 <header>
   <div class="header-top">
     <div class="logo">🎣 Fred <span>angelt</span></div>
-    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.3</span>
+    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.4</span>
     <div class="font-toggle">
       <button class="font-btn" data-size="14" onclick="setFontSize(14)" title="Kleine Schrift">A</button>
       <button class="font-btn on" data-size="16" onclick="setFontSize(16)" title="Mittlere Schrift">A</button>
@@ -38464,7 +38463,9 @@ function showGpsToast(msg, isError) {
   t.className = 'show' + (isError ? ' error' : '');
 }
 function hideGpsToast() {
-  document.getElementById('gpsToast').className = '';
+  var t = document.getElementById('gpsToast');
+  t.className = '';
+  t.style.display = '';
 }
 
 function toggleGps() {
