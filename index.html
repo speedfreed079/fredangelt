@@ -22,6 +22,14 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
        padding:8px 12px;display:flex;flex-direction:column;gap:6px;z-index:1000;flex-shrink:0}
 .header-top{display:flex;align-items:center;gap:8px}
 .logo{font-family:var(--mono);font-size:.9rem;font-weight:700;color:var(--accent);white-space:nowrap;flex-shrink:0}
+/* Font size toggle */
+.font-toggle{display:flex;align-items:center;gap:2px;margin-left:4px;flex-shrink:0}
+.font-btn{background:none;border:1px solid var(--border);border-radius:5px;color:var(--d);
+          cursor:pointer;font-family:var(--mono);line-height:1;padding:2px 5px;transition:all .15s}
+.font-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.font-btn:nth-child(1){font-size:10px}
+.font-btn:nth-child(2){font-size:13px}
+.font-btn:nth-child(3){font-size:16px}
 .logo span{color:var(--d);font-weight:400}
 .header-right{display:flex;gap:6px;align-items:center;flex-shrink:0;margin-left:auto}
 .icon-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;
@@ -246,10 +254,23 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .act-section{margin-top:7px;padding-top:7px;border-top:1px solid rgba(36,48,68,.6)}
 .act-badge{font-size:.72rem;font-family:var(--mono);color:var(--t);padding:3px 0;line-height:1.4}
 .act-badge strong{color:var(--t)}
-.forecast-bar{margin-top:7px;padding-top:6px;border-top:1px solid rgba(36,48,68,.6);
-              font-size:.68rem;font-family:var(--mono);color:var(--d);line-height:1.6}
-.forecast-bar strong{color:var(--t);margin-right:3px}
-.fc-day{display:inline-flex;align-items:center;gap:3px;margin-right:6px}
+.forecast-bar{margin-top:7px;padding-top:6px;border-top:1px solid rgba(36,48,68,.6)}
+.forecast-bar details{font-size:.68rem;font-family:var(--mono);color:var(--d)}
+.forecast-bar summary{cursor:pointer;color:var(--d);list-style:none;padding:2px 0;
+                      user-select:none;-webkit-tap-highlight-color:transparent}
+.forecast-bar summary::-webkit-details-marker{display:none}
+.forecast-bar summary:hover{color:var(--t)}
+.fc-overview{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px}
+.fc-day-chip{display:inline-flex;align-items:center;gap:3px;font-size:.7rem;
+             font-family:var(--mono);color:var(--t)}
+.fc-day-detail{border-top:1px solid rgba(36,48,68,.5);margin-top:6px;padding-top:6px;
+               display:flex;flex-direction:column;gap:6px}
+.fc-day-block{padding:5px 0}
+.fc-day-title{font-size:.7rem;color:var(--t);font-weight:700;margin-bottom:3px}
+.fc-meta{font-size:.65rem;color:var(--d);line-height:1.6}
+.fc-meta span{color:var(--t)}
+.fc-fish-line{font-size:.65rem;color:var(--d);margin-top:2px;line-height:1.5}
+.fc-fish-line strong{color:var(--t)}
 </style>
 </head>
 <body>
@@ -259,6 +280,12 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 <header>
   <div class="header-top">
     <div class="logo">🎣 Fred <span>angelt</span></div>
+    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.1</span>
+    <div class="font-toggle">
+      <button class="font-btn" data-size="14" onclick="setFontSize(14)" title="Kleine Schrift">A</button>
+      <button class="font-btn on" data-size="16" onclick="setFontSize(16)" title="Mittlere Schrift">A</button>
+      <button class="font-btn" data-size="19" onclick="setFontSize(19)" title="Große Schrift">A</button>
+    </div>
     <div class="header-right">
       <button class="icon-btn active" id="gpsBtn" onclick="toggleGps()" title="GPS ein/ausschalten">📍</button>
       <button class="icon-btn" id="listToggleBtn" onclick="toggleList()" title="Listenansicht">☰</button>
@@ -38376,6 +38403,46 @@ function initMap() {
   map.addLayer(clusterGroup);
 }
 
+// ── Schriftgröße ─────────────────────────────────────────────────────────────
+function setFontSize(px) {
+  document.documentElement.style.fontSize = px + 'px';
+  document.querySelectorAll('.font-btn').forEach(function(b){
+    b.classList.toggle('on', parseInt(b.dataset.size) === px);
+  });
+}
+
+// ── Swipe-to-dismiss Panel (Mobile) ──────────────────────────────────────────
+(function(){
+  var panel = document.getElementById('panel');
+  var handle = panel ? panel.querySelector('.drag-handle') : null;
+  if (!handle) return;
+  var startY = 0, currentY = 0, dragging = false;
+  handle.addEventListener('touchstart', function(e){
+    startY = e.touches[0].clientY;
+    currentY = startY;
+    dragging = true;
+    panel.style.transition = 'none';
+  }, {passive: true});
+  document.addEventListener('touchmove', function(e){
+    if (!dragging) return;
+    currentY = e.touches[0].clientY;
+    var dy = currentY - startY;
+    if (dy > 0) panel.style.transform = 'translateY(' + dy + 'px)';
+  }, {passive: true});
+  document.addEventListener('touchend', function(){
+    if (!dragging) return;
+    dragging = false;
+    panel.style.transition = '';
+    var dy = currentY - startY;
+    if (dy > 80) {
+      panel.style.transform = '';
+      closePanel();
+    } else {
+      panel.style.transform = '';
+    }
+  });
+})();
+
 // ── GPS ───────────────────────────────────────────────────────────────────────
 var gpsEnabled = true; // Standard: an
 
@@ -38416,7 +38483,7 @@ function locateMe() {
     function(pos){
       userLat=pos.coords.latitude;userLon=pos.coords.longitude;
       var acc=Math.round(pos.coords.accuracy);
-      barText.textContent='📍 '+userLat.toFixed(4)+', '+userLon.toFixed(4)+' (±'+acc+' m)';
+      barText.textContent='📍 Standort gefunden (±'+acc+' m)';
       // Remove old marker
       if(gpsMarker){map.removeLayer(gpsMarker);gpsMarker=null;}
       // GPS DivIcon — liegt über ClusterGroup dank zIndexOffset
@@ -38852,10 +38919,76 @@ var ActivityEngine = {
       });
       if (dayScores.length === 0) continue;
       var weekdays = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+      var maxScore = Math.max.apply(null, dayScores);
+      var maxIdx   = dayScores.indexOf(maxScore);
+      var bestHour = checkHours[maxIdx];
+
+      // Tages-Min/Max Temperatur
+      var dayTemps = [];
+      for (var th = 0; th < 24; th++) {
+        var tidx = hourly.time.indexOf(dateStr + 'T' + (th < 10 ? '0' + th : th) + ':00');
+        if (tidx > -1 && hourly.temperature_2m) dayTemps.push(hourly.temperature_2m[tidx]);
+      }
+      var tempMin = dayTemps.length ? Math.round(Math.min.apply(null, dayTemps)) : null;
+      var tempMax = dayTemps.length ? Math.round(Math.max.apply(null, dayTemps)) : null;
+
+      // Regen + Wind um Mittag (12:00)
+      var idx12 = hourly.time.indexOf(dateStr + 'T12:00');
+      var precip12 = (idx12 > -1 && hourly.precipitation_probability) ? hourly.precipitation_probability[idx12] : null;
+      var wind12   = (idx12 > -1 && hourly.wind_speed_10m) ? Math.round(hourly.wind_speed_10m[idx12]) : null;
+
+      // Mondphase fuer diesen Tag
+      var moonPhase = getMoonPhase() + dayOffset;
+      moonPhase = ((moonPhase % 29.53) + 29.53) % 29.53;
+      var moonIcon = moonPhase < 1.5 ? '&#x1F311;' :
+                     moonPhase < 7.5 ? '&#x1F312;' :
+                     moonPhase < 14  ? '&#x1F313;' :
+                     moonPhase < 16  ? '&#x1F315;' :
+                     moonPhase < 22  ? '&#x1F316;' :
+                     moonPhase < 28  ? '&#x1F317;' : '&#x1F311;';
+
+      // Bestes Zeitfenster pro Fischart
+      var fishTips = [];
+      fish.forEach(function(f) {
+        var tip = '';
+        if (f === 'zander' && sunsetStr) {
+          var su = new Date(sunsetStr);
+          tip = 'Peak ~' + su.getHours() + ':' + (su.getMinutes()<10?'0':'') + su.getMinutes() + ' Uhr';
+        } else if (f === 'hecht') {
+          tip = bestHour >= 20 ? 'Ab Einbruch Dunkelheit' : bestHour <= 8 ? 'Morgens' : 'Ganztags';
+        } else if (f === 'barsch') {
+          tip = 'Tagsüber bei Bewölkung';
+        } else if (f === 'forelle') {
+          tip = tempMax && tempMax <= 16 ? 'Optimale Temp.' : 'Temp. suboptimal';
+        } else if (f === 'karpfen') {
+          tip = tempMax && tempMax >= 22 ? 'Ideal warm' : 'Wärme abwarten';
+        }
+        if (tip) fishTips.push({ fish: f.charAt(0).toUpperCase()+f.slice(1), tip: tip });
+      });
+
+      // Sonnenuntergang formatiert
+      var sunsetFmt = sunsetStr ? (function() {
+        var d = new Date(sunsetStr);
+        return d.getHours() + ':' + (d.getMinutes()<10?'0':'') + d.getMinutes();
+      })() : null;
+      var sunriseFmt = sunriseStr ? (function() {
+        var d = new Date(sunriseStr);
+        return d.getHours() + ':' + (d.getMinutes()<10?'0':'') + d.getMinutes();
+      })() : null;
+
       results.push({
-        label: weekdays[targetDay.getDay()],
-        score: Math.max.apply(null, dayScores),
-        light: ActivityEngine.getTrafficLight(Math.max.apply(null, dayScores))
+        label:     weekdays[targetDay.getDay()],
+        date:      dateStr,
+        score:     maxScore,
+        light:     ActivityEngine.getTrafficLight(maxScore),
+        tempMin:   tempMin,
+        tempMax:   tempMax,
+        precip:    precip12,
+        wind:      wind12,
+        sunrise:   sunriseFmt,
+        sunset:    sunsetFmt,
+        moonIcon:  moonIcon,
+        fishTips:  fishTips
       });
     }
     return results;
@@ -38894,7 +39027,7 @@ async function fetchWeatherData(lat, lon) {
   var url = 'https://api.open-meteo.com/v1/forecast' +
     '?latitude=' + lat + '&longitude=' + lon +
     '&current=temperature_2m,surface_pressure,precipitation_probability,weathercode,wind_speed_10m,cloud_cover' +
-    '&hourly=surface_pressure,temperature_2m,wind_speed_10m,cloud_cover' +
+    '&hourly=surface_pressure,temperature_2m,wind_speed_10m,cloud_cover,precipitation_probability' +
     '&daily=sunrise,sunset' +
     '&forecast_days=4&past_days=1&wind_speed_unit=kmh&timezone=Europe%2FBerlin';
   var resp = await fetchWithTimeout(url, 8000);
@@ -38946,10 +39079,38 @@ async function updateWeatherPanel(lat, lon) {
       var fcDays = (w.hourly && w.daily) ? ActivityEngine.getForecast(activeFishArr, w.hourly, w.daily) : null;
       var fcHtml = '';
       if (fcDays && fcDays.length > 0) {
-        var dayHtml = fcDays.map(function(d) {
-          return '<span class="fc-day">' + d.label + ' ' + d.light.emoji + '</span>';
-        }).join('');
-        fcHtml = '<div class="forecast-bar"><strong>&#x1F52E; Aussichten:</strong> ' + dayHtml + '</div>';
+        // Summary: kompakte Übersicht
+        var overviewHtml = fcDays.map(function(d) {
+          return '<span class="fc-day-chip">' + d.label + ' ' + d.light.emoji + '</span>';
+        }).join('<span style="color:var(--border)">|</span>');
+
+        // Detail-Blöcke pro Tag
+        var detailHtml = fcDays.map(function(d) {
+          var metaLine = '';
+          if (d.tempMin !== null) metaLine += '&#x1F321; <span>' + d.tempMin + '&ndash;' + d.tempMax + '&deg;C</span> ';
+          if (d.precip !== null)  metaLine += '&#x1F327; <span>' + d.precip + '%</span> ';
+          if (d.wind !== null)    metaLine += '&#x1F32C; <span>' + d.wind + ' km/h</span> ';
+          if (d.sunrise)          metaLine += '&#x1F305;<span>' + d.sunrise + '</span> ';
+          if (d.sunset)           metaLine += '&#x1F307;<span>' + d.sunset + '</span> ';
+          if (d.moonIcon)         metaLine += d.moonIcon + ' ';
+
+          var fishLines = d.fishTips.map(function(t) {
+            return '<div class="fc-fish-line">' + d.light.emoji + ' <strong>' + t.fish + ':</strong> ' + t.tip + '</div>';
+          }).join('');
+
+          return '<div class="fc-day-block">' +
+            '<div class="fc-day-title">' + d.label + ' &mdash; ' + d.light.label + '</div>' +
+            (metaLine ? '<div class="fc-meta">' + metaLine + '</div>' : '') +
+            fishLines +
+            '</div>';
+        }).join('<hr style="border:none;border-top:1px solid rgba(36,48,68,.4);margin:4px 0">');
+
+        fcHtml = '<div class="forecast-bar">' +
+          '<details>' +
+          '<summary>&#x1F52E; 3-Tage-Prognose &nbsp;<span class="fc-overview">' + overviewHtml + '</span></summary>' +
+          '<div class="fc-day-detail">' + detailHtml + '</div>' +
+          '</details>' +
+          '</div>';
       }
       actEl.innerHTML = badges + fcHtml;
     }
