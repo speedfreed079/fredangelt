@@ -92,7 +92,14 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 /* Map */
 #map{flex:1;z-index:1;min-height:0}
 
-/* GPS Marker */
+/* Highlighted Marker Pulse */
+@keyframes markerHighlight{
+  0%  {box-shadow:0 0 0 0 rgba(255,220,50,.8), 0 2px 8px rgba(0,0,0,.5)}
+  50% {box-shadow:0 0 0 12px rgba(255,220,50,.0), 0 2px 8px rgba(0,0,0,.5)}
+  100%{box-shadow:0 0 0 0 rgba(255,220,50,.0), 0 2px 8px rgba(0,0,0,.5)}
+}
+.marker-highlight .gw-marker-inner{animation:markerHighlight 1s ease-out 3;
+  outline:2px solid rgba(255,220,50,.9);outline-offset:2px}
 .gps-dot{width:18px;height:18px;border-radius:50%;background:#4fc3f7;
          border:3px solid #fff;box-shadow:0 0 0 5px rgba(79,195,247,.35),0 2px 8px rgba(0,0,0,.5);
          animation:gpsPulse 2s infinite}
@@ -175,11 +182,25 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 #fish-score-panel{display:none;background:var(--surface2);border:1px solid var(--accent);
                   border-radius:8px;padding:9px 12px;margin-bottom:8px;font-size:.78rem}
 #fish-score-panel.show{display:block}
-.fsp-header{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:5px;font-size:.85rem}
-.fsp-score-bar{height:6px;border-radius:3px;background:var(--border);margin:5px 0 7px;overflow:hidden}
+.fsp-title{font-size:.63rem;font-family:var(--mono);text-transform:uppercase;letter-spacing:1px;
+           color:var(--accent);margin-bottom:7px;font-weight:700}
+.fsp-row{padding:5px 0;border-top:1px solid rgba(36,48,68,.5)}
+.fsp-row:first-of-type{border-top:none;padding-top:0}
+.fsp-header{display:flex;align-items:center;gap:6px;font-weight:600;margin-bottom:4px;font-size:.82rem}
+.fsp-num{font-size:.68rem;color:var(--d);font-weight:400;margin-left:auto;font-family:var(--mono)}
+.fsp-score-bar{height:5px;border-radius:3px;background:var(--border);margin:3px 0 5px;overflow:hidden}
 .fsp-score-fill{height:100%;border-radius:3px;transition:width .4s}
-.fsp-ctx{font-size:.72rem;color:var(--d);font-family:var(--mono)}
-.fsp-hint{font-size:.63rem;color:var(--d);font-family:var(--mono);margin-top:5px;opacity:.7}
+.fsp-ctx{font-size:.72rem;color:var(--t);font-family:var(--mono)}
+.fsp-hint{font-size:.6rem;color:var(--d);font-family:var(--mono);margin-top:3px;opacity:.7}
+/* 3-Tage-Prognose Summary als Button */
+.forecast-bar summary{cursor:pointer;color:var(--accent);list-style:none;padding:4px 8px;
+                      background:rgba(61,153,112,.08);border:1px solid rgba(61,153,112,.25);
+                      border-radius:6px;display:flex;align-items:center;gap:6px;
+                      font-size:.72rem;font-family:var(--mono);transition:background .15s}
+.forecast-bar summary::-webkit-details-marker{display:none}
+.forecast-bar summary:hover{background:rgba(61,153,112,.15)}
+.forecast-bar summary::before{content:'▶';font-size:.55rem;transition:transform .2s}
+.forecast-bar details[open] summary::before{transform:rotate(90deg)}
 
 /* Panel body */
 .panel-body{flex:1;overflow-y:auto;padding:0 16px calc(16px + var(--safe-bottom));
@@ -305,7 +326,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 <header>
   <div class="header-top">
     <div class="logo">🎣 Fred <span>angelt</span></div>
-    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.4</span>
+    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.6b</span>
     <div class="font-toggle">
       <button class="font-btn" data-size="14" onclick="setFontSize(14)" title="Kleine Schrift">A</button>
       <button class="font-btn on" data-size="16" onclick="setFontSize(16)" title="Mittlere Schrift">A</button>
@@ -367,7 +388,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
   </div>
   <div class="panel-body">
     <div id="p-warn"></div>
-    <div class="section-title">Fischarten</div>
+    <div class="section-title">Fischarten <span style="font-size:.58rem;color:var(--accent);font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:400">— antippen für Beißindex</span></div>
     <div class="fish-grid" id="p-fish"></div>
     <div id="fish-score-panel"></div>
     <div class="quality-hint" id="p-quality"></div>
@@ -376,7 +397,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
       <div style="font-size:.78rem;color:var(--d)" id="p-kav"></div>
     </div>
     <div id="p-weather" class="weather-box loading">
-      <div class="weather-title">Wetterlage am Spot</div>
+      <div class="weather-title">Wetter am Spot</div>
       <div class="weather-row" id="p-weather-content"><span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Wird geladen&hellip;</span></div>
       <div class="act-section" id="p-activity"></div>
     </div>
@@ -38676,6 +38697,25 @@ function renderMarkers(){
   renderList(filtered);
 }
 
+var _highlightTimer = null;
+function highlightMarker(nr) {
+  // Vorherigen Highlight entfernen
+  if (_highlightTimer) clearTimeout(_highlightTimer);
+  document.querySelectorAll('.marker-highlight').forEach(function(el){
+    el.classList.remove('marker-highlight');
+  });
+  // Leaflet-Marker-Element finden und highlighten
+  var marker = markerMap[nr];
+  if (!marker) return;
+  var el = marker.getElement && marker.getElement();
+  if (el) {
+    el.classList.add('marker-highlight');
+    _highlightTimer = setTimeout(function(){
+      el.classList.remove('marker-highlight');
+    }, 3500);
+  }
+}
+
 // ── Panel ─────────────────────────────────────────────────────────────────────
 function openPanel(row){
   var nr=row.Gewässer_Nr||'',name=row.Gewässername||'';
@@ -38717,13 +38757,15 @@ function openPanel(row){
     var cls=val==='ja'?'fb-ja':val==='nein'?'fb-nein':'fb-unk';
     var ind=val==='ja'?'✓':val==='nein'?'✗':'?';
     var hasScore = val==='ja' && ENGINE_FISH.indexOf(f.key) > -1;
-    var scoreAttr = hasScore ? ' data-fish="'+f.key+'" onclick="showFishScore(\''+f.key+'\')"' : '';
+    var scoreAttr = hasScore ? ' data-fish="'+f.key+'" onclick="toggleFishScore(this)"' : '';
     var scoreCls  = hasScore ? ' has-score' : '';
     fishHtml+='<div class="fish-badge '+cls+scoreCls+'"'+scoreAttr+'><div class="icon">'+f.icon+'</div>'+
               '<div>'+f.label+'</div><div style="font-size:.65rem;font-weight:700">'+ind+'</div></div>';
   });
   document.getElementById('p-fish').innerHTML=fishHtml;
   document.getElementById('fish-score-panel').className='';
+  document.getElementById('fish-score-panel').innerHTML='';
+  _activeFishScores = new Set();
 
   // Quality
   var bucket=row._fisch_bucket||'',score=parseFloat(row._fisch_score||0);
@@ -38757,47 +38799,57 @@ function closePanel(){
   document.getElementById('overlay').classList.remove('show');
 }
 
-var _activeFishScore = null;
-function showFishScore(fish) {
+var _activeFishScores = new Set();
+
+var FISH_SCORE_LABELS = {hecht:'Hecht',zander:'Zander',barsch:'Barsch',forelle:'Forelle',karpfen:'Karpfen'};
+var FISH_SCORE_ICONS  = {hecht:'🐟',zander:'🎣',barsch:'🐠',forelle:'🌊',karpfen:'🐡'};
+var FISH_SCORE_HINTS  = {forelle:'⚠️ Lufttemperatur als Näherungswert',
+                         karpfen:'⚠️ Lufttemperatur als Näherungswert'};
+
+function toggleFishScore(el) {
+  var fish = el.dataset.fish;
+  if (_activeFishScores.has(fish)) {
+    _activeFishScores.delete(fish);
+    el.classList.remove('active');
+  } else {
+    _activeFishScores.add(fish);
+    el.classList.add('active');
+  }
+  renderFishScorePanel();
+}
+
+function renderFishScorePanel() {
   var panel = document.getElementById('fish-score-panel');
-  // Toggle: nochmal klicken schließt
-  if (_activeFishScore === fish && panel.classList.contains('show')) {
+  if (_activeFishScores.size === 0) {
     panel.className = '';
-    _activeFishScore = null;
-    document.querySelectorAll('.fish-badge.has-score').forEach(function(b){b.classList.remove('active');});
+    panel.innerHTML = '';
     return;
   }
-  _activeFishScore = fish;
-  document.querySelectorAll('.fish-badge.has-score').forEach(function(b){
-    b.classList.toggle('active', b.dataset.fish === fish);
-  });
-
-  var LABELS = {hecht:'Hecht',zander:'Zander',barsch:'Barsch',forelle:'Forelle',karpfen:'Karpfen'};
-  var ICONS  = {hecht:'🐟',zander:'🎣',barsch:'🐠',forelle:'🌊',karpfen:'🐡'};
-  var HINTS  = {forelle:'⚠️ Score basiert auf Lufttemperatur als Näherungswert',
-                karpfen:'⚠️ Score basiert auf Lufttemperatur als Näherungswert'};
-
   if (!lastWeatherData) {
-    panel.innerHTML = '<div class="fsp-ctx">⏳ Wetterdaten werden noch geladen — bitte kurz warten.</div>';
     panel.className = 'show';
+    panel.innerHTML = '<div class="fsp-ctx">⏳ Wetterdaten werden noch geladen…</div>';
     return;
   }
-
   var w = lastWeatherData;
-  var score = ActivityEngine.scoreForFish(fish, w);
-  var light = ActivityEngine.getTrafficLight(score);
-  var ctx   = ActivityEngine.getContext(fish, w);
-  var pct   = (score / 10 * 100).toFixed(0);
-  var fillColor = score >= 8 ? '#3d9970' : score >= 4 ? '#c0892a' : '#c03a2b';
-  var hint  = HINTS[fish] || '';
-
-  panel.innerHTML =
-    '<div class="fsp-header">' + ICONS[fish] + ' ' + LABELS[fish] +
-    ' &nbsp;' + light.emoji + ' <strong>' + light.label + '</strong>' +
-    ' <span style="font-size:.7rem;color:var(--d);font-weight:400;margin-left:auto">' + score.toFixed(1) + '/10</span></div>' +
-    '<div class="fsp-score-bar"><div class="fsp-score-fill" style="width:'+pct+'%;background:'+fillColor+'"></div></div>' +
-    (ctx ? '<div class="fsp-ctx">' + ctx + '</div>' : '') +
-    (hint ? '<div class="fsp-hint">' + hint + '</div>' : '');
+  var rows = '';
+  _activeFishScores.forEach(function(fish) {
+    var score = ActivityEngine.scoreForFish(fish, w);
+    var light = ActivityEngine.getTrafficLight(score);
+    var ctx   = ActivityEngine.getContext(fish, w);
+    var pct   = (score / 10 * 100).toFixed(0);
+    var fillColor = score >= 8 ? '#3d9970' : score >= 4 ? '#c0892a' : '#c03a2b';
+    var hint  = FISH_SCORE_HINTS[fish] || '';
+    rows +=
+      '<div class="fsp-row">' +
+      '<div class="fsp-header">' + FISH_SCORE_ICONS[fish] + ' ' + FISH_SCORE_LABELS[fish] +
+      ' &nbsp;' + light.emoji + ' <strong>' + light.label + '</strong>' +
+      '<span class="fsp-num">' + score.toFixed(1) + '/10</span></div>' +
+      '<div class="fsp-score-bar"><div class="fsp-score-fill" style="width:'+pct+'%;background:'+fillColor+'"></div></div>' +
+      (ctx  ? '<div class="fsp-ctx">'  + ctx  + '</div>' : '') +
+      (hint ? '<div class="fsp-hint">' + hint + '</div>' : '') +
+      '</div>';
+  });
+  panel.innerHTML = '<div class="fsp-title">🎣 Beißindex</div>' + rows;
   panel.className = 'show';
 }
 document.getElementById('overlay').addEventListener('click',closePanel);
@@ -39434,7 +39486,12 @@ function bindSuggestionClicks(box) {
         box.style.display='none';
         searchTerm='';
         renderMarkers();
-        if(row) openPanel(row);
+        if (row) {
+          var lat = parseFloat(row.lat), lon = parseFloat(row.lon);
+          map.setView([lat, lon], 14);
+          highlightMarker(row.Gewässer_Nr);
+          // Kein openPanel() — User klickt selbst auf den Marker
+        }
       } else if (type === 'ort') {
         var lat = parseFloat(item.getAttribute('data-lat'));
         var lon = parseFloat(item.getAttribute('data-lon'));
