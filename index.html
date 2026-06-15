@@ -53,8 +53,9 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 #gpsToast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-8px);
           background:#1e2d3d;border:1px solid var(--border);border-radius:10px;
           padding:9px 16px;font-size:.82rem;font-family:var(--sans);color:var(--t);
-          display:flex;align-items:center;gap:8px;z-index:3000;
-          opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;
+          display:flex;align-items:flex-start;gap:8px;z-index:3000;
+          opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;
+          white-space:normal;max-width:calc(100vw - 24px);
           box-shadow:0 4px 20px rgba(0,0,0,.6)}
 #gpsToast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
 #gpsToast.error{border-color:rgba(192,137,42,.7);color:#f0c060;background:#1e1a10}
@@ -38518,7 +38519,7 @@ function locateMe() {
       btn.classList.remove('active','searching');
       gpsEnabled=false;
       var msg;
-      if(err.code===1) msg='⚠️ Standortzugriff verweigert — Einstellungen prüfen (🔒 Adressleiste → Standort → Zulassen)';
+      if(err.code===1) msg='⚠️ Standortzugriff verweigert — bitte in den Browser-Einstellungen erlauben.';
       else if(err.code===2) msg='⚠️ Standort konnte nicht ermittelt werden.';
       else msg='⚠️ GPS nicht gefunden — ist der Standort aktiviert?';
       showGpsToast(msg, true);
