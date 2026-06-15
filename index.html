@@ -328,7 +328,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 <header>
   <div class="header-top">
     <div class="logo">🎣 Fred <span>angelt</span></div>
-    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.8</span>
+    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.9</span>
     <div class="font-toggle">
       <button class="font-btn" data-size="14" onclick="setFontSize(14)" title="Kleine Schrift">A</button>
       <button class="font-btn on" data-size="16" onclick="setFontSize(16)" title="Mittlere Schrift">A</button>
@@ -38559,7 +38559,10 @@ function locateMe() {
       btn.classList.remove('active','searching');
       gpsEnabled=false;
       var msg;
-      if(err.code===1) msg='⚠️ Standortzugriff verweigert — bitte in den Browser-Einstellungen erlauben.';
+      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      if(err.code===1) msg = isIOS
+        ? '⚠️ Standort verweigert. iOS: Einstellungen → Datenschutz → Ortungsdienste → Safari Websites → Beim Verwenden der App'
+        : '⚠️ Standort verweigert. Chrome: 🔒 in der Adressleiste → Standort → Zulassen, dann Seite neu laden.';
       else if(err.code===2) msg='⚠️ Standort konnte nicht ermittelt werden.';
       else msg='⚠️ GPS nicht gefunden — ist der Standort aktiviert?';
       showGpsToast(msg, true);
