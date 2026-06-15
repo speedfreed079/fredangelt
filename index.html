@@ -49,11 +49,21 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
            color:#4fc3f7;font-size:.65rem;font-family:var(--mono);white-space:nowrap;cursor:pointer;flex-shrink:0}
 #planBadge.show{display:flex}
 
-/* GPS Status bar */
-#gpsBar{background:rgba(61,153,112,.1);border-bottom:1px solid rgba(61,153,112,.25);
-        padding:5px 14px;font-size:.72rem;font-family:var(--mono);color:var(--accent);
-        display:none;align-items:center;gap:8px;flex-shrink:0}
-#gpsBar.error{background:rgba(192,137,42,.1);border-bottom-color:rgba(192,137,42,.25);color:var(--warn)}
+/* GPS Toast (ersetzt GPS-Bar) */
+#gpsToast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-8px);
+          background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+          padding:7px 14px;font-size:.72rem;font-family:var(--mono);color:var(--d);
+          display:flex;align-items:center;gap:8px;z-index:3000;
+          opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap;
+          box-shadow:0 4px 16px rgba(0,0,0,.4)}
+#gpsToast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+#gpsToast.error{border-color:rgba(192,137,42,.5);color:var(--warn);background:rgba(192,137,42,.08)}
+#gpsToast .toast-close{background:none;border:none;color:var(--d);cursor:pointer;
+                       font-size:.9rem;padding:0 0 0 6px;line-height:1}
+/* GPS Button pulsiert während Suche */
+@keyframes gpsBtnPulse{0%,100%{box-shadow:0 0 0 0 rgba(61,153,112,.4)}
+                       50%{box-shadow:0 0 0 5px rgba(61,153,112,0)}}
+.icon-btn.searching{animation:gpsBtnPulse 1.2s infinite}
 
 /* Radius Bar */
 #radiusBar{background:var(--surface);border-bottom:1px solid var(--border);
@@ -301,7 +311,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
   </div>
 </header>
 
-<div id="gpsBar">📍 <span id="gpsBarText">Standort wird ermittelt…</span></div>
+<div id="gpsToast"><span id="gpsToastText"></span><button class="toast-close" onclick="hideGpsToast()">✕</button></div>
 
 <div id="radiusBar">
   <label>📡 Umkreis:</label>
@@ -38446,16 +38456,24 @@ function setFontSize(px) {
 // ── GPS ───────────────────────────────────────────────────────────────────────
 var gpsEnabled = true; // Standard: an
 
+function showGpsToast(msg, isError) {
+  var t = document.getElementById('gpsToast');
+  var tx = document.getElementById('gpsToastText');
+  tx.textContent = msg;
+  t.className = 'show' + (isError ? ' error' : '');
+}
+function hideGpsToast() {
+  document.getElementById('gpsToast').className = '';
+}
+
 function toggleGps() {
   gpsEnabled = !gpsEnabled;
   var btn = document.getElementById('gpsBtn');
-  var bar = document.getElementById('gpsBar');
   if (!gpsEnabled) {
-    btn.classList.remove('active');
-    btn.title = 'GPS einschalten';
+    btn.classList.remove('active','searching');
+    hideGpsToast();
     if(gpsMarker){map.removeLayer(gpsMarker);gpsMarker=null;}
     userLat=null;userLon=null;
-    bar.style.display='none';
     document.getElementById('radiusBar').style.display='none';
     radiusKm=0;
     document.querySelectorAll('.radius-chip').forEach(function(c){c.classList.remove('on');});
@@ -38463,30 +38481,24 @@ function toggleGps() {
     renderMarkers();
   } else {
     btn.classList.add('active');
-    btn.title = 'GPS ausschalten';
     locateMe();
   }
 }
 
 function locateMe() {
   var btn = document.getElementById('gpsBtn');
-  var bar = document.getElementById('gpsBar');
-  var barText = document.getElementById('gpsBarText');
   if (!navigator.geolocation) {
-    bar.className='error';bar.style.display='flex';
-    barText.textContent='GPS nicht verfügbar auf diesem Gerät.';return;
+    showGpsToast('⚠️ GPS nicht verfügbar auf diesem Gerät.', true);
+    return;
   }
-  btn.classList.add('active');
-  bar.className='';bar.style.display='flex';
-  barText.textContent='Standort wird ermittelt…';
+  btn.classList.add('active','searching');
   navigator.geolocation.getCurrentPosition(
     function(pos){
+      btn.classList.remove('searching');
       userLat=pos.coords.latitude;userLon=pos.coords.longitude;
       var acc=Math.round(pos.coords.accuracy);
-      barText.textContent='📍 Standort gefunden (±'+acc+' m)';
-      // Remove old marker
+      hideGpsToast();
       if(gpsMarker){map.removeLayer(gpsMarker);gpsMarker=null;}
-      // GPS DivIcon — liegt über ClusterGroup dank zIndexOffset
       gpsMarker = L.marker([userLat, userLon], {
         icon: L.divIcon({
           className: '',
@@ -38498,19 +38510,17 @@ function locateMe() {
       }).addTo(map);
       gpsMarker.bindPopup('<b>📍 Dein Standort</b><br>±'+acc+' m Genauigkeit');
       map.setView([userLat,userLon],11);
-      // Radius-Bar einblenden
       document.getElementById('radiusBar').style.display='flex';
       renderMarkers();
     },
     function(err){
-      btn.classList.remove('active');
+      btn.classList.remove('active','searching');
       gpsEnabled=false;
-      bar.className='error';
       var msg;
-      if(err.code===1) msg='Standortzugriff verweigert — bitte in den Browser-Einstellungen erlauben (🔒 in der Adressleiste → Standort → Zulassen)';
-      else if(err.code===2) msg='Standort konnte nicht ermittelt werden.';
-      else msg='GPS-Zeitüberschreitung — bitte erneut versuchen.';
-      barText.textContent=msg;
+      if(err.code===1) msg='⚠️ Standortzugriff verweigert — Einstellungen prüfen (🔒 Adressleiste → Standort → Zulassen)';
+      else if(err.code===2) msg='⚠️ Standort konnte nicht ermittelt werden.';
+      else msg='⚠️ GPS-Zeitüberschreitung — bitte erneut versuchen.';
+      showGpsToast(msg, true);
     },
     {enableHighAccuracy:true,timeout:10000,maximumAge:60000}
   );
