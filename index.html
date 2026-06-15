@@ -290,7 +290,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 <header>
   <div class="header-top">
     <div class="logo">🎣 Fred <span>angelt</span></div>
-    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.1</span>
+    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.2</span>
     <div class="font-toggle">
       <button class="font-btn" data-size="14" onclick="setFontSize(14)" title="Kleine Schrift">A</button>
       <button class="font-btn on" data-size="16" onclick="setFontSize(16)" title="Mittlere Schrift">A</button>
@@ -38492,6 +38492,7 @@ function locateMe() {
     return;
   }
   btn.classList.add('active','searching');
+  showGpsToast('📍 Standort wird ermittelt…', false);
   navigator.geolocation.getCurrentPosition(
     function(pos){
       btn.classList.remove('searching');
@@ -38522,7 +38523,7 @@ function locateMe() {
       else msg='⚠️ GPS-Zeitüberschreitung — bitte erneut versuchen.';
       showGpsToast(msg, true);
     },
-    {enableHighAccuracy:true,timeout:10000,maximumAge:60000}
+    {enableHighAccuracy:true,timeout:5000,maximumAge:60000}
   );
 }
 
