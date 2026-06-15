@@ -326,7 +326,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 <header>
   <div class="header-top">
     <div class="logo">🎣 Fred <span>angelt</span></div>
-    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.6b</span>
+    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.7</span>
     <div class="font-toggle">
       <button class="font-btn" data-size="14" onclick="setFontSize(14)" title="Kleine Schrift">A</button>
       <button class="font-btn on" data-size="16" onclick="setFontSize(16)" title="Mittlere Schrift">A</button>
@@ -38717,7 +38717,9 @@ function highlightMarker(nr) {
 }
 
 // ── Panel ─────────────────────────────────────────────────────────────────────
+var _currentPanelRow = null;
 function openPanel(row){
+  _currentPanelRow = row;
   var nr=row.Gewässer_Nr||'',name=row.Gewässername||'';
   var bereich=row.Bereich||'',ha=row.Fläche_ha||'';
   var art=row.gewässer_art||'',kav=row.KAV||'',angelkarte=row.angelkarte||'';
@@ -38795,8 +38797,49 @@ function openPanel(row){
 }
 
 function closePanel(){
+  _currentPanelRow = null;
   document.getElementById('panel').classList.remove('open');
   document.getElementById('overlay').classList.remove('show');
+}
+
+function refreshPanelActivity() {
+  if (!_currentPanelRow || !lastWeatherData) return;
+  if (!document.getElementById('panel').classList.contains('open')) return;
+  var actEl = document.getElementById('p-activity');
+  if (!actEl) return;
+  var w = lastWeatherData;
+  var badges = ActivityEngine.renderBadges(w);
+  var activeFishArr = ['hecht','zander','barsch','forelle','karpfen']
+    .filter(function(f){ return activeFilters.has(f); });
+  var fcDays = (w.hourly && w.daily)
+    ? ActivityEngine.getForecast(activeFishArr, w.hourly, w.daily) : null;
+  var fcHtml = '';
+  if (fcDays && fcDays.length > 0) {
+    var overviewHtml = fcDays.map(function(d){
+      return '<span class="fc-day-chip">'+d.label+' '+d.light.emoji+'</span>';
+    }).join('<span style="color:var(--border)">|</span>');
+    var detailHtml = fcDays.map(function(d){
+      var metaLine = '';
+      if (d.tempMin !== null) metaLine += '&#x1F321; <span>'+d.tempMin+'&ndash;'+d.tempMax+'&deg;C</span> ';
+      if (d.precip  !== null) metaLine += '&#x1F327; <span>'+d.precip+'%</span> ';
+      if (d.wind    !== null) metaLine += '&#x1F32C; <span>'+d.wind+' km/h</span> ';
+      if (d.sunrise)          metaLine += '&#x1F305;<span>'+d.sunrise+'</span> ';
+      if (d.sunset)           metaLine += '&#x1F307;<span>'+d.sunset+'</span> ';
+      if (d.moonIcon)         metaLine += d.moonIcon+' ';
+      var fishLines = d.fishTips.map(function(t){
+        return '<div class="fc-fish-line">'+d.light.emoji+' <strong>'+t.fish+':</strong> '+t.tip+'</div>';
+      }).join('');
+      return '<div class="fc-day-block">'+
+        '<div class="fc-day-title">'+d.label+' &mdash; '+d.light.label+'</div>'+
+        (metaLine?'<div class="fc-meta">'+metaLine+'</div>':'')+
+        fishLines+'</div>';
+    }).join('<hr style="border:none;border-top:1px solid rgba(36,48,68,.4);margin:4px 0">');
+    fcHtml = '<div class="forecast-bar"><details>'+
+      '<summary>&#x1F52E; 3-Tage-Prognose &nbsp;<span class="fc-overview">'+overviewHtml+'</span></summary>'+
+      '<div class="fc-day-detail">'+detailHtml+'</div></details></div>';
+  }
+  actEl.innerHTML = badges + fcHtml;
+  renderFishScorePanel();
 }
 
 var _activeFishScores = new Set();
@@ -39532,6 +39575,7 @@ document.querySelectorAll('.chip[data-filter]').forEach(function(chip){
     }
     renderMarkers();
     zoomToFilterOverview();
+    refreshPanelActivity();
   });
 });
 document.querySelectorAll('.radius-chip').forEach(function(chip){
