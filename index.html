@@ -166,6 +166,21 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
           color:#ddc080;margin-bottom:10px;flex-shrink:0}
 .warn-box strong{color:var(--warn)}
 
+/* Anklickbare Fish-Badges (mit Engine-Score) */
+.fish-badge.has-score{cursor:pointer;transition:border-color .15s,background .15s}
+.fish-badge.has-score:hover{border-color:var(--accent);background:rgba(61,153,112,.18)}
+.fish-badge.has-score.active{border-color:var(--accent);background:rgba(61,153,112,.2)}
+
+/* Beißindex Inline-Expand */
+#fish-score-panel{display:none;background:var(--surface2);border:1px solid var(--accent);
+                  border-radius:8px;padding:9px 12px;margin-bottom:8px;font-size:.78rem}
+#fish-score-panel.show{display:block}
+.fsp-header{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:5px;font-size:.85rem}
+.fsp-score-bar{height:6px;border-radius:3px;background:var(--border);margin:5px 0 7px;overflow:hidden}
+.fsp-score-fill{height:100%;border-radius:3px;transition:width .4s}
+.fsp-ctx{font-size:.72rem;color:var(--d);font-family:var(--mono)}
+.fsp-hint{font-size:.63rem;color:var(--d);font-family:var(--mono);margin-top:5px;opacity:.7}
+
 /* Panel body */
 .panel-body{flex:1;overflow-y:auto;padding:0 16px calc(16px + var(--safe-bottom));
             scrollbar-width:thin;scrollbar-color:var(--border) transparent}
@@ -354,6 +369,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
     <div id="p-warn"></div>
     <div class="section-title">Fischarten</div>
     <div class="fish-grid" id="p-fish"></div>
+    <div id="fish-score-panel"></div>
     <div class="quality-hint" id="p-quality"></div>
     <div id="p-kav-section">
       <div class="section-title">Zuständig</div>
@@ -38695,14 +38711,19 @@ function openPanel(row){
 
   // Fish badges
   var fishHtml='';
+  var ENGINE_FISH = ['hecht','zander','barsch','forelle','karpfen'];
   FISH_DEF.forEach(function(f){
     var val=row['fisch_'+f.key]||'';
     var cls=val==='ja'?'fb-ja':val==='nein'?'fb-nein':'fb-unk';
     var ind=val==='ja'?'✓':val==='nein'?'✗':'?';
-    fishHtml+='<div class="fish-badge '+cls+'"><div class="icon">'+f.icon+'</div>'+
+    var hasScore = val==='ja' && ENGINE_FISH.indexOf(f.key) > -1;
+    var scoreAttr = hasScore ? ' data-fish="'+f.key+'" onclick="showFishScore(\''+f.key+'\')"' : '';
+    var scoreCls  = hasScore ? ' has-score' : '';
+    fishHtml+='<div class="fish-badge '+cls+scoreCls+'"'+scoreAttr+'><div class="icon">'+f.icon+'</div>'+
               '<div>'+f.label+'</div><div style="font-size:.65rem;font-weight:700">'+ind+'</div></div>';
   });
   document.getElementById('p-fish').innerHTML=fishHtml;
+  document.getElementById('fish-score-panel').className='';
 
   // Quality
   var bucket=row._fisch_bucket||'',score=parseFloat(row._fisch_score||0);
@@ -38734,6 +38755,50 @@ function openPanel(row){
 function closePanel(){
   document.getElementById('panel').classList.remove('open');
   document.getElementById('overlay').classList.remove('show');
+}
+
+var _activeFishScore = null;
+function showFishScore(fish) {
+  var panel = document.getElementById('fish-score-panel');
+  // Toggle: nochmal klicken schließt
+  if (_activeFishScore === fish && panel.classList.contains('show')) {
+    panel.className = '';
+    _activeFishScore = null;
+    document.querySelectorAll('.fish-badge.has-score').forEach(function(b){b.classList.remove('active');});
+    return;
+  }
+  _activeFishScore = fish;
+  document.querySelectorAll('.fish-badge.has-score').forEach(function(b){
+    b.classList.toggle('active', b.dataset.fish === fish);
+  });
+
+  var LABELS = {hecht:'Hecht',zander:'Zander',barsch:'Barsch',forelle:'Forelle',karpfen:'Karpfen'};
+  var ICONS  = {hecht:'🐟',zander:'🎣',barsch:'🐠',forelle:'🌊',karpfen:'🐡'};
+  var HINTS  = {forelle:'⚠️ Score basiert auf Lufttemperatur als Näherungswert',
+                karpfen:'⚠️ Score basiert auf Lufttemperatur als Näherungswert'};
+
+  if (!lastWeatherData) {
+    panel.innerHTML = '<div class="fsp-ctx">⏳ Wetterdaten werden noch geladen — bitte kurz warten.</div>';
+    panel.className = 'show';
+    return;
+  }
+
+  var w = lastWeatherData;
+  var score = ActivityEngine.scoreForFish(fish, w);
+  var light = ActivityEngine.getTrafficLight(score);
+  var ctx   = ActivityEngine.getContext(fish, w);
+  var pct   = (score / 10 * 100).toFixed(0);
+  var fillColor = score >= 8 ? '#3d9970' : score >= 4 ? '#c0892a' : '#c03a2b';
+  var hint  = HINTS[fish] || '';
+
+  panel.innerHTML =
+    '<div class="fsp-header">' + ICONS[fish] + ' ' + LABELS[fish] +
+    ' &nbsp;' + light.emoji + ' <strong>' + light.label + '</strong>' +
+    ' <span style="font-size:.7rem;color:var(--d);font-weight:400;margin-left:auto">' + score.toFixed(1) + '/10</span></div>' +
+    '<div class="fsp-score-bar"><div class="fsp-score-fill" style="width:'+pct+'%;background:'+fillColor+'"></div></div>' +
+    (ctx ? '<div class="fsp-ctx">' + ctx + '</div>' : '') +
+    (hint ? '<div class="fsp-hint">' + hint + '</div>' : '');
+  panel.className = 'show';
 }
 document.getElementById('overlay').addEventListener('click',closePanel);
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -38779,52 +38844,90 @@ var ActivityEngine = {
   },
   hecht: function(w) {
     var score = 5;
-    if (w.wind > 25)       score += 2.5;
-    else if (w.wind > 15)  score += 1.5;
-    else if (w.wind < 5)   score -= 1;
-    if (w.temp < 12)       score += 1.5;
-    else if (w.temp > 22)  score -= 1.5;
+    // Wind
+    if (w.wind > 25)       score += 2.0;
+    else if (w.wind > 15)  score += 1.0;
+    else if (w.wind < 5)   score -= 1.0;
+    // Temperatur: kühl ist gut
+    if (w.temp < 10)       score += 2.0;
+    else if (w.temp < 14)  score += 1.0;
+    else if (w.temp > 22)  score -= 2.0;
+    // Mondphase: Vollmond (Tag 13-17) + Neumond (Tag 0-2 / 27-29) nachts
     var moon = getMoonPhase();
     var isNight = (function() {
       if (!w.sunrise || !w.sunset) return false;
       var n = new Date();
       return n < new Date(w.sunrise) || n > new Date(w.sunset);
     })();
-    if (moon >= 13 && moon <= 17 && isNight) score += 1.5;
-    if (w.pressureTrend < -3) score += 1;
+    if (isNight && (moon >= 13 && moon <= 17)) score += 2.0; // Vollmond
+    if (isNight && (moon <= 2 || moon >= 27))  score += 1.0; // Neumond
+    // Drucktrend: fallende Front = Bonus (stärker als vorher)
+    if (w.pressureTrend < -5 && w.wind > 15)  score += 2.5; // Front + Wind
+    else if (w.pressureTrend < -3)             score += 1.0;
+    // Kaltfront: negatives deltaTemp
+    if (w.deltaTemp < -2)  score += 1.0;
     return Math.max(0, Math.min(10, score));
   },
   zander: function(w) {
     var score = 4;
+    // Dämmerung: massiver Bonus
     if (ActivityEngine.isDusk(w.sunrise, w.sunset, 60)) score += 3.5;
-    if (w.temp > 18)       score += 1.5;
-    else if (w.temp > 14)  score += 0.5;
-    else if (w.temp < 8)   score -= 1.5;
-    if (w.clouds > 70)     score += 1;
-    if (w.pressureTrend > -2 && w.pressureTrend < 4) score += 0.5;
+    // Stoffwechseloptimum 18.8°C
+    var tempDiff = Math.abs(w.temp - 18.8);
+    if (tempDiff < 2)       score += 2.0;
+    else if (w.temp > 14)   score += 0.5;
+    else if (w.temp < 10)   score -= 2.5; // drastischer Rückzug unter 10°C
+    // Positiver Temperaturtrend
+    if (w.deltaTemp > 1.5)  score += 0.5;
+    // Bewölkung leicht positiv
+    if (w.clouds > 70)      score += 0.5;
     return Math.max(0, Math.min(10, score));
   },
   barsch: function(w) {
+    // Mond + Luftdruck: Faktor 0 (Gemini: statistisch kein Effekt)
     var score = 5;
+    // Lichtintensität: hohe Bewölkung = gut
     if (w.clouds > 75)          score += 2.5;
-    else if (w.clouds > 50)     score += 1;
-    else if (w.clouds < 20)     score -= 1;
-    if (w.temp >= 16 && w.temp <= 24) score += 2;
+    else if (w.clouds > 50)     score += 1.0;
+    else if (w.clouds < 20)     score -= 1.5;
+    // Temperatur: moderat-warm
+    if (w.temp >= 16 && w.temp <= 24) score += 2.5;
     else if (w.temp >= 12)      score += 0.5;
-    else if (w.temp < 8)        score -= 2;
+    else if (w.temp < 8)        score -= 2.5;
     return Math.max(0, Math.min(10, score));
   },
   forelle: function(w) {
-    var diff = Math.abs(w.temp - 14);
-    return Math.max(0, Math.min(10, 10 - diff * 1.2));
+    // Mond + Drucktrend: ignoriert (Gemini: kein statistischer Zusammenhang)
+    // Optimum 12-16°C; geglättete Logik statt hartem Cut-off
+    var temp = w.temp;
+    var score;
+    if (temp >= 12 && temp <= 16) {
+      score = 10;
+    } else if (temp < 12) {
+      score = Math.max(3, 10 - (12 - temp) * 0.8);
+    } else {
+      // Über 16°C: glatte Kurve, aber erst bei anhaltend hoher Lufttemp hart bestrafen
+      score = Math.max(0, 10 - (temp - 16) * 1.5);
+      // Wenn deltaTemp positiv (Temperatur steigt weiter) → zusätzlicher Malus
+      if (w.deltaTemp > 1) score = Math.max(0, score - 1.5);
+    }
+    return Math.max(0, Math.min(10, score));
   },
   karpfen: function(w) {
+    // Optimum 24.5°C Wassertemp; Lufttemp als Proxy
     var score = 3;
-    if (w.temp >= 22)      score += 4;
-    else if (w.temp >= 18) score += 2.5;
-    else if (w.temp >= 14) score += 1;
-    else if (w.temp < 10)  score -= 2;
-    if (w.clouds < 30)     score += 1.5;
+    var tempDiff = Math.abs(w.temp - 24.5);
+    if (tempDiff < 2)        score += 4.5; // ~22-27°C Luft
+    else if (w.temp >= 20)   score += 2.5;
+    else if (w.temp >= 16)   score += 1.0;
+    else if (w.temp < 10)    score -= 2.0;
+    // Sonnenschein
+    if (w.clouds < 30)       score += 1.0;
+    // Temperatursturz: hart bestrafen
+    if (w.deltaTemp < -3)    score -= 3.0;
+    else if (w.deltaTemp < -1.5) score -= 1.5;
+    // Temperaturanstieg: Bonus
+    if (w.deltaTemp > 2)     score += 1.0;
     return Math.max(0, Math.min(10, score));
   },
   general: function(w) {
@@ -38843,28 +38946,43 @@ var ActivityEngine = {
   },
   getContext: function(fish, w) {
     if (fish === 'hecht') {
-      if (w.wind > 20) return 'Viel Wind';
+      if (w.pressureTrend < -5 && w.wind > 15) return 'Front zieht auf — ideal!';
+      if (w.wind > 20) return 'Starker Wind — gut';
       var moon = getMoonPhase();
-      if (moon >= 13 && moon <= 17) return 'Vollmond-Phase';
-      if (w.temp < 12) return 'Kuehl = gut';
+      var isNight = !w.sunrise || !w.sunset ? false :
+        new Date() < new Date(w.sunrise) || new Date() > new Date(w.sunset);
+      if (isNight && moon >= 13 && moon <= 17) return 'Vollmond — Nachtbonus';
+      if (w.deltaTemp < -2) return 'Kaltfront — Biss-Bonus';
+      if (w.temp < 10) return 'Sehr kühl — Hecht aktiv';
+      if (w.temp > 22) return 'Zu warm';
       return '';
     }
     if (fish === 'zander') {
-      return ActivityEngine.isDusk(w.sunrise, w.sunset, 60) ? 'Daemmerungszeit!' : 'Ausserhalb Daemmerung';
+      if (ActivityEngine.isDusk(w.sunrise, w.sunset, 60)) return '🌅 Dämmerungszeit!';
+      if (w.temp < 10) return 'Zu kalt — Aktivität niedrig';
+      var tempDiff = Math.abs(w.temp - 18.8);
+      if (tempDiff < 2) return 'Optimale Temperatur';
+      return 'Außerhalb Dämmerung';
     }
     if (fish === 'barsch') {
-      if (w.clouds > 75) return 'Hohe Bewoelkung';
-      if (w.temp >= 16) return 'Gute Temperatur';
+      if (w.clouds > 75) return 'Hohe Bewölkung — ideal';
+      if (w.temp >= 16 && w.temp <= 24) return 'Gute Temperatur';
+      if (w.temp < 8) return 'Zu kalt';
       return '';
     }
     if (fish === 'forelle') {
       if (w.temp >= 12 && w.temp <= 16) return 'Optimale Temperatur';
-      if (w.temp > 18) return 'Zu warm';
+      if (w.temp > 20 && w.deltaTemp > 1) return 'Zu warm & steigt noch';
+      if (w.temp > 18) return 'Grenzwertig warm';
+      if (w.temp < 8) return 'Sehr kalt';
       return 'Suboptimal';
     }
     if (fish === 'karpfen') {
-      if (w.temp >= 22) return 'Ideal warm';
-      if (w.temp < 14) return 'Zu kuehl';
+      if (w.deltaTemp < -3) return 'Temperatursturz — schlecht!';
+      if (w.deltaTemp > 2) return 'Erwärmung — gut';
+      var td = Math.abs(w.temp - 24.5);
+      if (td < 2) return 'Nahe Optimum (24.5°C)';
+      if (w.temp < 14) return 'Zu kühl';
       return '';
     }
     return '';
@@ -39030,11 +39148,15 @@ var ActivityEngine = {
   }
 };
 
+// Globaler Wetter-Cache für Beißindex-Tap
+var lastWeatherData = null;
+
 // Wetter-Fetch (erweitert)
 async function fetchWeatherData(lat, lon) {
   var key = lat.toFixed(3) + '_' + lon.toFixed(3);
   var now = Date.now();
   if (_weatherCache[key] && (now - _weatherCache[key].ts) < WEATHER_TTL) {
+    lastWeatherData = _weatherCache[key].data;
     return _weatherCache[key].data;
   }
   var url = 'https://api.open-meteo.com/v1/forecast' +
@@ -39047,9 +39169,12 @@ async function fetchWeatherData(lat, lon) {
   if (!resp.ok) throw new Error('HTTP ' + resp.status);
   var json = await resp.json();
   var pressureNow = json.current.surface_pressure;
-  var pressure24h = null;
+  var pressure24h = null, temp24h = null;
   if (json.hourly && json.hourly.surface_pressure && json.hourly.surface_pressure.length >= 25) {
     pressure24h = json.hourly.surface_pressure[json.hourly.surface_pressure.length - 25];
+  }
+  if (json.hourly && json.hourly.temperature_2m && json.hourly.temperature_2m.length >= 25) {
+    temp24h = json.hourly.temperature_2m[json.hourly.temperature_2m.length - 25];
   }
   var data = {
     temp:          json.current.temperature_2m,
@@ -39059,12 +39184,14 @@ async function fetchWeatherData(lat, lon) {
     wind:          json.current.wind_speed_10m || 0,
     clouds:        json.current.cloud_cover || 0,
     pressureTrend: ActivityEngine.pressureTrend(pressureNow, pressure24h),
+    deltaTemp:     temp24h !== null ? json.current.temperature_2m - temp24h : 0,
     sunrise:       json.daily && json.daily.sunrise ? json.daily.sunrise[0] : null,
     sunset:        json.daily && json.daily.sunset  ? json.daily.sunset[0]  : null,
     hourly:        json.hourly || null,
     daily:         json.daily  || null
   };
   _weatherCache[key] = { ts: now, data: data };
+  lastWeatherData = data;
   return data;
 }
 
