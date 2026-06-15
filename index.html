@@ -192,6 +192,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .fsp-score-fill{height:100%;border-radius:3px;transition:width .4s}
 .fsp-ctx{font-size:.72rem;color:var(--t);font-family:var(--mono)}
 .fsp-hint{font-size:.6rem;color:var(--d);font-family:var(--mono);margin-top:3px;opacity:.7}
+.fsp-window{font-size:.72rem;color:var(--accent);font-family:var(--mono);margin-top:4px}
+.fsp-window-low{color:var(--warn);opacity:.8}
 /* 3-Tage-Prognose Summary als Button */
 .forecast-bar summary{cursor:pointer;color:var(--accent);list-style:none;padding:4px 8px;
                       background:rgba(61,153,112,.08);border:1px solid rgba(61,153,112,.25);
@@ -326,7 +328,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 <header>
   <div class="header-top">
     <div class="logo">🎣 Fred <span>angelt</span></div>
-    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.7</span>
+    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v2.8</span>
     <div class="font-toggle">
       <button class="font-btn" data-size="14" onclick="setFontSize(14)" title="Kleine Schrift">A</button>
       <button class="font-btn on" data-size="16" onclick="setFontSize(16)" title="Mittlere Schrift">A</button>
@@ -38879,17 +38881,26 @@ function renderFishScorePanel() {
     var score = ActivityEngine.scoreForFish(fish, w);
     var light = ActivityEngine.getTrafficLight(score);
     var ctx   = ActivityEngine.getContext(fish, w);
+    var win   = ActivityEngine.getBestWindow(fish, w);
     var pct   = (score / 10 * 100).toFixed(0);
     var fillColor = score >= 8 ? '#3d9970' : score >= 4 ? '#c0892a' : '#c03a2b';
     var hint  = FISH_SCORE_HINTS[fish] || '';
+    var winHtml = '';
+    if (win && win.from && win.quality !== 'low') {
+      var winLabel = win.to ? win.from + '–' + win.to : win.from;
+      winHtml = '<div class="fsp-window">⏱ ' + win.label + ' · <strong>' + winLabel + '</strong></div>';
+    } else if (win && win.quality === 'low') {
+      winHtml = '<div class="fsp-window fsp-window-low">⏱ ' + win.label + '</div>';
+    }
     rows +=
       '<div class="fsp-row">' +
       '<div class="fsp-header">' + FISH_SCORE_ICONS[fish] + ' ' + FISH_SCORE_LABELS[fish] +
       ' &nbsp;' + light.emoji + ' <strong>' + light.label + '</strong>' +
       '<span class="fsp-num">' + score.toFixed(1) + '/10</span></div>' +
       '<div class="fsp-score-bar"><div class="fsp-score-fill" style="width:'+pct+'%;background:'+fillColor+'"></div></div>' +
-      (ctx  ? '<div class="fsp-ctx">'  + ctx  + '</div>' : '') +
-      (hint ? '<div class="fsp-hint">' + hint + '</div>' : '') +
+      (ctx    ? '<div class="fsp-ctx">'  + ctx    + '</div>' : '') +
+      winHtml +
+      (hint   ? '<div class="fsp-hint">' + hint   + '</div>' : '') +
       '</div>';
   });
   panel.innerHTML = '<div class="fsp-title">🎣 Beißindex</div>' + rows;
@@ -39088,6 +39099,78 @@ var ActivityEngine = {
     if (fish === 'barsch')  return ActivityEngine.barsch(w);
     if (fish === 'forelle') return ActivityEngine.forelle(w);
     if (fish === 'karpfen') return ActivityEngine.karpfen(w);
+    return null;
+  },
+
+  // Gibt bestes Zeitfenster zurück: { label, from, to, quality:'top'|'ok'|'low' }
+  getBestWindow: function(fish, w) {
+    var rise = w.sunrise ? new Date(w.sunrise) : null;
+    var set  = w.sunset  ? new Date(w.sunset)  : null;
+    if (!rise || !set) return null;
+
+    // Hilfsfunktion: Minuten addieren + als "HH:MM" formatieren
+    function addMin(date, min) {
+      var d = new Date(date.getTime() + min * 60000);
+      return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }
+
+    var moon = getMoonPhase();
+    var isFullMoon = moon >= 12 && moon <= 18;
+
+    if (fish === 'hecht') {
+      if (isFullMoon) {
+        return { label:'Vollmond — Nacht aktiv', from: addMin(set, 0), to: addMin(rise, 0), quality:'top' };
+      }
+      return { label:'Vormittag', from: addMin(rise, 120), to: addMin(rise, 360), quality:'top' };
+    }
+
+    if (fish === 'zander') {
+      // Top: Abenddämmerung sunset-1h bis sunset+2h
+      return { label:'Abenddämmerung', from: addMin(set, -60), to: addMin(set, 120), quality:'top' };
+    }
+
+    if (fish === 'barsch') {
+      var now = new Date();
+      var isDay = now >= rise && now <= set;
+      if (!isDay) return { label:'Nachts inaktiv', from: null, to: null, quality:'low' };
+      return { label:'Tagsüber (Bewölkung ideal)', from: addMin(rise, 120), to: addMin(set, -120), quality:'top' };
+    }
+
+    if (fish === 'forelle') {
+      // Warm? → Früh morgens. Kühl? → Ganztags.
+      if (w.temp > 18 || (w.hourly && w.hourly.temperature_2m)) {
+        // Versuche tempMax aus hourly zu schätzen
+        var todayStr = new Date().toISOString().slice(0,10);
+        var todayTemps = [];
+        if (w.hourly && w.hourly.time && w.hourly.temperature_2m) {
+          w.hourly.time.forEach(function(t, i) {
+            if (t.startsWith(todayStr)) todayTemps.push(w.hourly.temperature_2m[i]);
+          });
+        }
+        var tempMax = todayTemps.length ? Math.max.apply(null, todayTemps) : w.temp;
+        if (tempMax > 20) {
+          return { label:'Früh morgens (kühl)', from: addMin(rise, 0), to: addMin(rise, 180), quality:'top' };
+        }
+      }
+      return { label:'Ganztags (Temp. im Optimum)', from: addMin(rise, 0), to: addMin(set, 0), quality:'top' };
+    }
+
+    if (fish === 'karpfen') {
+      // Prüfe tempMax für Nacht-Fenster
+      var todayStr2 = new Date().toISOString().slice(0,10);
+      var todayT = [];
+      if (w.hourly && w.hourly.time && w.hourly.temperature_2m) {
+        w.hourly.time.forEach(function(t, i) {
+          if (t.startsWith(todayStr2)) todayT.push(w.hourly.temperature_2m[i]);
+        });
+      }
+      var tMax = todayT.length ? Math.max.apply(null, todayT) : w.temp;
+      if (tMax > 24) {
+        return { label:'Spätnachmittag + Nacht', from: addMin(set, -240), to: addMin(rise, 0), quality:'top' };
+      }
+      return { label:'Spätnachmittag', from: addMin(set, -240), to: addMin(set, 0), quality:'ok' };
+    }
+
     return null;
   },
 
