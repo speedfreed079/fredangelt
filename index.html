@@ -325,6 +325,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .fc-meta span{color:var(--t)}
 .fc-fish-line{font-size:.65rem;color:var(--d);margin-top:2px;line-height:1.5}
 .fc-fish-line strong{color:var(--t)}
+.polyline-label{background:rgba(0,0,0,.75)!important;border:none!important;color:#fff!important;font-family:var(--mono);font-size:.7rem!important;padding:2px 7px!important;border-radius:4px!important;white-space:nowrap;box-shadow:none!important;}
+.polyline-label::before{display:none!important;}
 </style>
 </head>
 <body>
@@ -334,7 +336,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 <header>
   <div class="header-top">
     <div class="logo">🎣 Fred <span>angelt</span></div>
-    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v3.3</span>
+    <span style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px">v3.4</span>
     <div class="font-toggle">
       <button class="font-btn" data-size="14" onclick="setFontSize(14)" title="Kleine Schrift">A</button>
       <button class="font-btn on" data-size="16" onclick="setFontSize(16)" title="Mittlere Schrift">A</button>
@@ -50057,9 +50059,16 @@ function renderMarkers(){
     // Echte Polyline wenn vorhanden (OSM-Geometrie)
     var polyPts = row.polyline||[];
     if(polyPts.length>1 && polylineGroup){
-      var poly=L.polyline(polyPts,{
-        color:'#4fc3f7',weight:3,opacity:.8,dashArray:'8,5'
-      });
+      // DEBUG-Farben pro Gewässer (v3.4 — für Verlaufsprüfung)
+      var riverColors={
+        'VF00-01':'#ff5252','VF00-02':'#ff9800','VF05-01':'#ffeb3b',
+        'VP12-01':'#69f0ae','P 03-205':'#69f0ae','P 10-205':'#69f0ae','P 14-206':'#69f0ae',
+        'VP15-02':'#e040fb','P 04-200':'#e040fb','P 04-203':'#e040fb',
+        'B 10-201':'#ff9800','F 06-202':'#40c4ff','F 04-201':'#f48fb1'
+      };
+      var polyColor=riverColors[row.Gewässer_Nr]||'#4fc3f7';
+      var poly=L.polyline(polyPts,{color:polyColor,weight:4,opacity:.9,dashArray:'8,5'});
+      poly.bindTooltip(row.Gewässername,{permanent:false,sticky:true,className:'polyline-label',direction:'auto'});
       poly.on('click',function(){openPanel(row);});
       polylineGroup.addLayer(poly);
     }
