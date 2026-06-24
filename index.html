@@ -123155,7 +123155,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.11.1";
+const APP_VERSION = "4.11.2";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -124870,7 +124870,7 @@ function bindSuggestionClicks(box) {
           var lat = parseFloat(row.lat), lon = parseFloat(row.lon);
           map.setView([lat, lon], 14);
           highlightMarker(row.Gewässer_Nr);
-          // Kein openPanel() — User klickt selbst auf den Marker
+          openPanel(row); // Direkt öffnen — kein zusätzlicher Marker-Klick nötig
         }
       } else if (type === 'ort') {
         var lat = parseFloat(item.getAttribute('data-lat'));
