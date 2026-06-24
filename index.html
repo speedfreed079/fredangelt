@@ -116866,7 +116866,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.6.4";
+const APP_VERSION = "4.7.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -116879,6 +116879,9 @@ const FISH_DEF = [
   {key:'rapfen',label:'Rapfen',icon:'🐟'},{key:'döbel',label:'Döbel',icon:'🐟'},
   {key:'quappe',label:'Quappe',icon:'🐟'},{key:'weissfisch',label:'Weißfisch',icon:'🐟'},
 ];
+
+// Fischarten mit Beißindex-Score in der ActivityEngine (Zentrale Quelle — siehe ActivityEngine v3)
+const ENGINE_FISH = ['hecht','zander','barsch','forelle','karpfen','wels','aal','schleie','rapfen','döbel'];
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let allData=[], markerMap={}, clusterGroup, gpsMarker=null;
@@ -117301,7 +117304,6 @@ function openPanel(row){
 
   // Fish badges
   var fishHtml='';
-  var ENGINE_FISH = ['hecht','zander','barsch','forelle','karpfen'];
   FISH_DEF.forEach(function(f){
     var val=row['fisch_'+f.key]||'';
     var cls=val==='ja'?'fb-ja':val==='nein'?'fb-nein':'fb-unk';
@@ -117359,7 +117361,7 @@ function refreshPanelActivity() {
   var badges = ActivityEngine.renderBadges(w);
   var activeFishArr = _activeFishScores.size > 0
     ? Array.from(_activeFishScores)
-    : ['hecht','zander','barsch','forelle','karpfen'].filter(function(f){ return activeFilters.has(f); });
+    : ENGINE_FISH.filter(function(f){ return activeFilters.has(f); });
   var fcDays = (w.hourly && w.daily)
     ? ActivityEngine.getForecast(activeFishArr, w.hourly, w.daily) : null;
   var fcHtml = '';
@@ -117393,10 +117395,17 @@ function refreshPanelActivity() {
 
 var _activeFishScores = new Set();
 
-var FISH_SCORE_LABELS = {hecht:'Hecht',zander:'Zander',barsch:'Barsch',forelle:'Forelle',karpfen:'Karpfen'};
-var FISH_SCORE_ICONS  = {hecht:'🐟',zander:'🎣',barsch:'🐠',forelle:'🌊',karpfen:'🐡'};
+var FISH_SCORE_LABELS = {hecht:'Hecht',zander:'Zander',barsch:'Barsch',forelle:'Forelle',karpfen:'Karpfen',
+                          wels:'Wels',aal:'Aal',schleie:'Schleie',rapfen:'Rapfen','döbel':'Döbel'};
+var FISH_SCORE_ICONS  = {hecht:'🐟',zander:'🎣',barsch:'🐠',forelle:'🌊',karpfen:'🐡',
+                          wels:'🦈',aal:'🐍',schleie:'🐟',rapfen:'🐟','döbel':'🐟'};
 var FISH_SCORE_HINTS  = {forelle:'⚠️ Lufttemperatur als Näherungswert',
-                         karpfen:'⚠️ Lufttemperatur als Näherungswert'};
+                         karpfen:'⚠️ Lufttemperatur als Näherungswert',
+                         wels:'⚠️ Lufttemperatur als Näherungswert',
+                         aal:'⚠️ Lufttemperatur als Näherungswert',
+                         schleie:'⚠️ Lufttemperatur als Näherungswert',
+                         rapfen:'⚠️ Lufttemperatur als Näherungswert',
+                         'döbel':'⚠️ Lufttemperatur als Näherungswert'};
 
 function toggleFishScore(el) {
   var fish = el.dataset.fish;
@@ -117479,6 +117488,18 @@ function getMoonPhase() {
   var elapsed = (Date.now() - REF.getTime()) / (1000 * 60 * 60 * 24);
   return ((elapsed % CYCLE) + CYCLE) % CYCLE;
 }
+
+// ActivityEngine v3 — gewichtetes gaußsches Temperatur-/Licht-/Wind-/Solunar-Modell
+// für die neuen physostomen Zielarten (Wels, Aal, Schleie, Rapfen, Döbel).
+// Bestehende Arten (Hecht/Zander/Barsch/Forelle/Karpfen) bleiben bei ihrer
+// empirisch getunten Scoring-Logik weiter unten — siehe projektlog.md v4.7.0.
+const FISH_PARAMS_V3 = {
+  wels:   {topt:27.0, sigmaL:5.0, sigmaH:3.0, wTemp:.40, wBaro:.10, wLicht:.35, wWind:.15, mSolunarMax:1.30, turbidity:'positive', coldFloor:10},
+  aal:    {topt:22.5, sigmaL:6.0, sigmaH:4.0, wTemp:.35, wBaro:.10, wLicht:.45, wWind:.10, mSolunarMax:1.50, turbidity:'neutral',  lunarInverse:true},
+  schleie:{topt:24.0, sigmaL:6.0, sigmaH:4.0, wTemp:.45, wBaro:.10, wLicht:.30, wWind:.15, mSolunarMax:1.20, turbidity:'positive'},
+  rapfen: {topt:25.0, sigmaL:5.0, sigmaH:3.0, wTemp:.30, wBaro:.15, wLicht:.35, wWind:.20, mSolunarMax:1.20, turbidity:'negative'},
+  'döbel':{topt:18.6, sigmaL:5.0, sigmaH:4.0, wTemp:.30, wBaro:.10, wLicht:.40, wWind:.20, mSolunarMax:1.10, turbidity:'neutral'}
+};
 
 // ActivityEngine
 var ActivityEngine = {
@@ -117583,6 +117604,84 @@ var ActivityEngine = {
     if (w.deltaTemp > 2)     score += 1.0;
     return Math.max(0, Math.min(10, score));
   },
+
+  // ── v3-Modell: generische Bausteine für die 5 neuen physostomen Arten ──────
+  gaussianTemp: function(temp, topt, sigmaL, sigmaH) {
+    var sigma = temp < topt ? sigmaL : sigmaH;
+    var diff = temp - topt;
+    return Math.exp(-(diff * diff) / (2 * sigma * sigma));
+  },
+  baroFactor: function(trend) {
+    return Math.max(0, Math.min(1, 0.5 - trend * 0.05));
+  },
+  turbidity: function(w) {
+    return Math.max(0, Math.min(1, w.wind / 30)) * 0.7 + Math.max(0, Math.min(1, w.clouds / 100)) * 0.3;
+  },
+  isNightNow: function(sunriseStr, sunsetStr) {
+    if (!sunriseStr || !sunsetStr) return false;
+    var now = new Date();
+    return now < new Date(sunriseStr) || now > new Date(sunsetStr);
+  },
+  isDayNow: function(sunriseStr, sunsetStr) {
+    if (!sunriseStr || !sunsetStr) return true;
+    var now = new Date();
+    return now >= new Date(sunriseStr) && now <= new Date(sunsetStr);
+  },
+  moonIllumination: function() {
+    var phase = getMoonPhase();
+    return Math.max(0, 1 - Math.abs(phase - 14.77) / 14.77);
+  },
+  moonFactor: function(params, w) {
+    if (!ActivityEngine.isNightNow(w.sunrise, w.sunset)) return 1;
+    var illum = ActivityEngine.moonIllumination();
+    if (params.lunarInverse) {
+      return params.mSolunarMax - (params.mSolunarMax - 0.4) * illum;
+    }
+    return 1 + (params.mSolunarMax - 1) * illum;
+  },
+  // Art-spezifische Lichtfunktionen (qualitativ zu unterschiedlich für ein generisches Modell)
+  fLicht: {
+    wels: function(w, isNight) {
+      var v = 0.25 + (isNight ? 0.55 : 0);
+      v += Math.max(0, Math.min(1, w.clouds / 100)) * 0.20;
+      return Math.max(0, Math.min(1, v));
+    },
+    aal: function(w, isNight) {
+      return isNight ? 0.8 : 0.3;
+    },
+    schleie: function(w, isNight, isDusk) {
+      var v = 0.5 + (isDusk ? 0.15 : 0);
+      v += Math.max(0, Math.min(1, w.clouds / 100)) * 0.15;
+      return Math.max(0, Math.min(1, v));
+    },
+    rapfen: function(w, isNight, isDusk) {
+      var v = isNight ? 0.2 : 0.6;
+      v += (isDusk ? 0.25 : 0);
+      v += Math.max(0, Math.min(1, w.clouds / 100)) * 0.15;
+      return Math.max(0, Math.min(1, v));
+    },
+    'döbel': function(w, isNight, isDusk) {
+      var v = isNight ? 0.35 : 0.55;
+      v += (isDusk ? 0.1 : 0);
+      return Math.max(0, Math.min(1, v));
+    }
+  },
+  scoreV3: function(fish, w) {
+    var p = FISH_PARAMS_V3[fish];
+    if (!p) return null;
+    var isNight = ActivityEngine.isNightNow(w.sunrise, w.sunset);
+    var isDusk  = ActivityEngine.isDusk(w.sunrise, w.sunset, 60);
+    var fTemp  = ActivityEngine.gaussianTemp(w.temp, p.topt, p.sigmaL, p.sigmaH);
+    var fBaro  = ActivityEngine.baroFactor(w.pressureTrend);
+    var fLicht = ActivityEngine.fLicht[fish](w, isNight, isDusk);
+    var turb   = ActivityEngine.turbidity(w);
+    var fWind  = p.turbidity === 'positive' ? turb : p.turbidity === 'negative' ? (1 - turb) : 0.5;
+    var raw = p.wTemp * fTemp + p.wBaro * fBaro + p.wLicht * fLicht + p.wWind * fWind;
+    var score = raw * 10 * ActivityEngine.moonFactor(p, w);
+    if (p.coldFloor !== undefined && w.temp < p.coldFloor) score = Math.min(score, 1.5);
+    return Math.max(0, Math.min(10, score));
+  },
+
   general: function(w) {
     var score = 5;
     if (w.precip < 20)          score += 1;
@@ -117638,6 +117737,32 @@ var ActivityEngine = {
       if (w.temp < 14) return 'Zu kühl';
       return '';
     }
+    if (FISH_PARAMS_V3[fish]) {
+      var p = FISH_PARAMS_V3[fish];
+      var isNight = ActivityEngine.isNightNow(w.sunrise, w.sunset);
+      if (fish === 'wels') {
+        if (w.temp < p.coldFloor) return 'Zu kalt für Wels (<10°C)';
+        if (isNight && w.clouds > 50) return 'Trüb & dunkel — Wels aktiv';
+        if (isNight) return 'Nachtjäger — Dämmerung/Nacht top';
+      }
+      if (fish === 'aal') {
+        var illum = ActivityEngine.moonIllumination();
+        if (isNight && illum > 0.6) return 'Vollmond — Aal zurückhaltend';
+        if (isNight) return 'Dunkle Nacht — top für Aal';
+      }
+      if (fish === 'rapfen') {
+        if (ActivityEngine.turbidity(w) > 0.5) return 'Trüb — schlechter für Rapfen';
+        if (ActivityEngine.isDusk(w.sunrise, w.sunset, 60)) return 'Dämmerung — Oberflächenjagd';
+      }
+      if (fish === 'schleie') {
+        if (w.temp > 20 && ActivityEngine.turbidity(w) > 0.4) return 'Warm & trüb — ideal';
+      }
+      if (fish === 'döbel') {
+        return 'Ganztags aktiv (Generalist)';
+      }
+      if (w.pressureTrend < -5) return 'Front zieht auf — Flachwasser/Krautkanten';
+      return '';
+    }
     return '';
   },
   scoreForFish: function(fish, w) {
@@ -117646,6 +117771,7 @@ var ActivityEngine = {
     if (fish === 'barsch')  return ActivityEngine.barsch(w);
     if (fish === 'forelle') return ActivityEngine.forelle(w);
     if (fish === 'karpfen') return ActivityEngine.karpfen(w);
+    if (FISH_PARAMS_V3[fish]) return ActivityEngine.scoreV3(fish, w);
     return null;
   },
 
@@ -117718,13 +117844,36 @@ var ActivityEngine = {
       return { label:'Spätnachmittag', from: addMin(set, -240), to: addMin(set, 0), quality:'ok' };
     }
 
+    if (fish === 'wels') {
+      return { label:'Dämmerung bis Nacht', from: addMin(set, -30), to: addMin(rise, 0), quality:'top' };
+    }
+
+    if (fish === 'aal') {
+      var illum = ActivityEngine.moonIllumination();
+      if (illum > 0.6) {
+        return { label:'Vollmond — gedämpfte Nacht', from: addMin(set, 0), to: addMin(rise, 0), quality:'ok' };
+      }
+      return { label:'Dunkle Nacht (Neumond ideal)', from: addMin(set, 0), to: addMin(rise, 0), quality:'top' };
+    }
+
+    if (fish === 'schleie') {
+      return { label:'Warmer Nachmittag/Abend', from: addMin(set, -180), to: addMin(set, 60), quality:'top' };
+    }
+
+    if (fish === 'rapfen') {
+      return { label:'Morgen-/Abenddämmerung', from: addMin(rise, -30), to: addMin(rise, 90), quality:'top' };
+    }
+
+    if (fish === 'döbel') {
+      return { label:'Ganztags aktiv', from: addMin(rise, 0), to: addMin(set, 0), quality:'ok' };
+    }
+
     return null;
   },
 
   getForecast: function(activeFish, hourly, daily) {
     if (!hourly || !hourly.time || !daily) return null;
-    var FISH_KEYS = ['hecht','zander','barsch','forelle','karpfen'];
-    var fish = activeFish.filter(function(f) { return FISH_KEYS.indexOf(f) > -1; });
+    var fish = activeFish.filter(function(f) { return ENGINE_FISH.indexOf(f) > -1; });
     var results = [];
     var today = new Date();
     today.setHours(0,0,0,0);
@@ -117818,6 +117967,16 @@ var ActivityEngine = {
           tip = tempMax && tempMax <= 16 ? 'Optimale Temp.' : 'Temp. suboptimal';
         } else if (f === 'karpfen') {
           tip = tempMax && tempMax >= 22 ? 'Ideal warm' : 'Wärme abwarten';
+        } else if (f === 'wels') {
+          tip = tempMax && tempMax >= 10 ? 'Dämmerung/Nacht' : 'Zu kalt für Wels';
+        } else if (f === 'aal') {
+          tip = moonPhase > 22 || moonPhase < 7.5 ? 'Dunkle Nacht ideal' : 'Vollmond — gedämpft';
+        } else if (f === 'schleie') {
+          tip = tempMax && tempMax >= 18 ? 'Warm — gute Chancen' : 'Wärme abwarten';
+        } else if (f === 'rapfen') {
+          tip = 'Dämmerung an Oberfläche';
+        } else if (f === 'döbel') {
+          tip = 'Ganztags aktiv';
         }
         if (tip) fishTips.push({ fish: f.charAt(0).toUpperCase()+f.slice(1), tip: tip });
       });
@@ -117852,8 +118011,7 @@ var ActivityEngine = {
   },
 
   renderBadges: function(w) {
-    var FISH_KEYS = ['hecht','zander','barsch','forelle','karpfen'];
-    var activeFish = FISH_KEYS.filter(function(f) { return activeFilters.has(f); });
+    var activeFish = ENGINE_FISH.filter(function(f) { return activeFilters.has(f); });
     if (activeFish.length === 0) {
       var gs = ActivityEngine.general(w);
       var gl = ActivityEngine.getTrafficLight(gs);
@@ -117865,7 +118023,7 @@ var ActivityEngine = {
       var light = ActivityEngine.getTrafficLight(score);
       var ctx   = ActivityEngine.getContext(f, w);
       var label = f.charAt(0).toUpperCase() + f.slice(1);
-      var lufttempHint = (f === 'karpfen' || f === 'forelle')
+      var lufttempHint = (f === 'karpfen' || f === 'forelle' || FISH_PARAMS_V3[f])
         ? ' <span style="opacity:.55;font-size:.58rem">(Lufttemp.)</span>' : '';
       return '<div class="act-badge">' + light.emoji +
         ' ' + label + ': <strong>' + light.label + '</strong>' +
@@ -117902,6 +118060,14 @@ async function fetchWeatherData(lat, lon) {
   if (json.hourly && json.hourly.temperature_2m && json.hourly.temperature_2m.length >= 25) {
     temp24h = json.hourly.temperature_2m[json.hourly.temperature_2m.length - 25];
   }
+  // past_days=1 verschiebt die daily-Arrays um einen Tag (Index 0 = gestern) —
+  // heutigen Index über das Datum suchen statt blind Index 0 zu nehmen.
+  var todayIdx = 0;
+  if (json.daily && json.daily.time) {
+    var todayStr3 = new Date().toLocaleDateString('en-CA', {timeZone:'Europe/Berlin'});
+    var foundIdx = json.daily.time.indexOf(todayStr3);
+    if (foundIdx > -1) todayIdx = foundIdx;
+  }
   var data = {
     temp:          json.current.temperature_2m,
     pressure:      Math.round(pressureNow),
@@ -117911,8 +118077,8 @@ async function fetchWeatherData(lat, lon) {
     clouds:        json.current.cloud_cover || 0,
     pressureTrend: ActivityEngine.pressureTrend(pressureNow, pressure24h),
     deltaTemp:     temp24h !== null ? json.current.temperature_2m - temp24h : 0,
-    sunrise:       json.daily && json.daily.sunrise ? json.daily.sunrise[0] : null,
-    sunset:        json.daily && json.daily.sunset  ? json.daily.sunset[0]  : null,
+    sunrise:       json.daily && json.daily.sunrise ? json.daily.sunrise[todayIdx] : null,
+    sunset:        json.daily && json.daily.sunset  ? json.daily.sunset[todayIdx]  : null,
     hourly:        json.hourly || null,
     daily:         json.daily  || null
   };
@@ -117943,7 +118109,7 @@ async function updateWeatherPanel(lat, lon) {
       // Forecast bar
       var activeFishArr = _activeFishScores.size > 0
         ? Array.from(_activeFishScores)
-        : ['hecht','zander','barsch','forelle','karpfen'].filter(function(f){return activeFilters.has(f);});
+        : ENGINE_FISH.filter(function(f){return activeFilters.has(f);});
       var fcDays = (w.hourly && w.daily) ? ActivityEngine.getForecast(activeFishArr, w.hourly, w.daily) : null;
       var fcHtml = '';
       if (fcDays && fcDays.length > 0) {
