@@ -37,6 +37,18 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .icon-btn:hover{border-color:var(--accent);color:var(--accent)}
 .icon-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(61,153,112,.12)}
 .header-count{font-family:var(--mono);font-size:.7rem;color:var(--d);white-space:nowrap}
+
+/* Profil-Popover (Angelkarte: Berlin/Brandenburg) */
+#profileBtn.active{border-color:#4fc3f7;color:#4fc3f7;background:rgba(79,195,247,.12)}
+#profilePopover{position:fixed;top:54px;right:12px;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:6px;display:none;flex-direction:column;gap:2px;z-index:3500;
+  box-shadow:0 6px 20px rgba(0,0,0,.5);min-width:210px}
+#profilePopover.show{display:flex}
+.profile-opt{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;
+  font-size:.78rem;color:var(--t);transition:background .12s}
+.profile-opt:hover{background:var(--surface2)}
+.profile-opt.sel{color:#4fc3f7;font-weight:600}
+.profile-opt .pc-check{width:14px;flex-shrink:0;font-size:.75rem}
 .header-search{display:flex;gap:6px;align-items:center}
 
 #searchBox{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
@@ -115,6 +127,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .gw-marker.type-sal{background:var(--sal)}
 .gw-marker.type-pacht{background:var(--pacht)}
 .gw-marker.type-sperr{background:var(--danger)}
+.gw-marker.profile-dim{opacity:.32;filter:grayscale(60%)}
 .gw-marker-inner{transform:rotate(45deg);font-size:11px;line-height:1}
 .gw-marker .zk-badge{position:absolute;top:-4px;right:-4px;font-size:9px;
                      background:#c0892a;border-radius:50%;width:13px;height:13px;
@@ -295,6 +308,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .list-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid rgba(36,48,68,.5);cursor:pointer;transition:background .12s}
 .list-item:hover{background:var(--surface2)}
 .list-item:last-child{border-bottom:none}
+.list-item.profile-dim{opacity:.4}
 .li-ampel{font-size:1rem;flex-shrink:0;width:18px;text-align:center}
 .li-name{flex:1;font-size:.78rem;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .li-sub{font-size:.63rem;color:var(--d);font-family:var(--mono)}
@@ -354,6 +368,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
       <button class="font-btn" data-size="19" onclick="setFontSize(19)" title="Große Schrift">A</button>
     </div>
     <div class="header-right">
+      <button class="icon-btn" id="profileBtn" onclick="toggleProfilePopover()" title="Meine Angelkarte">🪪</button>
       <button class="icon-btn active" id="gpsBtn" onclick="toggleGps()" title="GPS ein/ausschalten">📍</button>
       <button class="icon-btn" id="listToggleBtn" onclick="toggleList()" title="Listenansicht">☰</button>
       <div class="header-count" id="headerCount">— Gewässer</div>
@@ -367,6 +382,12 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
     <div id="planBadge" onclick="clearPlanMode()" title="Plan-Modus beenden">📍 <span id="planBadgeText">Ort</span> ✕</div>
   </div>
 </header>
+
+<div id="profilePopover">
+  <div class="profile-opt" data-profile="both"><span class="pc-check"></span>Beide Karten (Standard)</div>
+  <div class="profile-opt" data-profile="berlin"><span class="pc-check"></span>Nur Berlin (DAV)</div>
+  <div class="profile-opt" data-profile="brandenburg"><span class="pc-check"></span>Nur Brandenburg (LAVB)</div>
+</div>
 
 <div id="gpsToast"><span id="gpsToastText"></span><button class="toast-close" onclick="hideGpsToast()">✕</button></div>
 
@@ -123120,7 +123141,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.9.1";
+const APP_VERSION = "4.10.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -123144,6 +123165,42 @@ let userLat=null, userLon=null;
 let currentLayer='strasse';
 let radiusKm=0;
 let polylineGroup=null; // Fließgewässer-Linien
+let cardProfile=localStorage.getItem('cardProfile')||'both'; // 'both'|'berlin'|'brandenburg'
+
+// ── Profil (Angelkarte Berlin/Brandenburg) ───────────────────────────────────
+// Heuristik: Bereich==='Berlin' → DAV Berlin, sonst LAVB Brandenburg. Pacht-/
+// Sperrgewässer brauchen unabhängig davon immer eine eigene Karte (siehe openPanel).
+function inProfileScope(row){
+  if(cardProfile==='both')return true;
+  var isBerlin=row.Bereich==='Berlin';
+  return cardProfile==='berlin'?isBerlin:!isBerlin;
+}
+function syncProfileUI(){
+  document.getElementById('profileBtn').classList.toggle('active',cardProfile!=='both');
+  document.querySelectorAll('.profile-opt').forEach(function(el){
+    var sel=el.getAttribute('data-profile')===cardProfile;
+    el.classList.toggle('sel',sel);
+    el.querySelector('.pc-check').textContent=sel?'✓':'';
+  });
+}
+function setCardProfile(p){
+  cardProfile=p;
+  localStorage.setItem('cardProfile',p);
+  syncProfileUI();
+  document.getElementById('profilePopover').classList.remove('show');
+  renderMarkers();
+}
+function toggleProfilePopover(){
+  document.getElementById('profilePopover').classList.toggle('show');
+}
+document.querySelectorAll('.profile-opt').forEach(function(el){
+  el.addEventListener('click',function(){setCardProfile(el.getAttribute('data-profile'));});
+});
+document.addEventListener('click',function(e){
+  var pop=document.getElementById('profilePopover'),btn=document.getElementById('profileBtn');
+  if(pop.classList.contains('show')&&!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('show');
+});
+syncProfileUI();
 
 // ── Tile layers ───────────────────────────────────────────────────────────────
 const LAYERS = {
@@ -123365,8 +123422,9 @@ function makeIcon(row){
   var t=markerType(row);
   var e=t==='sal'?'🌊':t==='vvg'?'⚓':t==='pacht'?'💰':t==='sperr'?'🚫':'🎣';
   var zk=row.zusatzkarte_pflicht==='ja'?'<span class="zk-badge">💳</span>':'';
+  var dim=inProfileScope(row)?'':' profile-dim';
   return L.divIcon({className:'',
-    html:'<div class="gw-marker type-'+t+'" style="position:relative"><div class="gw-marker-inner">'+e+'</div>'+zk+'</div>',
+    html:'<div class="gw-marker type-'+t+dim+'" style="position:relative"><div class="gw-marker-inner">'+e+'</div>'+zk+'</div>',
     iconSize:[28,28],iconAnchor:[14,28],popupAnchor:[0,-28]});
 }
 
@@ -124547,7 +124605,7 @@ function renderList(filtered) {
     var distHtml = dist
       ? '<span class="li-dist">' + dist + '</span>'
       : '<span class="li-dist no-gps">&mdash;</span>';
-    return '<div class="list-item" data-nr="' + escHtml(row.Gewässer_Nr) + '">' +
+    return '<div class="list-item' + (inProfileScope(row)?'':' profile-dim') + '" data-nr="' + escHtml(row.Gewässer_Nr) + '">' +
       '<span class="li-ampel">' + ampelIcon(row) + '</span>' +
       '<div class="li-name">' + escHtml(row.Gewässername) +
         '<div class="li-sub">' + escHtml(row.Gewässer_Nr) +
