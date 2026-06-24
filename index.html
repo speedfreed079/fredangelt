@@ -112762,7 +112762,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.6.1";
+const APP_VERSION = "4.6.2";
 
 const FISH_DEF = [
   {key:'hecht',label:'Hecht',icon:'🐟'},{key:'zander',label:'Zander',icon:'🎣'},
@@ -113068,8 +113068,16 @@ function renderMarkers(){
       var polyColor=riverColors[row.Gewässer_Nr]||'#4fc3f7';
       polySegments.forEach(function(seg){
         if(seg.length<2) return;
-        var poly=L.polyline(seg,{color:polyColor,weight:4,opacity:.9,dashArray:'8,5'});
-        poly.bindTooltip(row.Gewässername,{permanent:false,sticky:true,className:'polyline-label',direction:'auto'});
+        var baseStyle={color:polyColor,weight:4,opacity:.9,dashArray:'8,5'};
+        var poly=L.polyline(seg,baseStyle);
+        poly.bindTooltip(row.Gewässername+' ('+row.Gewässer_Nr+')',{permanent:false,sticky:true,className:'polyline-label',direction:'auto'});
+        poly.on('mouseover',function(e){
+          e.target.setStyle({weight:baseStyle.weight+2,opacity:1});
+          e.target.bringToFront();
+        });
+        poly.on('mouseout',function(e){
+          e.target.setStyle(baseStyle);
+        });
         poly.on('click',function(){openPanel(row);});
         polylineGroup.addLayer(poly);
       });
