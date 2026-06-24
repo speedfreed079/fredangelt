@@ -116866,7 +116866,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.7.0";
+const APP_VERSION = "4.7.1";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -117302,7 +117302,11 @@ function openPanel(row){
   if(angelkarte)warn+='<div class="warn-box">📋 <strong>Angelkarte:</strong> '+escHtml(angelkarte)+'</div>';
   document.getElementById('p-warn').innerHTML=warn;
 
-  // Fish badges
+  // Fish badges — Zielfisch-Filter von der Startseite (activeFilters) als Vorauswahl übernehmen,
+  // damit der "große" Beißindex direkt für bereits gewählte Zielfische erscheint.
+  _activeFishScores = new Set(ENGINE_FISH.filter(function(k){
+    return row['fisch_'+k]==='ja' && activeFilters.has(k);
+  }));
   var fishHtml='';
   FISH_DEF.forEach(function(f){
     var val=row['fisch_'+f.key]||'';
@@ -117311,13 +117315,13 @@ function openPanel(row){
     var hasScore = val==='ja' && ENGINE_FISH.indexOf(f.key) > -1;
     var scoreAttr = hasScore ? ' data-fish="'+f.key+'" onclick="toggleFishScore(this)"' : '';
     var scoreCls  = hasScore ? ' has-score' : '';
-    fishHtml+='<div class="fish-badge '+cls+scoreCls+'"'+scoreAttr+'><div class="icon">'+f.icon+'</div>'+
+    var activeCls = hasScore && _activeFishScores.has(f.key) ? ' active' : '';
+    fishHtml+='<div class="fish-badge '+cls+scoreCls+activeCls+'"'+scoreAttr+'><div class="icon">'+f.icon+'</div>'+
               '<div>'+f.label+'</div><div style="font-size:.65rem;font-weight:700">'+ind+'</div></div>';
   });
   document.getElementById('p-fish').innerHTML=fishHtml;
   document.getElementById('fish-score-panel').className='';
   document.getElementById('fish-score-panel').innerHTML='';
-  _activeFishScores = new Set();
 
   // Quality
   var bucket=row._fisch_bucket||'',score=parseFloat(row._fisch_score||0);
@@ -117696,6 +117700,14 @@ var ActivityEngine = {
     if (score >= 4) return { emoji: '&#128993;', label: 'Mittel' };
     return { emoji: '&#128308;', label: 'Gering' };
   },
+  // Physostome (offener Ductus pneumaticus) vs. physoklist — siehe Recherche Abschnitt 1:
+  // bei fallendem Druck weichen physostome Arten ins Flachwasser/an Krautkanten aus
+  // (präfrontale Nahrungssuche), physoklisten (Zander, Barsch) ziehen sich in die Tiefe zurück.
+  pressureDepthTip: function(fish, w) {
+    if (w.pressureTrend >= -5) return '';
+    if (fish === 'zander' || fish === 'barsch') return 'Fallender Druck — tiefere Wasserschichten aufsuchen';
+    return 'Front zieht auf — Flachwasser/Krautkanten';
+  },
   getContext: function(fish, w) {
     if (fish === 'hecht') {
       if (w.pressureTrend < -5 && w.wind > 15) return 'Front zieht auf — ideal!';
@@ -117707,27 +117719,27 @@ var ActivityEngine = {
       if (w.deltaTemp < -2) return 'Kaltfront — Biss-Bonus';
       if (w.temp < 10) return 'Sehr kühl — Hecht aktiv';
       if (w.temp > 22) return 'Zu warm';
-      return '';
+      return ActivityEngine.pressureDepthTip(fish, w);
     }
     if (fish === 'zander') {
       if (ActivityEngine.isDusk(w.sunrise, w.sunset, 60)) return '🌅 Dämmerungszeit!';
       if (w.temp < 10) return 'Zu kalt — Aktivität niedrig';
       var tempDiff = Math.abs(w.temp - 18.8);
       if (tempDiff < 2) return 'Optimale Temperatur';
-      return 'Außerhalb Dämmerung';
+      return ActivityEngine.pressureDepthTip(fish, w) || 'Außerhalb Dämmerung';
     }
     if (fish === 'barsch') {
       if (w.clouds > 75) return 'Hohe Bewölkung — ideal';
       if (w.temp >= 16 && w.temp <= 24) return 'Gute Temperatur';
       if (w.temp < 8) return 'Zu kalt';
-      return '';
+      return ActivityEngine.pressureDepthTip(fish, w);
     }
     if (fish === 'forelle') {
       if (w.temp >= 12 && w.temp <= 16) return 'Optimale Temperatur';
       if (w.temp > 20 && w.deltaTemp > 1) return 'Zu warm & steigt noch';
       if (w.temp > 18) return 'Grenzwertig warm';
       if (w.temp < 8) return 'Sehr kalt';
-      return 'Suboptimal';
+      return ActivityEngine.pressureDepthTip(fish, w) || 'Suboptimal';
     }
     if (fish === 'karpfen') {
       if (w.deltaTemp < -3) return 'Temperatursturz — schlecht!';
@@ -117735,7 +117747,7 @@ var ActivityEngine = {
       var td = Math.abs(w.temp - 24.5);
       if (td < 2) return 'Nahe Optimum (24.5°C)';
       if (w.temp < 14) return 'Zu kühl';
-      return '';
+      return ActivityEngine.pressureDepthTip(fish, w);
     }
     if (FISH_PARAMS_V3[fish]) {
       var p = FISH_PARAMS_V3[fish];
@@ -117757,11 +117769,7 @@ var ActivityEngine = {
       if (fish === 'schleie') {
         if (w.temp > 20 && ActivityEngine.turbidity(w) > 0.4) return 'Warm & trüb — ideal';
       }
-      if (fish === 'döbel') {
-        return 'Ganztags aktiv (Generalist)';
-      }
-      if (w.pressureTrend < -5) return 'Front zieht auf — Flachwasser/Krautkanten';
-      return '';
+      return ActivityEngine.pressureDepthTip(fish, w) || (fish === 'döbel' ? 'Ganztags aktiv (Generalist)' : '');
     }
     return '';
   },
@@ -118147,6 +118155,7 @@ async function updateWeatherPanel(lat, lon) {
           '</div>';
       }
       actEl.innerHTML = badges + fcHtml;
+      renderFishScorePanel();
     }
   } catch(e) {
     box.className = 'weather-box error';
