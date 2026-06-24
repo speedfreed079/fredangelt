@@ -135,6 +135,13 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
                      border:1px solid rgba(0,0,0,.3);line-height:1}
 /* Fließgewässer Polyline */
 .fliess-line{stroke:#4fc3f7;stroke-width:3;stroke-opacity:.75;stroke-dasharray:6,4;fill:none}
+/* Tiefenlinien-Legende */
+.depth-legend{display:flex;align-items:center;gap:6px;margin:6px 0 2px;padding:6px 10px;
+  background:rgba(20,30,40,.5);border:1px solid var(--border);border-radius:8px;
+  font-family:var(--mono);font-size:.65rem;color:var(--d)}
+.depth-legend .dl-bar{flex:1;height:8px;border-radius:4px;
+  background:linear-gradient(90deg,#aee0f5 0%,#0b3d5c 100%)}
+.depth-legend .dl-label{white-space:nowrap}
 .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{
   background:rgba(13,17,23,.7)!important;border:1px solid var(--accent)!important}
 .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{
@@ -430,6 +437,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
   </div>
   <div class="panel-body">
     <div id="p-warn"></div>
+    <div id="p-depth-legend"></div>
     <div class="section-title">Fischarten <span style="font-size:.58rem;color:var(--accent);font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:400">— antippen für Beißindex</span></div>
     <div class="fish-grid" id="p-fish"></div>
     <div id="fish-score-panel"></div>
@@ -47831,7 +47839,9 @@ const LAVB_DATA = [
     "pacht_beschreibung": "",
     "pacht_preise": "",
     "pacht_kontakt": "",
-    "pacht_ticket_url": ""
+    "pacht_ticket_url": "",
+    "has_depth_data": true,
+    "depth_data_id": "2355290"
   },
   {
     "Gewässer_Nr": "P 03-119",
@@ -59754,7 +59764,9 @@ const LAVB_DATA = [
     "pacht_beschreibung": "",
     "pacht_preise": "",
     "pacht_kontakt": "",
-    "pacht_ticket_url": ""
+    "pacht_ticket_url": "",
+    "has_depth_data": true,
+    "depth_data_id": "1336980"
   },
   {
     "Gewässer_Nr": "P 05-201",
@@ -118460,7 +118472,9 @@ const LAVB_DATA = [
     "pacht_beschreibung": "",
     "pacht_preise": "",
     "pacht_kontakt": "",
-    "pacht_ticket_url": ""
+    "pacht_ticket_url": "",
+    "has_depth_data": true,
+    "depth_data_id": "1336980"
   },
   {
     "Gewässer_Nr": "VP05-10b",
@@ -123141,7 +123155,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.10.0";
+const APP_VERSION = "4.11.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -123165,6 +123179,8 @@ let userLat=null, userLon=null;
 let currentLayer='strasse';
 let radiusKm=0;
 let polylineGroup=null; // Fließgewässer-Linien
+let depthLayerGroup=null; // Tiefenlinien-Polygone (Lazy-Load pro See)
+let _depthDataPromise=null; // Cache: Promise auf tiefenlinien_pilot.json (einmalig laden)
 let cardProfile=localStorage.getItem('cardProfile')||'both'; // 'both'|'berlin'|'brandenburg'
 
 // ── Profil (Angelkarte Berlin/Brandenburg) ───────────────────────────────────
@@ -123243,6 +123259,7 @@ function initMap() {
   });
   map.addLayer(clusterGroup);
   polylineGroup = L.layerGroup().addTo(map);
+  depthLayerGroup = L.layerGroup().addTo(map);
 }
 
 // ── Schriftgröße ─────────────────────────────────────────────────────────────
@@ -123577,6 +123594,7 @@ function highlightMarker(nr) {
 var _currentPanelRow = null;
 function openPanel(row){
   _currentPanelRow = row;
+  showDepthLayer(row);
   var nr=row.Gewässer_Nr||'',name=row.Gewässername||'';
   var bereich=row.Bereich||'',ha=row.Fläche_ha||'';
   var art=row.gewässer_art||'',kav=row.KAV||'',angelkarte=row.angelkarte||'';
@@ -123687,6 +123705,77 @@ function closePanel(){
   _currentPanelRow = null;
   document.getElementById('panel').classList.remove('open');
   document.getElementById('overlay').classList.remove('show');
+  clearDepthLayer();
+}
+
+// ── Tiefenlinien (Isobathen-Flächen, Lazy-Load pro See) ──────────────────────
+function loadDepthData(){
+  if(!_depthDataPromise){
+    _depthDataPromise = fetchWithTimeout('data/tiefenlinien_pilot.json', 8000)
+      .then(function(resp){
+        if(!resp.ok) throw new Error('HTTP '+resp.status);
+        return resp.json();
+      })
+      .catch(function(e){
+        console.warn('Tiefenlinien konnten nicht geladen werden:', e);
+        return null;
+      });
+  }
+  return _depthDataPromise;
+}
+
+function clearDepthLayer(){
+  if(depthLayerGroup) depthLayerGroup.clearLayers();
+  var legend=document.getElementById('p-depth-legend');
+  if(legend) legend.innerHTML='';
+}
+
+// Interpoliert zwischen zwei Hex-Farben (t=0..1)
+function depthColorMix(t){
+  var c1=[174,224,245], c2=[11,61,92]; // hellblau (flach) -> dunkelblau (tief)
+  var r=Math.round(c1[0]+(c2[0]-c1[0])*t);
+  var g=Math.round(c1[1]+(c2[1]-c1[1])*t);
+  var b=Math.round(c1[2]+(c2[2]-c1[2])*t);
+  return 'rgb('+r+','+g+','+b+')';
+}
+
+function showDepthLayer(row){
+  clearDepthLayer();
+  if(!row || !row.has_depth_data || !row.depth_data_id) return;
+  var depthDataId=row.depth_data_id;
+  loadDepthData().then(function(allDepthData){
+    if(!allDepthData) return;
+    var entry=allDepthData[depthDataId];
+    if(!entry || !entry.depth_bands || entry.depth_bands.length===0) return;
+    // Nur noch aktuell, wenn der Nutzer das Panel nicht inzwischen gewechselt hat
+    if(!_currentPanelRow || _currentPanelRow.depth_data_id!==depthDataId) return;
+
+    // Python-Export sortiert numerisch aufsteigend, d.h. bands[0] ist die
+    // NEGATIVSTE (= tiefste) Klasse, das letzte Element ist 0 m (Uferlinie).
+    var bands=entry.depth_bands;
+    var deepest=bands[0].depth, shallowest=bands[bands.length-1].depth; // z.B. -18 .. 0
+    var span=shallowest-deepest || 1;
+
+    bands.forEach(function(band){
+      var t=(shallowest-band.depth)/span; // 0=flach (hell), 1=tiefste Klasse (dunkel)
+      var color=depthColorMix(t);
+      var poly=L.polygon(band.rings,{
+        color:color, weight:1, opacity:.5,
+        fillColor:color, fillOpacity:.55
+      });
+      poly.bindTooltip((entry.seename||'')+': '+Math.abs(band.depth).toFixed(1)+' m',
+        {sticky:true,className:'polyline-label'});
+      depthLayerGroup.addLayer(poly);
+    });
+
+    var legend=document.getElementById('p-depth-legend');
+    if(legend){
+      legend.innerHTML='<div class="depth-legend">'+
+        '<span class="dl-label">📏 0 m</span>'+
+        '<span class="dl-bar"></span>'+
+        '<span class="dl-label">'+Math.abs(deepest).toFixed(1)+' m</span></div>';
+    }
+  });
 }
 
 function refreshPanelActivity() {
