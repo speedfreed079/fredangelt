@@ -200,6 +200,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .fsp-hint{font-size:.6rem;color:var(--d);font-family:var(--mono);margin-top:3px;opacity:.7}
 .fsp-window{font-size:.72rem;color:var(--accent);font-family:var(--mono);margin-top:4px}
 .fsp-window-low{color:var(--warn);opacity:.8}
+.fsp-schonzeit{font-size:.68rem;color:var(--warn);font-family:var(--mono);margin-top:4px;
+  padding:3px 6px;background:rgba(192,137,42,.10);border:1px solid rgba(192,137,42,.3);border-radius:4px}
 /* 3-Tage-Prognose Summary als Button */
 .forecast-bar summary{cursor:pointer;color:var(--accent);list-style:none;padding:4px 8px;
                       background:rgba(61,153,112,.08);border:1px solid rgba(61,153,112,.25);
@@ -116866,7 +116868,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.7.1";
+const APP_VERSION = "4.8.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -117177,7 +117179,7 @@ function renderMarkers(){
       var polyColor=riverColors[row.Gewässer_Nr]||'#4fc3f7';
       polySegments.forEach(function(seg){
         if(seg.length<2) return;
-        var baseStyle={color:polyColor,weight:4,opacity:.9,dashArray:'8,5'};
+        var baseStyle={color:polyColor,weight:3,opacity:.75,dashArray:'8,5'};
         var poly=L.polyline(seg,baseStyle);
         poly.bindTooltip(row.Gewässername+' ('+row.Gewässer_Nr+')',{permanent:false,sticky:true,className:'polyline-label',direction:'auto'});
         poly.on('mouseover',function(e){
@@ -117445,6 +117447,7 @@ function renderFishScorePanel() {
     var pct   = (score / 10 * 100).toFixed(0);
     var fillColor = score >= 8 ? '#3d9970' : score >= 4 ? '#c0892a' : '#c03a2b';
     var hint  = FISH_SCORE_HINTS[fish] || '';
+    var schonzeitHint = ActivityEngine.getSchonzeitHint(fish, _currentPanelRow ? _currentPanelRow.Bereich : '');
     var winHtml = '';
     if (win && win.from && win.quality !== 'low') {
       var winLabel = win.to ? win.from + '–' + win.to : win.from;
@@ -117460,6 +117463,7 @@ function renderFishScorePanel() {
       '<div class="fsp-score-bar"><div class="fsp-score-fill" style="width:'+pct+'%;background:'+fillColor+'"></div></div>' +
       (ctx    ? '<div class="fsp-ctx">'  + ctx    + '</div>' : '') +
       winHtml +
+      (schonzeitHint ? '<div class="fsp-schonzeit">' + schonzeitHint + '</div>' : '') +
       (hint   ? '<div class="fsp-hint">' + hint   + '</div>' : '') +
       '</div>';
   });
@@ -117503,6 +117507,17 @@ const FISH_PARAMS_V3 = {
   schleie:{topt:24.0, sigmaL:6.0, sigmaH:4.0, wTemp:.45, wBaro:.10, wLicht:.30, wWind:.15, mSolunarMax:1.20, turbidity:'positive'},
   rapfen: {topt:25.0, sigmaL:5.0, sigmaH:3.0, wTemp:.30, wBaro:.15, wLicht:.35, wWind:.20, mSolunarMax:1.20, turbidity:'negative'},
   'döbel':{topt:18.6, sigmaL:5.0, sigmaH:4.0, wTemp:.30, wBaro:.10, wLicht:.40, wWind:.20, mSolunarMax:1.10, turbidity:'neutral'}
+};
+
+// Gesetzliche Schonzeiten (DD-MM) — nur Arten mit echtem Zeitfenster in mind. einem Bundesland.
+// Quelle: 07_Recherchen/recherche_schonzeit_mindesmass_Berlin_und_BB.md (BbgFischO / LFischO, Stand 2026).
+// Bewusst nur als Hinweis genutzt — Hegeplan-/Spreewald-Sonderregeln sind hier NICHT abgebildet,
+// daher Formulierung im UI immer als "wahrscheinlich ... bitte prüfen", nie als Verbot.
+const SCHONZEIT_DATA = {
+  hecht:   { brandenburg: {start:'01-02', end:'31-03'}, berlin: {start:'01-01', end:'30-04'} },
+  zander:  { brandenburg: {start:'01-04', end:'31-05'}, berlin: {start:'01-01', end:'31-05'} },
+  forelle: { brandenburg: {start:'16-10', end:'15-04'}, berlin: {start:'01-10', end:'30-04'} },
+  rapfen:  { brandenburg: {start:'01-04', end:'30-06'}, berlin: {start:'01-04', end:'30-06'} }
 };
 
 // ActivityEngine
@@ -117684,6 +117699,54 @@ var ActivityEngine = {
     var score = raw * 10 * ActivityEngine.moonFactor(p, w);
     if (p.coldFloor !== undefined && w.temp < p.coldFloor) score = Math.min(score, 1.5);
     return Math.max(0, Math.min(10, score));
+  },
+
+  // ── Schonzeit-Hinweis (nur Anzeige, keine harte Sperre — siehe SCHONZEIT_DATA) ──
+  parseDDMM: function(s) {
+    var parts = s.split('-');
+    return { day: parseInt(parts[0], 10), month: parseInt(parts[1], 10) };
+  },
+  dayOfYear: function(day, month) {
+    var d = new Date(2001, month - 1, day); // fixes Nicht-Schaltjahr als Referenz
+    var start = new Date(2001, 0, 1);
+    return Math.round((d - start) / 86400000) + 1;
+  },
+  ddmmToDe: function(s) {
+    var p = ActivityEngine.parseDDMM(s);
+    return (p.day < 10 ? '0' : '') + p.day + '.' + (p.month < 10 ? '0' : '') + p.month + '.';
+  },
+  schonzeitStatus: function(startStr, endStr, leadDays) {
+    if (!startStr || !endStr) return null;
+    var startP = ActivityEngine.parseDDMM(startStr);
+    var endP   = ActivityEngine.parseDDMM(endStr);
+    var startDOY = ActivityEngine.dayOfYear(startP.day, startP.month);
+    var endDOY   = ActivityEngine.dayOfYear(endP.day, endP.month);
+    var now = new Date();
+    var todayDOY = ActivityEngine.dayOfYear(now.getDate(), now.getMonth() + 1);
+
+    var isActive = startDOY <= endDOY
+      ? (todayDOY >= startDOY && todayDOY <= endDOY)
+      : (todayDOY >= startDOY || todayDOY <= endDOY);
+    if (isActive) return { state: 'active', start: startStr, end: endStr };
+
+    var daysUntil = startDOY - todayDOY;
+    if (daysUntil < 0) daysUntil += 365;
+    if (daysUntil >= 1 && daysUntil <= leadDays) {
+      return { state: 'upcoming', start: startStr, end: endStr, daysUntil: daysUntil };
+    }
+    return null;
+  },
+  getSchonzeitHint: function(fish, bereich) {
+    var entry = SCHONZEIT_DATA[fish];
+    if (!entry) return null;
+    var land = bereich === 'Berlin' ? entry.berlin : entry.brandenburg;
+    if (!land) return null;
+    var status = ActivityEngine.schonzeitStatus(land.start, land.end, 14);
+    if (!status) return null;
+    if (status.state === 'active') {
+      return '⚠️ Wahrscheinlich Schonzeit bis ' + ActivityEngine.ddmmToDe(status.end) + ' — bitte am Gewässer/Verband prüfen';
+    }
+    return '⚠️ Schonzeit beginnt wahrscheinlich bald (ab ' + ActivityEngine.ddmmToDe(status.start) + ') — bitte am Gewässer/Verband prüfen';
   },
 
   general: function(w) {
