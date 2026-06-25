@@ -261,6 +261,10 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .fsp-window-low{color:var(--warn);opacity:.8}
 .fsp-schonzeit{font-size:.68rem;color:var(--warn);font-family:var(--mono);margin-top:4px;
   padding:3px 6px;background:rgba(192,137,42,.10);border:1px solid rgba(192,137,42,.3);border-radius:4px}
+/* Fisch-Icon im Beißindex-Panel-Header */
+.fsp-icon{width:28px;height:18px;object-fit:contain;filter:brightness(0) invert(1);opacity:.75;vertical-align:middle}
+/* Fisch-Icon in Schonzeit-Zeile */
+.sz-icon{width:22px;height:14px;object-fit:contain;filter:brightness(0) invert(1);opacity:.65;vertical-align:middle;margin-right:3px}
 
 /* Schonzeit & Mindestmaß (Panel-Sektion) */
 .schonzeit-row{display:flex;align-items:center;gap:6px;padding:4px 2px;font-size:.72rem;
@@ -300,9 +304,29 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .section-title{font-size:.63rem;font-family:var(--mono);text-transform:uppercase;
                letter-spacing:1px;color:var(--d);margin:12px 0 7px}
 
-/* Fish grid */
-.fish-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:4px}
-@media(max-width:400px){.fish-grid{grid-template-columns:repeat(3,1fr)}}
+/* Fish gallery (Panel — vorhandene Arten als horizontale Icon-Galerie) */
+.fish-gallery{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;
+              scrollbar-width:none;margin-bottom:2px}
+.fish-gallery::-webkit-scrollbar{display:none}
+.fg-card{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;
+         width:58px;padding:8px 4px;border-radius:8px;
+         border:1px solid rgba(61,153,112,.3);background:rgba(61,153,112,.08);
+         transition:border-color .15s,background .15s}
+.fg-card.has-score{cursor:pointer}
+.fg-card.has-score:hover{border-color:var(--accent);background:rgba(61,153,112,.2)}
+.fg-card.has-score.active{border-color:var(--accent);background:rgba(61,153,112,.22)}
+.fg-icon{width:38px;height:26px;object-fit:contain;
+         filter:brightness(0) invert(1);opacity:.8}
+.fg-icon-emoji{font-size:1.25rem;line-height:1}
+.fg-label{font-size:.58rem;font-family:var(--mono);color:#5dba8c;text-align:center;line-height:1.2}
+.fg-ind{font-size:.55rem;font-family:var(--mono);color:var(--d);font-weight:700}
+/* Nicht vorhandene Arten: kompakte Textzeile */
+.fish-nein{font-size:.63rem;color:var(--d);font-family:var(--mono);
+           padding:4px 2px 8px;line-height:1.6;opacity:.65}
+.fish-nein strong{color:var(--border);font-weight:600}
+
+/* Fish grid (Legacy-Fallback, aktuell nicht genutzt) */
+.fish-grid{display:none}
 .fish-badge{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 3px;
             border-radius:7px;border:1px solid transparent;font-size:.6rem;
             font-family:var(--mono);text-align:center}
@@ -508,7 +532,9 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
     <div id="p-warn"></div>
     <div id="p-depth-legend"></div>
     <div class="section-title">Fischarten <span style="font-size:.58rem;color:var(--accent);font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:400">— antippen für Beißindex</span></div>
-    <div class="fish-grid" id="p-fish"></div>
+    <div class="fish-gallery" id="p-fish-gallery"></div>
+    <div class="fish-nein"   id="p-fish-nein"></div>
+    <div class="fish-grid"   id="p-fish"></div>
     <div id="fish-score-panel"></div>
     <div class="section-title">Schonzeit &amp; Mindestmaß</div>
     <div id="p-schonzeit"></div>
@@ -530,18 +556,18 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 <!-- Fisch-Filterbar — unten, Daumen-erreichbar -->
 <div class="filterbar">
   <div class="chip on"     data-filter="all">Alle</div>
-  <div class="chip"        data-filter="hecht">🐟 Hecht</div>
-  <div class="chip"        data-filter="zander">🎣 Zander</div>
-  <div class="chip"        data-filter="barsch">🐠 Barsch</div>
-  <div class="chip"        data-filter="wels">🦈 Wels</div>
-  <div class="chip"        data-filter="aal">🐍 Aal</div>
-  <div class="chip"        data-filter="karpfen">🐡 Karpfen</div>
-  <div class="chip"        data-filter="schleie">🐟 Schleie</div>
-  <div class="chip"        data-filter="forelle">🌊 Forelle</div>
-  <div class="chip"        data-filter="maraene">🐟 Maräne</div>
-  <div class="chip warn-chip" data-filter="vertragsgewaesser">⚠ Vertrag</div>
-  <div class="chip sal-chip"  data-filter="salmonide">🌊 Salmonide</div>
-  <div class="chip pacht-chip" data-filter="pachtgewaesser">💰 Pacht</div>
+  <div class="chip"        data-filter="hecht">Hecht</div>
+  <div class="chip"        data-filter="zander">Zander</div>
+  <div class="chip"        data-filter="barsch">Barsch</div>
+  <div class="chip"        data-filter="wels">Wels</div>
+  <div class="chip"        data-filter="aal">Aal</div>
+  <div class="chip"        data-filter="karpfen">Karpfen</div>
+  <div class="chip"        data-filter="schleie">Schleie</div>
+  <div class="chip"        data-filter="forelle">Forelle</div>
+  <div class="chip"        data-filter="maraene">Maräne</div>
+  <div class="chip warn-chip" data-filter="vertragsgewaesser">Vertrag</div>
+  <div class="chip sal-chip"  data-filter="salmonide">Salmonide</div>
+  <div class="chip pacht-chip" data-filter="pachtgewaesser">Pacht</div>
 </div>
 
 <script>
@@ -124288,18 +124314,25 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.16.0";
+const APP_VERSION = "4.17.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
 const FISH_DEF = [
-  {key:'hecht',label:'Hecht',icon:'🐟'},{key:'zander',label:'Zander',icon:'🎣'},
-  {key:'barsch',label:'Barsch',icon:'🐠'},{key:'wels',label:'Wels',icon:'🦈'},
-  {key:'aal',label:'Aal',icon:'🐍'},{key:'karpfen',label:'Karpfen',icon:'🐡'},
-  {key:'schleie',label:'Schleie',icon:'🐟'},{key:'forelle',label:'Forelle',icon:'🌊'},
-  {key:'aesche',label:'Äsche',icon:'🌊'},{key:'maraene',label:'Maräne',icon:'🐟'},
-  {key:'rapfen',label:'Rapfen',icon:'🐟'},{key:'döbel',label:'Döbel',icon:'🐟'},
-  {key:'quappe',label:'Quappe',icon:'🐟'},{key:'weissfisch',label:'Weißfisch',icon:'🐟'},
+  {key:'hecht',     label:'Hecht',     icon:'🐟', png:'assets/icons/icon_hecht.png'},
+  {key:'zander',    label:'Zander',    icon:'🎣', png:'assets/icons/icon_zander.png'},
+  {key:'barsch',    label:'Barsch',    icon:'🐠', png:'assets/icons/icon_barsch.png'},
+  {key:'wels',      label:'Wels',      icon:'🦈', png:'assets/icons/icon_wels.png'},
+  {key:'aal',       label:'Aal',       icon:'🐍', png:'assets/icons/icon_aal.png'},
+  {key:'karpfen',   label:'Karpfen',   icon:'🐡', png:'assets/icons/icon_karpfen.png'},
+  {key:'schleie',   label:'Schleie',   icon:'🐟', png:'assets/icons/icon_schleie.png'},
+  {key:'forelle',   label:'Forelle',   icon:'🌊', png:'assets/icons/icon_forelle.png'},
+  {key:'aesche',    label:'Äsche',     icon:'🌊', png:'assets/icons/icon_aesche.png'},
+  {key:'maraene',   label:'Maräne',    icon:'🐟', png:'assets/icons/icon_maraene.png'},
+  {key:'rapfen',    label:'Rapfen',    icon:'🐟'},
+  {key:'döbel',     label:'Döbel',     icon:'🐟'},
+  {key:'quappe',    label:'Quappe',    icon:'🐟'},
+  {key:'weissfisch',label:'Weißfisch', icon:'🐟', png:'assets/icons/icon_weissfisch.png'},
 ];
 
 // Fischarten mit Beißindex-Score in der ActivityEngine (Zentrale Quelle — siehe ActivityEngine v3)
@@ -124838,19 +124871,28 @@ function openPanel(row, opts){
   _activeFishScores = new Set(ENGINE_FISH.filter(function(k){
     return row['fisch_'+k]==='ja' && activeFilters.has(k);
   }));
-  var fishHtml='';
+  // Gallery (ja-Fische mit PNG-Icon) + Nein-Textliste
+  var galleryHtml='', neinList=[];
   FISH_DEF.forEach(function(f){
     var val=row['fisch_'+f.key]||'';
-    var cls=val==='ja'?'fb-ja':val==='nein'?'fb-nein':'fb-unk';
-    var ind=val==='ja'?'✓':val==='nein'?'✗':'?';
-    var hasScore = val==='ja' && ENGINE_FISH.indexOf(f.key) > -1;
-    var scoreAttr = hasScore ? ' data-fish="'+f.key+'" onclick="toggleFishScore(this)"' : '';
-    var scoreCls  = hasScore ? ' has-score' : '';
-    var activeCls = hasScore && _activeFishScores.has(f.key) ? ' active' : '';
-    fishHtml+='<div class="fish-badge '+cls+scoreCls+activeCls+'"'+scoreAttr+'><div class="icon">'+f.icon+'</div>'+
-              '<div>'+f.label+'</div><div style="font-size:.65rem;font-weight:700">'+ind+'</div></div>';
+    if(val==='ja'){
+      var hasScore = ENGINE_FISH.indexOf(f.key) > -1;
+      var scoreAttr = hasScore ? ' data-fish="'+f.key+'" onclick="toggleFishScore(this)"' : '';
+      var scoreCls  = hasScore ? ' has-score' : '';
+      var activeCls = hasScore && _activeFishScores.has(f.key) ? ' active' : '';
+      var iconHtml  = f.png
+        ? '<img class="fg-icon" src="'+f.png+'" alt="'+f.label+'">'
+        : '<div class="fg-icon-emoji">'+f.icon+'</div>';
+      galleryHtml+='<div class="fg-card'+scoreCls+activeCls+'"'+scoreAttr+'>'+iconHtml+
+                   '<div class="fg-label">'+f.label+'</div></div>';
+    } else if(val==='nein'){
+      neinList.push(f.label);
+    }
   });
-  document.getElementById('p-fish').innerHTML=fishHtml;
+  document.getElementById('p-fish-gallery').innerHTML=galleryHtml||
+    '<span style="font-size:.65rem;color:var(--d);font-family:var(--mono)">Keine Fischdaten</span>';
+  document.getElementById('p-fish-nein').innerHTML=neinList.length
+    ? '<strong>Nicht besetzt:</strong> '+neinList.join(', ') : '';
   document.getElementById('fish-score-panel').className='';
   document.getElementById('fish-score-panel').innerHTML='';
   renderSchonzeitPanel(row);
@@ -125086,8 +125128,17 @@ var _activeFishScores = new Set();
 
 var FISH_SCORE_LABELS = {hecht:'Hecht',zander:'Zander',barsch:'Barsch',forelle:'Forelle',karpfen:'Karpfen',
                           wels:'Wels',aal:'Aal',schleie:'Schleie',rapfen:'Rapfen','döbel':'Döbel'};
-var FISH_SCORE_ICONS  = {hecht:'🐟',zander:'🎣',barsch:'🐠',forelle:'🌊',karpfen:'🐡',
-                          wels:'🦈',aal:'🐍',schleie:'🐟',rapfen:'🐟','döbel':'🐟'};
+var FISH_SCORE_ICONS  = {
+  hecht:   '<img class="fsp-icon" src="assets/icons/icon_hecht.png"   alt="Hecht">',
+  zander:  '<img class="fsp-icon" src="assets/icons/icon_zander.png"  alt="Zander">',
+  barsch:  '<img class="fsp-icon" src="assets/icons/icon_barsch.png"  alt="Barsch">',
+  forelle: '<img class="fsp-icon" src="assets/icons/icon_forelle.png" alt="Forelle">',
+  karpfen: '<img class="fsp-icon" src="assets/icons/icon_karpfen.png" alt="Karpfen">',
+  wels:    '<img class="fsp-icon" src="assets/icons/icon_wels.png"    alt="Wels">',
+  aal:     '<img class="fsp-icon" src="assets/icons/icon_aal.png"     alt="Aal">',
+  schleie: '<img class="fsp-icon" src="assets/icons/icon_schleie.png" alt="Schleie">',
+  rapfen:  '🐟', 'döbel': '🐟'
+};
 var FISH_SCORE_HINTS  = {forelle:'⚠️ Lufttemperatur als Näherungswert',
                          karpfen:'⚠️ Lufttemperatur als Näherungswert',
                          wels:'⚠️ Lufttemperatur als Näherungswert',
@@ -125120,10 +125171,11 @@ function schonzeitText(land){
 function mindestmassText(land){
   return land && land.mindestmass ? land.mindestmass+' cm' : '–';
 }
-function schonzeitRowHtml(label, land){
+function schonzeitRowHtml(label, land, png){
   var status = land && land.start && land.end ? ActivityEngine.schonzeitStatus(land.start, land.end, 0) : null;
   var activeCls = status && status.state==='active' ? ' sz-active' : '';
-  return '<div class="schonzeit-row'+activeCls+'"><span class="sz-art">'+escHtml(label)+'</span>'+
+  var iconHtml = png ? '<img class="sz-icon" src="'+png+'" alt="'+escHtml(label)+'">' : '';
+  return '<div class="schonzeit-row'+activeCls+'"><span class="sz-art">'+iconHtml+escHtml(label)+'</span>'+
          '<span class="sz-zeit">'+schonzeitText(land)+'</span>'+
          '<span class="sz-mass">'+mindestmassText(land)+'</span></div>';
 }
@@ -125134,7 +125186,7 @@ function renderSchonzeitPanel(row){
     if(row['fisch_'+f.key]!=='ja') return;
     var entry=SCHONZEIT_DATA[f.key];
     if(!entry) return;
-    rowsHtml+=schonzeitRowHtml(entry.label, entry[bereich]);
+    rowsHtml+=schonzeitRowHtml(entry.label, entry[bereich], f.png||null);
   });
   var allRowsHtml='';
   SCHONZEIT_ORDER.forEach(function(key){
