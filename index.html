@@ -262,9 +262,9 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .fsp-schonzeit{font-size:.68rem;color:var(--warn);font-family:var(--mono);margin-top:4px;
   padding:3px 6px;background:rgba(192,137,42,.10);border:1px solid rgba(192,137,42,.3);border-radius:4px}
 /* Fisch-Icon im Beißindex-Panel-Header */
-.fsp-icon{width:28px;height:18px;object-fit:contain;filter:brightness(0) invert(1);opacity:.75;vertical-align:middle}
+.fsp-icon{width:30px;height:20px;object-fit:contain;background:rgba(255,255,255,.85);border-radius:3px;padding:2px;vertical-align:middle}
 /* Fisch-Icon in Schonzeit-Zeile */
-.sz-icon{width:22px;height:14px;object-fit:contain;filter:brightness(0) invert(1);opacity:.65;vertical-align:middle;margin-right:3px}
+.sz-icon{width:26px;height:17px;object-fit:contain;background:rgba(255,255,255,.85);border-radius:3px;padding:1px;vertical-align:middle;margin-right:4px}
 
 /* Schonzeit & Mindestmaß (Panel-Sektion) */
 .schonzeit-row{display:flex;align-items:center;gap:6px;padding:4px 2px;font-size:.72rem;
@@ -311,8 +311,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
             border-radius:7px;border:1px solid transparent;font-size:.6rem;
             font-family:var(--mono);text-align:center}
 .fish-badge .icon{font-size:1rem;line-height:1}
-.fish-badge img.fb-img{width:34px;height:22px;object-fit:contain;
-                       filter:brightness(0) invert(1);opacity:.75}
+.fish-badge img.fb-img{width:38px;height:25px;object-fit:contain;
+                       background:rgba(255,255,255,.88);border-radius:4px;padding:2px}
 .fb-ja{background:rgba(61,153,112,.12);border-color:rgba(61,153,112,.3);color:#5dba8c}
 .fb-nein{background:rgba(192,58,43,.07);border-color:rgba(192,58,43,.2);color:#804040}
 .fb-unk{background:rgba(107,128,153,.06);border-color:var(--border);color:var(--d);opacity:.6}
@@ -124308,7 +124308,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.18.0";
+const APP_VERSION = "4.18.1";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -124323,9 +124323,9 @@ const FISH_DEF = [
   {key:'forelle',   label:'Forelle',   icon:'🌊', png:'assets/icons/icon_forelle.png'},
   {key:'aesche',    label:'Äsche',     icon:'🌊', png:'assets/icons/icon_aesche.png'},
   {key:'maraene',   label:'Maräne',    icon:'🐟', png:'assets/icons/icon_maraene.png'},
-  {key:'rapfen',    label:'Rapfen',    icon:'🐟'},
-  {key:'döbel',     label:'Döbel',     icon:'🐟'},
-  {key:'quappe',    label:'Quappe',    icon:'🐟'},
+  {key:'rapfen',    label:'Rapfen',    icon:'🐟', png:'assets/icons/icon_rapfen.png'},
+  {key:'döbel',     label:'Döbel',     icon:'🐟', png:'assets/icons/icon_doebel.png'},
+  {key:'quappe',    label:'Quappe',    icon:'🐟', png:'assets/icons/icon_quappe.png'},
   {key:'weissfisch',label:'Weißfisch', icon:'🐟', png:'assets/icons/icon_weissfisch.png'},
 ];
 
@@ -125126,7 +125126,8 @@ var FISH_SCORE_ICONS  = {
   wels:    '<img class="fsp-icon" src="assets/icons/icon_wels.png"    alt="Wels">',
   aal:     '<img class="fsp-icon" src="assets/icons/icon_aal.png"     alt="Aal">',
   schleie: '<img class="fsp-icon" src="assets/icons/icon_schleie.png" alt="Schleie">',
-  rapfen:  '🐟', 'döbel': '🐟'
+  rapfen:  '<img class="fsp-icon" src="assets/icons/icon_rapfen.png"  alt="Rapfen">',
+  'döbel': '<img class="fsp-icon" src="assets/icons/icon_doebel.png" alt="Döbel">'
 };
 var FISH_SCORE_HINTS  = {forelle:'⚠️ Lufttemperatur als Näherungswert',
                          karpfen:'⚠️ Lufttemperatur als Näherungswert',
