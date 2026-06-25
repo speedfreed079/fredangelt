@@ -312,11 +312,11 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
             font-family:var(--mono);text-align:center}
 .fish-badge .icon{font-size:1rem;line-height:1}
 .fish-badge img.fb-img{width:38px;height:25px;object-fit:contain}
-.fb-nein img.fb-img{opacity:.28}
-.fb-unk  img.fb-img{opacity:.14}
-.fb-ja  {background:transparent;border-color:transparent;color:#5dba8c}
-.fb-nein{background:transparent;border-color:transparent;color:#7a4444}
-.fb-unk {background:transparent;border-color:transparent;color:var(--d);opacity:.5}
+.fb-nein img.fb-img{opacity:.32}
+.fb-unk  img.fb-img{opacity:.18}
+.fb-ja{background:rgba(61,153,112,.12);border-color:rgba(61,153,112,.3);color:#5dba8c}
+.fb-nein{background:rgba(192,58,43,.07);border-color:rgba(192,58,43,.2);color:#804040}
+.fb-unk{background:rgba(107,128,153,.06);border-color:var(--border);color:var(--d);opacity:.6}
 /* Schonzeit als aufklappbarer Block */
 .schonzeit-collapse{margin-bottom:4px}
 .schonzeit-collapse>summary{cursor:pointer;list-style:none;display:flex;align-items:center;
@@ -124309,7 +124309,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.18.4";
+const APP_VERSION = "4.18.5";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -124907,7 +124907,7 @@ function openPanel(row, opts){
     var scoreAttr = hasScore ? ' data-fish="'+f.key+'" onclick="toggleFishScore(this)"' : '';
     var scoreCls  = hasScore ? ' has-score' : '';
     var activeCls = hasScore && _activeFishScores.has(f.key) ? ' active' : '';
-    var iconHtml  = f.png ? fishIconHtml(f.key,'fb-img') : '<div class="icon">'+f.icon+'</div>';
+    var iconHtml  = '<div class="icon">'+f.icon+'</div>';
     fishHtml+='<div class="fish-badge '+cls+scoreCls+activeCls+'"'+scoreAttr+'>'+iconHtml+
               '<div>'+f.label+'</div><div style="font-size:.65rem;font-weight:700">'+ind+'</div></div>';
   });
