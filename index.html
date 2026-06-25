@@ -123155,7 +123155,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.11.2";
+const APP_VERSION = "4.11.3";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -123180,6 +123180,7 @@ let currentLayer='strasse';
 let radiusKm=0;
 let polylineGroup=null; // Fließgewässer-Linien
 let depthLayerGroup=null; // Tiefenlinien-Polygone (Lazy-Load pro See)
+let depthRenderer=null; // Eigener Canvas-Renderer (s.u. — robuster als SVG bei Zoom/Pan)
 let _depthDataPromise=null; // Cache: Promise auf tiefenlinien_pilot.json (einmalig laden)
 let cardProfile=localStorage.getItem('cardProfile')||'both'; // 'both'|'berlin'|'brandenburg'
 
@@ -123259,8 +123260,14 @@ function initMap() {
   });
   map.addLayer(clusterGroup);
   polylineGroup = L.layerGroup().addTo(map);
+  // Canvas statt Standard-SVG: SVG-Pfade einzelner Seen können bei vielen/großen
+  // Tiefenlinien-Polygonen nach schnellem Zoomen/Verschieben unsichtbar bleiben
+  // (Browser zeichnet die transformierten <path>-Elemente nicht zuverlässig neu,
+  // v.a. auf iOS Safari). Canvas zeichnet pro Frame neu und ist davon nicht betroffen.
+  // padding:1 hält außerdem einen ganzen Bildschirm Puffer rund um den Ausschnitt vor,
+  // damit beim Verschieben nicht sofort an den Rändern geclippt wird.
+  depthRenderer = L.canvas({padding:1});
   depthLayerGroup = L.layerGroup().addTo(map);
-  map.on('zoomend moveend', updateDepthLayer);
 }
 
 // ── Schriftgröße ─────────────────────────────────────────────────────────────
@@ -123493,7 +123500,6 @@ function renderMarkers(){
     }
     return true;
   });
-  _lastFilteredRows = filtered;
   filtered.forEach(function(row){
     var lat=parseFloat(row.lat),lon=parseFloat(row.lon);
     var m=L.marker([lat,lon],{icon:makeIcon(row)});
@@ -123597,6 +123603,7 @@ function highlightMarker(nr) {
 var _currentPanelRow = null;
 function openPanel(row){
   _currentPanelRow = row;
+  _depthSelectedRow = row;
   updatePanelDepthLegend(row);
   var nr=row.Gewässer_Nr||'',name=row.Gewässername||'';
   var bereich=row.Bereich||'',ha=row.Fläche_ha||'';
@@ -123698,6 +123705,7 @@ function openPanel(row){
 
   document.getElementById('panel').classList.add('open');
   document.getElementById('overlay').classList.add('show');
+  updateDepthLayer();
   // Desktop: auf Gewässer fliegen
   if(window.innerWidth>640&&lat&&lon){
     map.flyTo([lat,lon],Math.max(map.getZoom(),13),{duration:.8});
@@ -123709,16 +123717,16 @@ function closePanel(){
   document.getElementById('panel').classList.remove('open');
   document.getElementById('overlay').classList.remove('show');
   setDepthLegend(null);
+  // Tiefenlinien bleiben bewusst stehen, bis ein neues Gewässer ausgewählt wird.
 }
 
 // ── Tiefenlinien (Isobathen-Flächen) ─────────────────────────────────────────
-// Ab DEPTH_MIN_ZOOM werden alle Seen mit Tiefendaten, die im aktuellen
-// Kartenausschnitt UND in den aktiven Filtern liegen, automatisch eingeblendet
-// (analog zu den Fluss-Polylinien) — unabhängig davon, ob das Panel offen ist.
-// Verhindert Kartenüberladung beim Rauszoomen, falls künftig mehr Seen
-// Tiefendaten bekommen.
-var DEPTH_MIN_ZOOM = 12;
-var _lastFilteredRows = [];
+// Tiefenlinien werden erst gezeichnet, wenn ein See ausgewählt wird (nicht mehr
+// automatisch für alle sichtbaren Seen ab einem Zoomlevel). Sie bleiben danach
+// auch nach dem Schließen des Panels stehen — erst die Auswahl eines neuen
+// Gewässers ersetzt sie. Daher eigene Variable statt _currentPanelRow (die
+// beim Schließen auf null gesetzt wird).
+var _depthSelectedRow = null;
 
 function loadDepthData(){
   if(!_depthDataPromise){
@@ -123765,6 +123773,7 @@ function renderDepthEntry(entry, row){
     var t=(shallowest-band.depth)/span; // 0=flach (hell), 1=tiefste Klasse (dunkel)
     var color=depthColorMix(t);
     var poly=L.polygon(band.rings,{
+      renderer:depthRenderer,
       color:color, weight:1, opacity:.5,
       fillColor:color, fillOpacity:.55
     });
@@ -123778,35 +123787,25 @@ function renderDepthEntry(entry, row){
   }
 }
 
-// Wird nach jedem renderMarkers() (Filter/Suche geändert) UND bei jedem
-// zoomend/moveend neu aufgerufen — zeichnet nur, was wirklich sichtbar ist.
-// Leaflet feuert bei setView()/flyTo() oft zoomend UND moveend für denselben
-// Sprung; ein Generation-Token verhindert, dass zwei überlappende async
-// Render-Durchläufe sich gegenseitig verdoppeln (älterer Durchlauf bricht ab).
+// Wird beim Öffnen eines Panels aufgerufen — zeichnet ausschließlich die
+// Tiefenlinien des zuletzt ausgewählten Sees (_depthSelectedRow), unabhängig
+// davon, ob das Panel offen oder bereits wieder geschlossen ist.
+// Ein Generation-Token verhindert, dass ein schneller Auswahlwechsel
+// (Panel A öffnen, sofort Panel B öffnen) den älteren, noch ladenden
+// Render-Durchlauf über den neueren drüberzeichnet.
 var _depthRenderGen = 0;
 function updateDepthLayer(){
   if(!depthLayerGroup || !map) return;
   var myGen = ++_depthRenderGen;
   depthLayerGroup.clearLayers();
-  if(map.getZoom() < DEPTH_MIN_ZOOM) return;
-  var bounds=map.getBounds();
-  var candidates=_lastFilteredRows.filter(function(row){
-    if(!row.has_depth_data || !row.depth_data_id) return false;
-    var lat=parseFloat(row.lat), lon=parseFloat(row.lon);
-    return !isNaN(lat) && !isNaN(lon) && bounds.contains([lat,lon]);
-  });
-  if(candidates.length===0) return;
+  var row=_depthSelectedRow;
+  if(!row || !row.has_depth_data || !row.depth_data_id) return;
   loadDepthData().then(function(allDepthData){
     if(myGen !== _depthRenderGen) return; // durch neueren Aufruf überholt
     if(!allDepthData) return;
-    if(map.getZoom() < DEPTH_MIN_ZOOM) return; // könnte sich während des Ladens geändert haben
-    var seen={};
-    candidates.forEach(function(row){
-      if(seen[row.depth_data_id]) return; // mehrere LAVB-Nummern -> 1 See (z.B. Unteruckersee)
-      seen[row.depth_data_id]=true;
-      var entry=allDepthData[row.depth_data_id];
-      if(entry) renderDepthEntry(entry, row);
-    });
+    if(_depthSelectedRow!==row) return; // Auswahl hat sich während des Ladens geändert
+    var entry=allDepthData[row.depth_data_id];
+    if(entry) renderDepthEntry(entry, row);
   });
 }
 
