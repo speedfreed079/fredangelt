@@ -261,6 +261,27 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .fsp-window-low{color:var(--warn);opacity:.8}
 .fsp-schonzeit{font-size:.68rem;color:var(--warn);font-family:var(--mono);margin-top:4px;
   padding:3px 6px;background:rgba(192,137,42,.10);border:1px solid rgba(192,137,42,.3);border-radius:4px}
+
+/* Schonzeit & Mindestmaß (Panel-Sektion) */
+.schonzeit-row{display:flex;align-items:center;gap:6px;padding:4px 2px;font-size:.72rem;
+  border-top:1px solid rgba(36,48,68,.5)}
+.schonzeit-row:first-child{border-top:none}
+.sz-art{flex:0 0 86px;font-weight:600;color:var(--t)}
+.sz-zeit{flex:1;color:var(--d);font-family:var(--mono);font-size:.68rem}
+.sz-mass{flex:0 0 auto;font-family:var(--mono);color:var(--accent);font-weight:700;font-size:.68rem}
+.schonzeit-row.sz-active .sz-zeit{color:var(--warn);font-weight:600}
+.schonzeit-empty{font-size:.68rem;color:var(--d);font-family:var(--mono);padding:4px 2px}
+.schonzeit-details{margin-top:8px}
+.schonzeit-details summary{cursor:pointer;color:var(--accent);list-style:none;font-size:.68rem;
+  font-family:var(--mono);padding:4px 0}
+.schonzeit-details summary::-webkit-details-marker{display:none}
+.schonzeit-details summary::before{content:'▶ ';font-size:.6rem}
+.schonzeit-details[open] summary::before{content:'▼ '}
+.schonzeit-table{width:100%;border-collapse:collapse;font-size:.66rem;margin-top:4px}
+.schonzeit-table th{text-align:left;color:var(--d);font-family:var(--mono);font-weight:400;
+  padding:3px 4px;border-bottom:1px solid var(--border)}
+.schonzeit-table td{padding:3px 4px;border-bottom:1px solid rgba(36,48,68,.4);color:var(--t)}
+.schonzeit-foot{font-size:.6rem;color:var(--d);margin-top:6px;line-height:1.4}
 /* 3-Tage-Prognose Summary als Button */
 .forecast-bar summary{cursor:pointer;color:var(--accent);list-style:none;padding:4px 8px;
                       background:rgba(61,153,112,.08);border:1px solid rgba(61,153,112,.25);
@@ -488,6 +509,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
     <div class="section-title">Fischarten <span style="font-size:.58rem;color:var(--accent);font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:400">— antippen für Beißindex</span></div>
     <div class="fish-grid" id="p-fish"></div>
     <div id="fish-score-panel"></div>
+    <div class="section-title">Schonzeit &amp; Mindestmaß</div>
+    <div id="p-schonzeit"></div>
     <div class="quality-hint" id="p-quality"></div>
     <div id="p-kav-section">
       <div class="section-title">Zuständig</div>
@@ -124264,7 +124287,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.14.4";
+const APP_VERSION = "4.15.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -124829,6 +124852,7 @@ function openPanel(row, opts){
   document.getElementById('p-fish').innerHTML=fishHtml;
   document.getElementById('fish-score-panel').className='';
   document.getElementById('fish-score-panel').innerHTML='';
+  renderSchonzeitPanel(row);
 
   // Quality
   var bucket=row._fisch_bucket||'',score=parseFloat(row._fisch_score||0);
@@ -125083,6 +125107,50 @@ function toggleFishScore(el) {
   refreshPanelActivity();
 }
 
+// ── Schonzeit & Mindestmaß: Panel-Sektion (Recommended Option 2) ────────────
+// Zeigt pro tatsächlich vorhandenem Zielfisch (fisch_*==='ja') Schonzeit/Mindestmaß,
+// plus eine ausklappbare Gesetzesübersicht aller 15 recherchierten Arten (inkl. Barbe/
+// Aland/Meerforelle, die kein eigenes fisch_*-Flag haben und sonst unsichtbar blieben).
+function schonzeitText(land){
+  if(!land || !land.start || !land.end) return 'Keine Schonzeit';
+  if(land.start==='01-01' && land.end==='31-12') return 'Ganzjährig geschont';
+  return ActivityEngine.ddmmToDe(land.start)+'–'+ActivityEngine.ddmmToDe(land.end);
+}
+function mindestmassText(land){
+  return land && land.mindestmass ? land.mindestmass+' cm' : '–';
+}
+function schonzeitRowHtml(label, land){
+  var status = land && land.start && land.end ? ActivityEngine.schonzeitStatus(land.start, land.end, 0) : null;
+  var activeCls = status && status.state==='active' ? ' sz-active' : '';
+  return '<div class="schonzeit-row'+activeCls+'"><span class="sz-art">'+escHtml(label)+'</span>'+
+         '<span class="sz-zeit">'+schonzeitText(land)+'</span>'+
+         '<span class="sz-mass">'+mindestmassText(land)+'</span></div>';
+}
+function renderSchonzeitPanel(row){
+  var bereich = row && row.Bereich==='Berlin' ? 'berlin' : 'brandenburg';
+  var rowsHtml='';
+  FISH_DEF.forEach(function(f){
+    if(row['fisch_'+f.key]!=='ja') return;
+    var entry=SCHONZEIT_DATA[f.key];
+    if(!entry) return;
+    rowsHtml+=schonzeitRowHtml(entry.label, entry[bereich]);
+  });
+  var allRowsHtml='';
+  SCHONZEIT_ORDER.forEach(function(key){
+    var entry=SCHONZEIT_DATA[key];
+    var land=entry[bereich];
+    allRowsHtml+='<tr><td>'+escHtml(entry.label)+'</td><td>'+schonzeitText(land)+'</td><td>'+mindestmassText(land)+'</td></tr>';
+  });
+  var landLabel = bereich==='berlin' ? 'Berlin, LFischO' : 'Brandenburg, BbgFischO';
+  var html = rowsHtml ? '<div class="schonzeit-list">'+rowsHtml+'</div>'
+                       : '<div class="schonzeit-empty">Keine erfassten Zielfischarten mit gesetzlicher Sonderregel an diesem Gewässer.</div>';
+  html += '<details class="schonzeit-details"><summary>Gesetzliche Übersicht — alle 15 Arten ('+landLabel+')</summary>'+
+          '<table class="schonzeit-table"><thead><tr><th>Art</th><th>Schonzeit</th><th>Mindestmaß</th></tr></thead><tbody>'+allRowsHtml+'</tbody></table>'+
+          '<div class="schonzeit-foot">Gesetzlicher Mindeststandard. Hegepläne, Schonbezirke und Vereins-Gewässerordnungen können verschärfen, niemals lockern.</div>'+
+          '</details>';
+  document.getElementById('p-schonzeit').innerHTML = html;
+}
+
 function renderFishScorePanel() {
   var panel = document.getElementById('fish-score-panel');
   if (_activeFishScores.size === 0) {
@@ -125171,12 +125239,47 @@ const FISH_PARAMS_V3 = {
 // Quelle: 07_Recherchen/recherche_schonzeit_mindesmass_Berlin_und_BB.md (BbgFischO / LFischO, Stand 2026).
 // Bewusst nur als Hinweis genutzt — Hegeplan-/Spreewald-Sonderregeln sind hier NICHT abgebildet,
 // daher Formulierung im UI immer als "wahrscheinlich ... bitte prüfen", nie als Verbot.
+// Gesetzliche Schonzeiten & Mindestmaße (Quelle: 07_Recherchen/recherche_schonzeit_mindesmass_Berlin_und_BB.md,
+// Datenformat dokumentiert in 01_Daten_Aktuell/schonzeiten.json — Stand 2026, BbgFischO / LFischO).
+// 'noFlag:true' = Art hat kein eigenes fisch_*-Flag im Gewässer-Datensatz und erscheint daher nur in der
+// allgemeinen Gesetzesübersicht (SCHONZEIT_ORDER), nicht als Mini-Zeile bei den vorhandenen Zielfischen.
+// 'forelle' bildet hier die Bachforelle ab; Meerforelle ist wegen abweichender Regeln ein eigener Eintrag.
 const SCHONZEIT_DATA = {
-  hecht:   { brandenburg: {start:'01-02', end:'31-03'}, berlin: {start:'01-01', end:'30-04'} },
-  zander:  { brandenburg: {start:'01-04', end:'31-05'}, berlin: {start:'01-01', end:'31-05'} },
-  forelle: { brandenburg: {start:'16-10', end:'15-04'}, berlin: {start:'01-10', end:'30-04'} },
-  rapfen:  { brandenburg: {start:'01-04', end:'30-06'}, berlin: {start:'01-04', end:'30-06'} }
+  hecht:   { label:'Hecht',        brandenburg:{start:'01-02',end:'31-03',mindestmass:45,  hinweis:'Regionale Schonzeiten in Hegeplänen und Spreewald-Gewässern (15.01.–30.04.) beachten.'},
+                                    berlin:     {start:'01-01',end:'30-04',mindestmass:45,  hinweis:'Absolutes Spinnangel- und Raubfischköderverbot im gesamten Berliner Stadtgebiet 01.01.–30.04.'} },
+  zander:  { label:'Zander',       brandenburg:{start:'01-04',end:'31-05',mindestmass:45,  hinweis:'Regionale Schonzeiten in Hegeplänen und Spreewald-Gewässern (15.01.–31.05.) beachten.'},
+                                    berlin:     {start:'01-01',end:'31-05',mindestmass:45,  hinweis:'Tägliches Entnahmelimit von max. 3 Zandern/Aalen insgesamt beachten.'} },
+  barsch:  { label:'Flussbarsch',  brandenburg:{start:null,   end:null,   mindestmass:null, hinweis:'Keine gesetzliche Schonzeit und kein Mindestmaß.'},
+                                    berlin:     {start:null,   end:null,   mindestmass:null, hinweis:'Während der Raubfischschonzeit (01.01.–30.04.) nur mit Naturködern an Friedfischmontagen.'} },
+  aal:     { label:'Aal',          brandenburg:{start:null,   end:null,   mindestmass:50,   hinweis:'Tägliches Entnahmelimit: 3 Stück in offenen, 5 Stück in geschlossenen Gewässern.'},
+                                    berlin:     {start:null,   end:null,   mindestmass:50,   hinweis:'Tägliches Entnahmelimit von max. 3 Aalen/Zandern insgesamt beachten.'} },
+  karpfen: { label:'Karpfen',      brandenburg:{start:null,   end:null,   mindestmass:35,   hinweis:'In Spreewald-Sondergewässern für Schuppenkarpfen erhöhtes Mindestmaß von 40 cm.'},
+                                    berlin:     {start:null,   end:null,   mindestmass:35,   hinweis:'Anfüttern auf max. 500 g Nassgewicht pro Angler/Kalendertag begrenzt.'} },
+  schleie: { label:'Schleie',      brandenburg:{start:null,   end:null,   mindestmass:25,   hinweis:'Gesetzliches Mindestmaß ganzjährig gültig.'},
+                                    berlin:     {start:null,   end:null,   mindestmass:25,   hinweis:'Gesetzliches Mindestmaß ganzjährig gültig.'} },
+  wels:    { label:'Wels',         brandenburg:{start:null,   end:null,   mindestmass:null, hinweis:'Schonzeit/Mindestmaß seit 01.01.2010 ersatzlos aufgehoben.'},
+                                    berlin:     {start:null,   end:null,   mindestmass:75,   hinweis:'Kein Brandenburg-Mindestmaß, aber 75 cm in Berlin.'} },
+  forelle: { label:'Bachforelle',  brandenburg:{start:'16-10',end:'15-04',mindestmass:30,   hinweis:'Salmonidengewässer: Schonhakenpflicht gemäß LAVB-Gewässerordnung.'},
+                                    berlin:     {start:'01-10',end:'30-04',mindestmass:30,   hinweis:'Ältere Angaben mit 25 cm sind veraltet, aktuell gelten 30 cm.'} },
+  aesche:  { label:'Äsche',        brandenburg:{start:'01-12',end:'31-05',mindestmass:30,   hinweis:'Ganzjährig geschützte Gewässerbereiche und Salmonidenstrecken beachten.'},
+                                    berlin:     {start:'01-12',end:'31-05',mindestmass:30,   hinweis:'Fangverbote in ausgewiesenen Schonbereichen möglich.'} },
+  rapfen:  { label:'Rapfen',       brandenburg:{start:'01-04',end:'30-06',mindestmass:40,   hinweis:'Schonzeit während der Frühjahrslaichphase.'},
+                                    berlin:     {start:'01-04',end:'30-06',mindestmass:40,   hinweis:'Deckt sich mit den brandenburgischen Vorgaben.'} },
+  'döbel': { label:'Döbel',        brandenburg:{start:null,   end:null,   mindestmass:30,   hinweis:'Keine Schonzeit, Mindestmaß 30 cm einzuhalten.'},
+                                    berlin:     {start:null,   end:null,   mindestmass:30,   hinweis:'Keine Schonzeit, Mindestmaß 30 cm einzuhalten.'} },
+  quappe:  { label:'Quappe',       brandenburg:{start:null,   end:null,   mindestmass:30,   hinweis:'Lokale Schutzbestimmungen der Vereine während der Winterlaichzeit möglich.'},
+                                    berlin:     {start:null,   end:null,   mindestmass:30,   hinweis:'Keine gesetzliche Schonzeit, Mindestmaß 30 cm einzuhalten.'} },
+  // Kein eigenes fisch_*-Flag im Gewässer-Datensatz vorhanden — nur in der Gesetzesübersicht sichtbar:
+  meerforelle:{ label:'Meerforelle', noFlag:true, brandenburg:{start:'01-01',end:'31-12',mindestmass:null,hinweis:'Wilde Meerforellen ganzjährig geschont. Satzfische: 16.10.–15.04., 60 cm Mindestmaß.'},
+                                                   berlin:     {start:'01-01',end:'31-12',mindestmass:null,hinweis:'Ganzjährig geschützt, gezieltes Angeln/Entnahme verboten.'} },
+  barbe:      { label:'Barbe',       noFlag:true, brandenburg:{start:'01-05',end:'31-07',mindestmass:40,  hinweis:'Schonzeit während der Hauptlaichzeit im Sommer.'},
+                                                   berlin:     {start:'01-01',end:'31-12',mindestmass:null,hinweis:'In Berlin ganzjährig geschützt — abweichend von Brandenburg.'} },
+  aland:      { label:'Aland',       noFlag:true, brandenburg:{start:null,   end:null,   mindestmass:30,  hinweis:'Keine Schonzeit, Mindestmaß 30 cm gilt ganzjährig.'},
+                                                   berlin:     {start:null,   end:null,   mindestmass:30,  hinweis:'Keine Schonzeit, Mindestmaß 30 cm einzuhalten.'} }
 };
+// Anzeigereihenfolge für die allgemeine Gesetzesübersicht (alle 15 recherchierten Arten)
+const SCHONZEIT_ORDER = ['hecht','zander','barsch','aal','karpfen','schleie','wels','forelle',
+                          'meerforelle','aesche','barbe','quappe','rapfen','aland','döbel'];
 
 // ActivityEngine
 var ActivityEngine = {
