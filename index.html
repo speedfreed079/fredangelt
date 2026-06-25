@@ -15,6 +15,7 @@
   --panel-w:380px; --safe-bottom:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
 body{background:var(--bg);color:var(--t);font-family:var(--sans);height:100dvh;overflow:hidden;display:flex;flex-direction:column}
 
 /* Header */
@@ -37,6 +38,13 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .icon-btn:hover{border-color:var(--accent);color:var(--accent)}
 .icon-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(61,153,112,.12)}
 .header-count{font-family:var(--mono);font-size:.7rem;color:var(--d);white-space:nowrap}
+/* .header-right ist bewusst flex-shrink:0 (Icon-Buttons sollen nie schrumpfen/
+   abgeschnitten werden) -- auf schmalen Telefonen (z.B. Pixel 10, 412px) reicht
+   der Platz in .header-top dann aber nicht fuer Logo+Schriftgroesse+3 Icon-
+   Buttons+Zaehler, die Zeile lief ueber den Bildschirmrand hinaus (gemessenes
+   horizontales Overflow, nicht nur optisch). Erster Kandidat zum Einsparen:
+   der Gewaesser-Zaehler -- Info ist in der Listenansicht ohnehin verfuegbar. */
+@media(max-width:480px){.header-count{display:none}}
 
 /* Profil-Popover (Angelkarte: Berlin/Brandenburg) */
 #profileBtn.active{border-color:#4fc3f7;color:#4fc3f7;background:rgba(79,195,247,.12)}
@@ -123322,7 +123330,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.13.1";
+const APP_VERSION = "4.13.2";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
