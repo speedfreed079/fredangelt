@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Howto — Fred angelt</title>
+<style>
+:root {
+  --bg:#0b1117; --surface:#131b24; --surface2:#1a2535; --border:#243044;
+  --t:#dde6f0; --d:#6b8099; --accent:#3d9970; --warn:#c0892a; --danger:#c03a2b;
+  --sal:#6c63c0; --pacht:#2a9fc0; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono','Fira Mono',monospace;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
+body{background:var(--bg);color:var(--t);font-family:var(--sans);line-height:1.5;padding-bottom:calc(40px + var(--safe-bottom))}
+
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;
+       display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.logo{font-family:var(--mono);font-size:.95rem;font-weight:700;color:var(--accent);white-space:nowrap}
+.logo span{color:var(--d);font-weight:400}
+header h1{font-size:.95rem;font-weight:600;color:var(--t);flex:1}
+.back-link{font-family:var(--mono);font-size:.75rem;color:var(--d);border:1px solid var(--border);
+  border-radius:8px;padding:6px 10px;text-decoration:none;white-space:nowrap;transition:all .15s}
+.back-link:hover{border-color:var(--accent);color:var(--accent)}
+
+main{max-width:640px;margin:0 auto;padding:16px}
+
+.intro{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:.85rem;color:var(--d)}
+.intro b{color:var(--t)}
+
+nav.toc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px}
+nav.toc a{font-family:var(--mono);font-size:.68rem;color:var(--d);background:var(--surface2);
+  border:1px solid var(--border);border-radius:14px;padding:5px 10px;text-decoration:none;transition:all .15s}
+nav.toc a:hover{border-color:var(--accent);color:var(--accent)}
+
+section{margin-bottom:26px;scroll-margin-top:64px}
+section h2{font-size:1rem;display:flex;align-items:center;gap:8px;margin-bottom:8px;color:var(--t)}
+section h2 .ic{font-size:1.2rem}
+section p{font-size:.85rem;color:var(--d);margin-bottom:6px}
+section p b{color:var(--t);font-weight:600}
+section ul{margin:6px 0 6px 0;padding-left:0;list-style:none}
+section li{font-size:.85rem;color:var(--d);padding:4px 0 4px 22px;position:relative}
+section li::before{content:'›';position:absolute;left:6px;color:var(--accent)}
+section li b{color:var(--t);font-weight:600}
+
+.chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.72rem;
+  background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 7px;color:var(--t)}
+.note{background:rgba(192,137,42,.1);border:1px solid var(--warn);border-radius:8px;padding:8px 12px;
+  font-size:.78rem;color:var(--t);margin-top:8px}
+
+hr.sep{border:none;border-top:1px solid var(--border);margin:0 0 26px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎣 Fred <span>angelt</span></div>
+  <h1>Howto</h1>
+  <a class="back-link" href="index.html">← Zur Karte</a>
+</header>
+
+<main>
+
+  <div class="intro">
+    Diese Seite erklärt die wichtigsten Funktionen von <b>Fred angelt</b> — der Karte aller LAVB- und DAV-Berlin-Angelgewässer. Am Smartphone draußen am Wasser gedacht, daher kurz und in der Reihenfolge, in der du den Funktionen normalerweise begegnest.
+  </div>
+
+  <nav class="toc">
+    <a href="#gps">📍 GPS</a>
+    <a href="#ampel">🟢 Ampel</a>
+    <a href="#filter">🐟 Filter</a>
+    <a href="#panel">📋 Panel</a>
+    <a href="#beissindex">📈 Beißindex</a>
+    <a href="#wetter">☁️ Wetter</a>
+    <a href="#tiefenlinien">🌊 Tiefenlinien</a>
+    <a href="#schonzeiten">📅 Schonzeiten</a>
+    <a href="#zusatzkarten">💳 Zusatzkarten</a>
+    <a href="#planmodus">🗺️ Plan-Modus</a>
+    <a href="#liste">☰ Liste</a>
+    <a href="#profil">🪪 Profil</a>
+    <a href="#einstellungen">⚙️ Einstellungen</a>
+  </nav>
+
+  <section id="gps">
+    <h2><span class="ic">📍</span> GPS &amp; Umkreissuche</h2>
+    <p>Beim Start fragt die App nach deinem Standort und zentriert die Karte automatisch. Über den <span class="chip">📍</span>-Button im Header kannst du GPS jederzeit ein- oder ausschalten.</p>
+    <p>Mit der <b>Umkreis-Leiste</b> unter der Suche (Alle / 5 / 10 / 20 / 50 km) blendest du Gewässer aus, die zu weit entfernt sind — praktisch, wenn du nur schauen willst, was in Wurfweite liegt. Auch Fließgewässer wie die Oder werden erkannt, wenn du am Ufer stehst, nicht nur am gespeicherten Mittelpunkt.</p>
+  </section>
+
+  <section id="ampel">
+    <h2><span class="ic">🟢</span> Berechtigungs-Ampel</h2>
+    <p>Jeder Marker und jeder Listeneintrag zeigt ein Symbol, das sofort verrät, ob deine normale LAVB-/DAV-Angelkarte reicht:</p>
+    <ul>
+      <li><b>🟢 Grün</b> — normales Verbandsgewässer, mit der regulären Jahreskarte befischbar.</li>
+      <li><b>🟡 Gelb</b> — Verbandsvertragsgewässer (Nummer beginnt mit VC/VF/VP), oft mit Sonderregeln — Panel öffnen und nachlesen.</li>
+      <li><b>🔵 Blau</b> — Salmonidengewässer (Forelle/Äsche), meist eigene Karte/Sondervorschriften nötig.</li>
+      <li><b>💰 Pachtgewässer</b> — nur mit separater Pachtkarte.</li>
+      <li><b>🚫 Sperrgewässer</b> — für die normale Angelkarte nicht freigegeben.</li>
+    </ul>
+  </section>
+
+  <section id="filter">
+    <h2><span class="ic">🐟</span> Zielfisch-Filter</h2>
+    <p>Wähle eine oder mehrere Fischarten aus — die Karte zeigt dann nur noch Gewässer, in denen <b>alle</b> ausgewählten Arten vorkommen (UND-Logik, kein Oder). So findest du z.B. gezielt Gewässer mit Hecht <i>und</i> Zander.</p>
+  </section>
+
+  <section id="panel">
+    <h2><span class="ic">📋</span> Gewässer-Panel</h2>
+    <p>Klick auf einen Marker (oder einen Listeneintrag) öffnet das Detail-Panel mit Berechtigung, Fischarten, Wetter, Beißindex und ggf. Tiefenlinien.</p>
+    <ul>
+      <li>Auf dem <b>Smartphone</b> erscheint das Panel unten als Bottom-Sheet. Antippen der Karte oder Runterwischen am Griff <b>minimiert</b> es zu einer schmalen Leiste am unteren Rand — die Auswahl bleibt erhalten, du kannst die Karte wieder voll nutzen.</li>
+      <li>Antippen der Leiste oder Hochwischen stellt das Panel wieder her.</li>
+      <li>Nur der <b>✕-Button</b> schließt das Panel wirklich vollständig (inkl. Tiefenlinien-Anzeige).</li>
+    </ul>
+  </section>
+
+  <section id="beissindex">
+    <h2><span class="ic">📈</span> Beißindex</h2>
+    <p>Im Panel auf eine Fischart klicken zeigt das aktuelle <b>Aktivitäts-Potenzial</b> als Score mit Balken — berechnet aus Temperaturtrend, Luftdrucktrend (24h), Mondphase und tageszeitlichen Zeitfenstern, je nach Fischart unterschiedlich gewichtet. Dazu wird das voraussichtlich <b>beste Zeitfenster</b> der nächsten Tage angezeigt.</p>
+  </section>
+
+  <section id="wetter">
+    <h2><span class="ic">☁️</span> Wetter &amp; Prognose</h2>
+    <p>Direkt am Gewässer-Standort abgerufenes Wetter (Open-Meteo) inkl. 3-Tage-Prognose mit Min/Max-Temperatur, Regen, Wind und Mondphase. Über den ▶-Button lässt sich die Prognose ausklappen.</p>
+  </section>
+
+  <section id="tiefenlinien">
+    <h2><span class="ic">🌊</span> Tiefenlinien (Tiefenkarte)</h2>
+    <p>Für 62 Seen liegen echte Tiefenisobathen aus der amtlichen Seenvermessung Brandenburg vor. Wähle ein passendes Gewässer aus — die Tiefenlinien erscheinen auf der Karte und bleiben auch nach dem Schließen des Panels sichtbar, bis du ein anderes Gewässer auswählst.</p>
+    <p>Ab einer bestimmten Zoomstufe werden größere Tiefenbänder direkt mit ihrem Tiefenwert beschriftet, damit du Werte ohne Antippen ablesen kannst.</p>
+  </section>
+
+  <section id="schonzeiten">
+    <h2><span class="ic">📅</span> Schonzeiten &amp; Mindestmaß</h2>
+    <p>Im Panel zeigt der Abschnitt „Schonzeit &amp; Mindestmaß" für jede am Gewässer tatsächlich vorkommende Fischart die geltende Schonzeit und das Mindestmaß — automatisch nach Brandenburg (BbgFischO) oder Berlin (LFischO) unterschieden, je nachdem in welchem Bundesland das Gewässer liegt. Eine aktuell laufende Schonzeit wird farblich hervorgehoben.</p>
+    <p>Eine ausklappbare Gesetzesübersicht im Panel listet zusätzlich alle recherchierten Arten, auch ohne direkten Vorkommens-Filter (z.B. Barbe, Aland, Meerforelle).</p>
+    <div class="note">Das ist eine fachliche Orientierungshilfe, keine Rechtsberatung — im Zweifel gilt immer die aktuelle amtliche Gewässerordnung.</div>
+  </section>
+
+  <section id="zusatzkarten">
+    <h2><span class="ic">💳</span> Zusatzkarten &amp; Sonderregeln</h2>
+    <p>Gewässer mit Zusatzkartenpflicht (z.B. Havel-Gewässer, Berliner Austauschkarte) tragen ein <span class="chip">💳</span>-Symbol auf dem Marker. Im Panel findest du dazu Preis, Name der Karte und ggf. einen Link zum Kauf.</p>
+    <p>Gewässerspezifische Einschränkungen (z.B. nur Bootsangeln, Nachtangelverbot, Teilflächen-Sperrungen) erscheinen im Panel als eigener <span class="chip">📌 Sonderregel</span>-Hinweis.</p>
+  </section>
+
+  <section id="planmodus">
+    <h2><span class="ic">🗺️</span> Plan-Modus</h2>
+    <p>Zwei Wege, einen anderen Bezugspunkt als deinen aktuellen Standort zu setzen — z.B. um eine Tour für morgen zu planen:</p>
+    <ul>
+      <li><b>Ortssuche:</b> Ortsnamen statt Gewässernamen in die Suche eingeben und einen Treffer wählen — die Karte zentriert auf den Ort, alle Distanzen/Filter beziehen sich jetzt darauf.</li>
+      <li><b>Kartenklick:</b> Auf eine leere Stelle der Karte tippen setzt sofort einen Referenzpunkt dort, ohne die Kartenansicht zu verschieben.</li>
+    </ul>
+    <p>Ein Badge („📍 Ort/Kartenpunkt ✕") zeigt den aktiven Plan-Modus an — antippen beendet ihn wieder.</p>
+  </section>
+
+  <section id="liste">
+    <h2><span class="ic">☰</span> Listenansicht</h2>
+    <p>Der <span class="chip">☰</span>-Button im Header schaltet auf eine sortierte Liste aller gefilterten Gewässer um (nach Distanz, falls GPS/Plan-Modus aktiv) — praktisch für einen schnellen Überblick ohne Karten-Scrollen.</p>
+  </section>
+
+  <section id="profil">
+    <h2><span class="ic">🪪</span> Profil</h2>
+    <p>Über den <span class="chip">🪪</span>-Button stellst du ein, welche Angelkarte du besitzt: nur Berlin (DAV), nur Brandenburg (LAVB) oder beide. Gewässer außerhalb deines Profils werden in der Karte/Liste abgeblendet dargestellt, bleiben aber sichtbar.</p>
+  </section>
+
+  <section id="einstellungen">
+    <h2><span class="ic">⚙️</span> Schriftgröße &amp; Kartenebenen</h2>
+    <p>Die <b>A A A</b>-Buttons im Header stellen die Schriftgröße der ganzen App in drei Stufen ein — wichtig bei hellem Tageslicht draußen.</p>
+    <p>Unter der Karte wechselst du zwischen den Kartenebenen <b>🗺 Karte</b> (Standard), <b>🌙 Dark</b>, <b>🛰 Satellit</b> und <b>⛰ Topo</b>.</p>
+  </section>
+
+  <hr class="sep">
+  <p style="font-size:.7rem;color:var(--border);text-align:center;font-family:var(--mono)">Fred &amp; Friends — privates Projekt</p>
+
+</main>
+
+</body>
+</html>
