@@ -164,7 +164,14 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
   .panel-body{scrollbar-width:thin;scrollbar-color:var(--border) transparent}
 }
 .drag-handle{width:40px;height:4px;background:var(--border);border-radius:2px;
-             margin:8px auto 4px;flex-shrink:0;display:none}
+             margin:8px auto 4px;flex-shrink:0;display:none;position:relative;
+             touch-action:none}
+/* Sichtbarer Balken bleibt duenn, aber die tatsaechliche Touch-Trefferflaeche
+   ist via Pseudo-Element viel groesser -- auf echten Geraeten (z.B. Pixel 10)
+   ist der 4px-Balken sonst kaum praezise zu treffen, der Finger landet im
+   Panel-Head daneben und der Browser uebernimmt die Geste stattdessen als
+   natives Pinch-Zoom/Scroll statt unser touchmove-Handling greifen zu lassen. */
+.drag-handle::before{content:'';position:absolute;inset:-18px -60px}
 @media(max-width:640px){.drag-handle{display:block}}
 /* Teaser nicht mehr nötig */
 .panel-teaser{display:none}
@@ -173,7 +180,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .panel-close{position:absolute;top:10px;right:12px;background:var(--surface2);
              border:1px solid var(--border);border-radius:50%;width:30px;height:30px;
              display:flex;align-items:center;justify-content:center;cursor:pointer;
-             color:var(--d);font-size:14px;transition:all .15s;z-index:1}
+             color:var(--d);font-size:14px;transition:all .15s;z-index:1;
+             touch-action:manipulation}
 .panel-close:hover{color:var(--t);border-color:var(--d)}
 .gw-nr{font-family:var(--mono);font-size:.72rem;color:var(--accent);letter-spacing:.5px;margin-bottom:4px}
 .gw-name{font-size:1.1rem;font-weight:700;line-height:1.25;margin-bottom:8px}
@@ -185,7 +193,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
        background:var(--surface);border-top:1px solid var(--border);
        border-radius:16px 16px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.3);
        transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
-       z-index:2000;cursor:pointer;display:none;
+       z-index:2000;cursor:pointer;display:none;touch-action:none;
        padding-bottom:env(safe-area-inset-bottom,0)}
 #panelPeek.show{transform:translateY(0)}
 @media(max-width:640px){#panelPeek{display:block}}
@@ -291,7 +299,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 
 /* Overlay */
 #overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1999;
-         opacity:0;pointer-events:none;transition:opacity .28s}
+         opacity:0;pointer-events:none;transition:opacity .28s;touch-action:manipulation}
 #overlay.show{opacity:1;pointer-events:all}
 @media(min-width:641px){#overlay{display:none}}
 
@@ -123314,7 +123322,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.13.0";
+const APP_VERSION = "4.13.1";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -123455,8 +123463,11 @@ function setFontSize(px) {
     if (!dragging) return;
     currentY = e.touches[0].clientY;
     var dy = currentY - startY;
-    if (dy > 0) panel.style.transform = 'translateY(' + dy + 'px)';
-  }, {passive: true});
+    if (dy > 0) {
+      e.preventDefault(); // verhindert natives Scroll/Pinch-Zoom waehrend des Ziehens
+      panel.style.transform = 'translateY(' + dy + 'px)';
+    }
+  }, {passive: false});
   document.addEventListener('touchend', function(){
     if (!dragging) return;
     dragging = false;
