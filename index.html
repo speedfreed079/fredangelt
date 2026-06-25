@@ -312,11 +312,11 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
             font-family:var(--mono);text-align:center}
 .fish-badge .icon{font-size:1rem;line-height:1}
 .fish-badge img.fb-img{width:38px;height:25px;object-fit:contain}
-.fb-nein img.fb-img{opacity:.32}
-.fb-unk  img.fb-img{opacity:.18}
-.fb-ja{background:rgba(61,153,112,.12);border-color:rgba(61,153,112,.3);color:#5dba8c}
-.fb-nein{background:rgba(192,58,43,.07);border-color:rgba(192,58,43,.2);color:#804040}
-.fb-unk{background:rgba(107,128,153,.06);border-color:var(--border);color:var(--d);opacity:.6}
+.fb-nein img.fb-img{opacity:.28}
+.fb-unk  img.fb-img{opacity:.14}
+.fb-ja  {background:transparent;border-color:transparent;color:#5dba8c}
+.fb-nein{background:transparent;border-color:transparent;color:#7a4444}
+.fb-unk {background:transparent;border-color:transparent;color:var(--d);opacity:.5}
 /* Schonzeit als aufklappbarer Block */
 .schonzeit-collapse{margin-bottom:4px}
 .schonzeit-collapse>summary{cursor:pointer;list-style:none;display:flex;align-items:center;
@@ -124309,7 +124309,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.18.3";
+const APP_VERSION = "4.18.4";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -124342,19 +124342,19 @@ FISH_DEF.forEach(function(f){ if(f.png) FISH_PNG_MAP[f.key] = f.png; });
 // Quelle der Farbwahl: Gemini-Empfehlung dezente Naturfarben, 25.06.2026
 var FISH_ICON_FILTER = {
   hecht:     'sepia(1) hue-rotate(100deg) saturate(3.5) brightness(2.2)',  // Schilfgrün
-  zander:    'sepia(1) hue-rotate(48deg)  saturate(4.5) brightness(3.0)',  // Sandoliv/Gold
-  barsch:    'sepia(1) hue-rotate(82deg)  saturate(3.5) brightness(2.0)',  // Moosgrün
+  zander:    'sepia(1) hue-rotate(48deg)  saturate(3.5) brightness(2.6)',  // Sandoliv/Gold
+  barsch:    'sepia(1) hue-rotate(82deg)  saturate(3.0) brightness(2.0)',  // Moosgrün
   wels:      'sepia(1) hue-rotate(15deg)  saturate(1.5) brightness(2.0)',  // Dunkelbraun
   aal:       'sepia(0.8)                               brightness(1.8)',   // Anthrazit
-  karpfen:   'sepia(1) hue-rotate(18deg)  saturate(5.0) brightness(3.0)',  // Bronze/Ocker
+  karpfen:   'sepia(1) hue-rotate(18deg)  saturate(3.0) brightness(2.4)',  // Bronze/Ocker
   schleie:   'sepia(1) hue-rotate(70deg)  saturate(2.8) brightness(2.4)',  // Oliv-Gold
-  forelle:   'sepia(1) hue-rotate(335deg) saturate(5.5) brightness(2.6)',  // Rostrot
-  aesche:    'sepia(1) hue-rotate(278deg) saturate(3.5) brightness(2.6)',  // Rosé-Violett
-  maraene:   'sepia(1) hue-rotate(195deg) saturate(4.5) brightness(2.8)',  // Silberblau
-  rapfen:    'sepia(1) hue-rotate(208deg) saturate(4.0) brightness(2.8)',  // Stahlblau
-  'döbel':   'sepia(1) hue-rotate(38deg)  saturate(5.0) brightness(3.2)',  // Messing/Altgold
+  forelle:   'sepia(1) hue-rotate(335deg) saturate(4.5) brightness(2.5)',  // Rostrot
+  aesche:    'sepia(1) hue-rotate(278deg) saturate(3.0) brightness(2.4)',  // Rosé-Violett
+  maraene:   'sepia(1) hue-rotate(195deg) saturate(3.5) brightness(2.5)',  // Silberblau
+  rapfen:    'sepia(1) hue-rotate(208deg) saturate(3.5) brightness(2.5)',  // Stahlblau
+  'döbel':   'sepia(1) hue-rotate(38deg)  saturate(3.5) brightness(2.8)',  // Messing/Altgold
   quappe:    'sepia(1) hue-rotate(22deg)  saturate(1.8) brightness(2.0)',  // Graubraun
-  weissfisch:'sepia(1) hue-rotate(205deg) saturate(2.5) brightness(2.0)'   // Silbergrau
+  weissfisch:'sepia(1) hue-rotate(205deg) saturate(2.0) brightness(1.8)'   // Silbergrau
 };
 
 function fishIconHtml(key, cssClass) {
