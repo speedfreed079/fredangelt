@@ -304,36 +304,30 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .section-title{font-size:.63rem;font-family:var(--mono);text-transform:uppercase;
                letter-spacing:1px;color:var(--d);margin:12px 0 7px}
 
-/* Fish gallery (Panel — vorhandene Arten als horizontale Icon-Galerie) */
-.fish-gallery{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;
-              scrollbar-width:none;margin-bottom:2px}
-.fish-gallery::-webkit-scrollbar{display:none}
-.fg-card{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;
-         width:58px;padding:8px 4px;border-radius:8px;
-         border:1px solid rgba(61,153,112,.3);background:rgba(61,153,112,.08);
-         transition:border-color .15s,background .15s}
-.fg-card.has-score{cursor:pointer}
-.fg-card.has-score:hover{border-color:var(--accent);background:rgba(61,153,112,.2)}
-.fg-card.has-score.active{border-color:var(--accent);background:rgba(61,153,112,.22)}
-.fg-icon{width:38px;height:26px;object-fit:contain;
-         filter:brightness(0) invert(1);opacity:.8}
-.fg-icon-emoji{font-size:1.25rem;line-height:1}
-.fg-label{font-size:.58rem;font-family:var(--mono);color:#5dba8c;text-align:center;line-height:1.2}
-.fg-ind{font-size:.55rem;font-family:var(--mono);color:var(--d);font-weight:700}
-/* Nicht vorhandene Arten: kompakte Textzeile */
-.fish-nein{font-size:.63rem;color:var(--d);font-family:var(--mono);
-           padding:4px 2px 8px;line-height:1.6;opacity:.65}
-.fish-nein strong{color:var(--border);font-weight:600}
-
-/* Fish grid (Legacy-Fallback, aktuell nicht genutzt) */
-.fish-grid{display:none}
+/* Fish grid */
+.fish-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:4px}
+@media(max-width:400px){.fish-grid{grid-template-columns:repeat(3,1fr)}}
 .fish-badge{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 3px;
             border-radius:7px;border:1px solid transparent;font-size:.6rem;
             font-family:var(--mono);text-align:center}
 .fish-badge .icon{font-size:1rem;line-height:1}
+.fish-badge img.fb-img{width:34px;height:22px;object-fit:contain;
+                       filter:brightness(0) invert(1);opacity:.75}
 .fb-ja{background:rgba(61,153,112,.12);border-color:rgba(61,153,112,.3);color:#5dba8c}
 .fb-nein{background:rgba(192,58,43,.07);border-color:rgba(192,58,43,.2);color:#804040}
 .fb-unk{background:rgba(107,128,153,.06);border-color:var(--border);color:var(--d);opacity:.6}
+/* Schonzeit als aufklappbarer Block */
+.schonzeit-collapse{margin-bottom:4px}
+.schonzeit-collapse>summary{cursor:pointer;list-style:none;display:flex;align-items:center;
+  gap:6px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;font-size:.7rem;font-family:var(--mono);font-weight:600;
+  color:var(--d);text-transform:uppercase;letter-spacing:.8px;
+  transition:border-color .15s,color .15s;user-select:none}
+.schonzeit-collapse>summary::-webkit-details-marker{display:none}
+.schonzeit-collapse>summary::before{content:'▶';font-size:.55rem;transition:transform .2s}
+.schonzeit-collapse[open]>summary::before{transform:rotate(90deg)}
+.schonzeit-collapse[open]>summary{border-color:var(--accent);color:var(--accent)}
+.schonzeit-collapse>.sz-body{padding:8px 2px 0}
 
 /* Buttons */
 .btn-primary{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
@@ -532,12 +526,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
     <div id="p-warn"></div>
     <div id="p-depth-legend"></div>
     <div class="section-title">Fischarten <span style="font-size:.58rem;color:var(--accent);font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:400">— antippen für Beißindex</span></div>
-    <div class="fish-gallery" id="p-fish-gallery"></div>
-    <div class="fish-nein"   id="p-fish-nein"></div>
-    <div class="fish-grid"   id="p-fish"></div>
+    <div class="fish-grid" id="p-fish"></div>
     <div id="fish-score-panel"></div>
-    <div class="section-title">Schonzeit &amp; Mindestmaß</div>
-    <div id="p-schonzeit"></div>
     <div class="quality-hint" id="p-quality"></div>
     <div id="p-kav-section">
       <div class="section-title">Zuständig</div>
@@ -548,6 +538,10 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
       <div class="weather-row" id="p-weather-content"><span style="font-size:.72rem;color:var(--d);font-family:var(--mono)">Wird geladen&hellip;</span></div>
       <div class="act-section" id="p-activity"></div>
     </div>
+    <details class="schonzeit-collapse" id="schonzeit-section">
+      <summary>Schonzeit &amp; Mindestmaß</summary>
+      <div class="sz-body" id="p-schonzeit"></div>
+    </details>
     <a class="btn-primary"   id="p-route"  href="#" target="_blank" rel="noopener">&#x1F697; Route in Google Maps</a>
     <a class="btn-secondary" id="p-maps"   href="#" target="_blank" rel="noopener">&#x1F4CD; Auf Karte zeigen</a>
   </div>
@@ -124314,7 +124308,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.17.0";
+const APP_VERSION = "4.18.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -124871,28 +124865,23 @@ function openPanel(row, opts){
   _activeFishScores = new Set(ENGINE_FISH.filter(function(k){
     return row['fisch_'+k]==='ja' && activeFilters.has(k);
   }));
-  // Gallery (ja-Fische mit PNG-Icon) + Nein-Textliste
-  var galleryHtml='', neinList=[];
+  // Fish-Grid (alle Arten, 4-spaltig, PNG-Icons wo vorhanden)
+  var fishHtml='';
   FISH_DEF.forEach(function(f){
     var val=row['fisch_'+f.key]||'';
-    if(val==='ja'){
-      var hasScore = ENGINE_FISH.indexOf(f.key) > -1;
-      var scoreAttr = hasScore ? ' data-fish="'+f.key+'" onclick="toggleFishScore(this)"' : '';
-      var scoreCls  = hasScore ? ' has-score' : '';
-      var activeCls = hasScore && _activeFishScores.has(f.key) ? ' active' : '';
-      var iconHtml  = f.png
-        ? '<img class="fg-icon" src="'+f.png+'" alt="'+f.label+'">'
-        : '<div class="fg-icon-emoji">'+f.icon+'</div>';
-      galleryHtml+='<div class="fg-card'+scoreCls+activeCls+'"'+scoreAttr+'>'+iconHtml+
-                   '<div class="fg-label">'+f.label+'</div></div>';
-    } else if(val==='nein'){
-      neinList.push(f.label);
-    }
+    var cls=val==='ja'?'fb-ja':val==='nein'?'fb-nein':'fb-unk';
+    var ind=val==='ja'?'✓':val==='nein'?'✗':'?';
+    var hasScore = val==='ja' && ENGINE_FISH.indexOf(f.key) > -1;
+    var scoreAttr = hasScore ? ' data-fish="'+f.key+'" onclick="toggleFishScore(this)"' : '';
+    var scoreCls  = hasScore ? ' has-score' : '';
+    var activeCls = hasScore && _activeFishScores.has(f.key) ? ' active' : '';
+    var iconHtml  = f.png
+      ? '<img class="fb-img" src="'+f.png+'" alt="'+f.label+'">'
+      : '<div class="icon">'+f.icon+'</div>';
+    fishHtml+='<div class="fish-badge '+cls+scoreCls+activeCls+'"'+scoreAttr+'>'+iconHtml+
+              '<div>'+f.label+'</div><div style="font-size:.65rem;font-weight:700">'+ind+'</div></div>';
   });
-  document.getElementById('p-fish-gallery').innerHTML=galleryHtml||
-    '<span style="font-size:.65rem;color:var(--d);font-family:var(--mono)">Keine Fischdaten</span>';
-  document.getElementById('p-fish-nein').innerHTML=neinList.length
-    ? '<strong>Nicht besetzt:</strong> '+neinList.join(', ') : '';
+  document.getElementById('p-fish').innerHTML=fishHtml;
   document.getElementById('fish-score-panel').className='';
   document.getElementById('fish-score-panel').innerHTML='';
   renderSchonzeitPanel(row);
