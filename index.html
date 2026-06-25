@@ -178,6 +178,24 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .gw-nr{font-family:var(--mono);font-size:.72rem;color:var(--accent);letter-spacing:.5px;margin-bottom:4px}
 .gw-name{font-size:1.1rem;font-weight:700;line-height:1.25;margin-bottom:8px}
 
+/* Panel-Peek: schmale Leiste am unteren Rand, sichtbar wenn das Panel auf
+   Mobile minimiert (statt komplett geschlossen) ist -- gibt dem Nutzer die
+   sichtbare Andockstelle, um per Antippen/Hochwischen wieder zu maximieren. */
+#panelPeek{position:fixed;left:0;right:0;bottom:0;width:100%;
+       background:var(--surface);border-top:1px solid var(--border);
+       border-radius:16px 16px 0 0;box-shadow:0 -4px 16px rgba(0,0,0,.3);
+       transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+       z-index:2000;cursor:pointer;display:none;
+       padding-bottom:env(safe-area-inset-bottom,0)}
+#panelPeek.show{transform:translateY(0)}
+@media(max-width:640px){#panelPeek{display:block}}
+.panel-peek-row{display:flex;align-items:center;justify-content:space-between;
+       gap:10px;padding:0 16px 14px}
+.panel-peek-row #peek-name{font-size:.92rem;font-weight:700;color:var(--t);
+       overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.peek-hint{font-size:.62rem;font-family:var(--mono);color:var(--accent);
+       white-space:nowrap;flex-shrink:0}
+
 /* Distance badge */
 .dist-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
             border-radius:20px;font-size:.75rem;font-family:var(--mono);font-weight:600;
@@ -424,6 +442,13 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
   </div>
 </div>
 <div id="overlay"></div>
+<div id="panelPeek">
+  <div class="drag-handle"></div>
+  <div class="panel-peek-row">
+    <span id="peek-name"></span>
+    <span class="peek-hint">▲ Wischen für Details</span>
+  </div>
+</div>
 <div id="listView">
   <div class="list-header"><span id="listCount">0 Gew&auml;sser</span><button class="list-toggle" onclick="toggleList()">&#x2715;</button></div>
   <div id="listItems"></div>
@@ -123289,7 +123314,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.12.1";
+const APP_VERSION = "4.13.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -123439,10 +123464,28 @@ function setFontSize(px) {
     var dy = currentY - startY;
     if (dy > 80) {
       panel.style.transform = '';
-      closePanel();
+      minimizePanel(); // Runterwischen minimiert (statt komplett zu schliessen)
     } else {
       panel.style.transform = '';
     }
+  });
+})();
+
+// ── Panel-Peek: Antippen/Hochwischen stellt das minimierte Panel wieder her ──
+(function(){
+  var peek = document.getElementById('panelPeek');
+  if (!peek) return;
+  var startY = 0, dragging = false;
+  peek.addEventListener('click', restorePanel);
+  peek.addEventListener('touchstart', function(e){
+    startY = e.touches[0].clientY;
+    dragging = true;
+  }, {passive: true});
+  peek.addEventListener('touchend', function(e){
+    if (!dragging) return;
+    dragging = false;
+    var dy = (e.changedTouches[0].clientY) - startY;
+    if (dy < 60) restorePanel(); // Tippen oder Hochwischen -- nur ein deutliches Runterwischen ignorieren
   });
 })();
 
@@ -123737,8 +123780,11 @@ function highlightMarker(nr) {
 
 // ── Panel ─────────────────────────────────────────────────────────────────────
 var _currentPanelRow = null;
+var _panelMinimized = false;
 function openPanel(row, opts){
   var skipFlyTo = opts && opts.skipFlyTo;
+  _panelMinimized = false;
+  document.getElementById('panelPeek').classList.remove('show');
   _currentPanelRow = row;
   _depthSelectedRow = row;
   updatePanelDepthLegend(row);
@@ -123853,10 +123899,34 @@ function openPanel(row, opts){
 
 function closePanel(){
   _currentPanelRow = null;
+  _panelMinimized = false;
   document.getElementById('panel').classList.remove('open');
   document.getElementById('overlay').classList.remove('show');
+  document.getElementById('panelPeek').classList.remove('show');
   setDepthLegend(null);
   // Tiefenlinien bleiben bewusst stehen, bis ein neues Gewässer ausgewählt wird.
+}
+
+// Minimieren statt komplett schliessen (Mobile): Panel-Inhalt/Auswahl bleibt
+// unveraendert erhalten (Wetterdaten, Tiefenlinien, _currentPanelRow) -- nur
+// die Sheet-Ansicht weicht einer schmalen Peek-Leiste, damit die Karte frei
+// bedienbar wird. Ersetzt das bisherige komplette Schliessen beim Antippen
+// der Karte/des Overlays bzw. beim Runterwischen am Griff.
+function minimizePanel(){
+  if (!document.getElementById('panel').classList.contains('open')) return;
+  _panelMinimized = true;
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('peek-name').textContent = _currentPanelRow ? (_currentPanelRow.Gewässername||'') : '';
+  document.getElementById('panelPeek').classList.add('show');
+}
+
+function restorePanel(){
+  if (!_panelMinimized) return;
+  _panelMinimized = false;
+  document.getElementById('panelPeek').classList.remove('show');
+  document.getElementById('panel').classList.add('open');
+  if (window.innerWidth<=640) document.getElementById('overlay').classList.add('show');
 }
 
 // ── Tiefenlinien (Isobathen-Flächen) ─────────────────────────────────────────
@@ -124095,7 +124165,7 @@ function renderFishScorePanel() {
   panel.innerHTML = '<div class="fsp-title">🎣 Beißindex</div>' + rows;
   panel.className = 'show';
 }
-document.getElementById('overlay').addEventListener('click',closePanel);
+document.getElementById('overlay').addEventListener('click',minimizePanel);
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 var _weatherCache = {};
