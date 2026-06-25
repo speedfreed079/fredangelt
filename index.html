@@ -262,9 +262,9 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .fsp-schonzeit{font-size:.68rem;color:var(--warn);font-family:var(--mono);margin-top:4px;
   padding:3px 6px;background:rgba(192,137,42,.10);border:1px solid rgba(192,137,42,.3);border-radius:4px}
 /* Fisch-Icon im Beißindex-Panel-Header */
-.fsp-icon{width:30px;height:20px;object-fit:contain;background:rgba(255,255,255,.85);border-radius:3px;padding:2px;vertical-align:middle}
+.fsp-icon{width:30px;height:20px;object-fit:contain;vertical-align:middle}
 /* Fisch-Icon in Schonzeit-Zeile */
-.sz-icon{width:26px;height:17px;object-fit:contain;background:rgba(255,255,255,.85);border-radius:3px;padding:1px;vertical-align:middle;margin-right:4px}
+.sz-icon{width:26px;height:17px;object-fit:contain;vertical-align:middle;margin-right:4px}
 
 /* Schonzeit & Mindestmaß (Panel-Sektion) */
 .schonzeit-row{display:flex;align-items:center;gap:6px;padding:4px 2px;font-size:.72rem;
@@ -311,8 +311,9 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
             border-radius:7px;border:1px solid transparent;font-size:.6rem;
             font-family:var(--mono);text-align:center}
 .fish-badge .icon{font-size:1rem;line-height:1}
-.fish-badge img.fb-img{width:38px;height:25px;object-fit:contain;
-                       background:rgba(255,255,255,.88);border-radius:4px;padding:2px}
+.fish-badge img.fb-img{width:38px;height:25px;object-fit:contain}
+.fb-nein img.fb-img{opacity:.32}
+.fb-unk  img.fb-img{opacity:.18}
 .fb-ja{background:rgba(61,153,112,.12);border-color:rgba(61,153,112,.3);color:#5dba8c}
 .fb-nein{background:rgba(192,58,43,.07);border-color:rgba(192,58,43,.2);color:#804040}
 .fb-unk{background:rgba(107,128,153,.06);border-color:var(--border);color:var(--d);opacity:.6}
@@ -124308,7 +124309,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.18.1";
+const APP_VERSION = "4.18.3";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -124331,6 +124332,37 @@ const FISH_DEF = [
 
 // Fischarten mit Beißindex-Score in der ActivityEngine (Zentrale Quelle — siehe ActivityEngine v3)
 const ENGINE_FISH = ['hecht','zander','barsch','forelle','karpfen','wels','aal','schleie','rapfen','döbel'];
+
+// PNG-Pfade aus FISH_DEF — single source of truth
+var FISH_PNG_MAP = {};
+FISH_DEF.forEach(function(f){ if(f.png) FISH_PNG_MAP[f.key] = f.png; });
+
+// Naturfarben als CSS-Filter — sepia(1) direkt auf das dunkle Icon, dann Hue verschieben + aufhellen.
+// brightness(0)+invert(1) NICHT verwenden: macht alles weiß, sepia() hat dann keine Farbinfo.
+// Quelle der Farbwahl: Gemini-Empfehlung dezente Naturfarben, 25.06.2026
+var FISH_ICON_FILTER = {
+  hecht:     'sepia(1) hue-rotate(100deg) saturate(3.5) brightness(2.2)',  // Schilfgrün
+  zander:    'sepia(1) hue-rotate(48deg)  saturate(4.5) brightness(3.0)',  // Sandoliv/Gold
+  barsch:    'sepia(1) hue-rotate(82deg)  saturate(3.5) brightness(2.0)',  // Moosgrün
+  wels:      'sepia(1) hue-rotate(15deg)  saturate(1.5) brightness(2.0)',  // Dunkelbraun
+  aal:       'sepia(0.8)                               brightness(1.8)',   // Anthrazit
+  karpfen:   'sepia(1) hue-rotate(18deg)  saturate(5.0) brightness(3.0)',  // Bronze/Ocker
+  schleie:   'sepia(1) hue-rotate(70deg)  saturate(2.8) brightness(2.4)',  // Oliv-Gold
+  forelle:   'sepia(1) hue-rotate(335deg) saturate(5.5) brightness(2.6)',  // Rostrot
+  aesche:    'sepia(1) hue-rotate(278deg) saturate(3.5) brightness(2.6)',  // Rosé-Violett
+  maraene:   'sepia(1) hue-rotate(195deg) saturate(4.5) brightness(2.8)',  // Silberblau
+  rapfen:    'sepia(1) hue-rotate(208deg) saturate(4.0) brightness(2.8)',  // Stahlblau
+  'döbel':   'sepia(1) hue-rotate(38deg)  saturate(5.0) brightness(3.2)',  // Messing/Altgold
+  quappe:    'sepia(1) hue-rotate(22deg)  saturate(1.8) brightness(2.0)',  // Graubraun
+  weissfisch:'sepia(1) hue-rotate(205deg) saturate(2.5) brightness(2.0)'   // Silbergrau
+};
+
+function fishIconHtml(key, cssClass) {
+  var src = FISH_PNG_MAP[key];
+  if (!src) return '';
+  var filt = FISH_ICON_FILTER[key] ? ' style="filter:'+FISH_ICON_FILTER[key]+'"' : '';
+  return '<img class="'+cssClass+'" src="'+src+'" alt=""'+filt+'>';
+}
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let allData=[], markerMap={}, clusterGroup, gpsMarker=null;
@@ -124875,9 +124907,7 @@ function openPanel(row, opts){
     var scoreAttr = hasScore ? ' data-fish="'+f.key+'" onclick="toggleFishScore(this)"' : '';
     var scoreCls  = hasScore ? ' has-score' : '';
     var activeCls = hasScore && _activeFishScores.has(f.key) ? ' active' : '';
-    var iconHtml  = f.png
-      ? '<img class="fb-img" src="'+f.png+'" alt="'+f.label+'">'
-      : '<div class="icon">'+f.icon+'</div>';
+    var iconHtml  = f.png ? fishIconHtml(f.key,'fb-img') : '<div class="icon">'+f.icon+'</div>';
     fishHtml+='<div class="fish-badge '+cls+scoreCls+activeCls+'"'+scoreAttr+'>'+iconHtml+
               '<div>'+f.label+'</div><div style="font-size:.65rem;font-weight:700">'+ind+'</div></div>';
   });
@@ -125117,18 +125147,8 @@ var _activeFishScores = new Set();
 
 var FISH_SCORE_LABELS = {hecht:'Hecht',zander:'Zander',barsch:'Barsch',forelle:'Forelle',karpfen:'Karpfen',
                           wels:'Wels',aal:'Aal',schleie:'Schleie',rapfen:'Rapfen','döbel':'Döbel'};
-var FISH_SCORE_ICONS  = {
-  hecht:   '<img class="fsp-icon" src="assets/icons/icon_hecht.png"   alt="Hecht">',
-  zander:  '<img class="fsp-icon" src="assets/icons/icon_zander.png"  alt="Zander">',
-  barsch:  '<img class="fsp-icon" src="assets/icons/icon_barsch.png"  alt="Barsch">',
-  forelle: '<img class="fsp-icon" src="assets/icons/icon_forelle.png" alt="Forelle">',
-  karpfen: '<img class="fsp-icon" src="assets/icons/icon_karpfen.png" alt="Karpfen">',
-  wels:    '<img class="fsp-icon" src="assets/icons/icon_wels.png"    alt="Wels">',
-  aal:     '<img class="fsp-icon" src="assets/icons/icon_aal.png"     alt="Aal">',
-  schleie: '<img class="fsp-icon" src="assets/icons/icon_schleie.png" alt="Schleie">',
-  rapfen:  '<img class="fsp-icon" src="assets/icons/icon_rapfen.png"  alt="Rapfen">',
-  'döbel': '<img class="fsp-icon" src="assets/icons/icon_doebel.png" alt="Döbel">'
-};
+var FISH_SCORE_ICONS = {hecht:'🐟',zander:'🎣',barsch:'🐠',forelle:'🌊',karpfen:'🐡',
+                        wels:'🦈',aal:'🐍',schleie:'🐟',rapfen:'🐟','döbel':'🐟'};
 var FISH_SCORE_HINTS  = {forelle:'⚠️ Lufttemperatur als Näherungswert',
                          karpfen:'⚠️ Lufttemperatur als Näherungswert',
                          wels:'⚠️ Lufttemperatur als Näherungswert',
@@ -125161,10 +125181,10 @@ function schonzeitText(land){
 function mindestmassText(land){
   return land && land.mindestmass ? land.mindestmass+' cm' : '–';
 }
-function schonzeitRowHtml(label, land, png){
+function schonzeitRowHtml(label, land, png, fishKey){
   var status = land && land.start && land.end ? ActivityEngine.schonzeitStatus(land.start, land.end, 0) : null;
   var activeCls = status && status.state==='active' ? ' sz-active' : '';
-  var iconHtml = png ? '<img class="sz-icon" src="'+png+'" alt="'+escHtml(label)+'">' : '';
+  var iconHtml = fishKey ? fishIconHtml(fishKey,'sz-icon') : '';
   return '<div class="schonzeit-row'+activeCls+'"><span class="sz-art">'+iconHtml+escHtml(label)+'</span>'+
          '<span class="sz-zeit">'+schonzeitText(land)+'</span>'+
          '<span class="sz-mass">'+mindestmassText(land)+'</span></div>';
@@ -125226,7 +125246,7 @@ function renderFishScorePanel() {
     }
     rows +=
       '<div class="fsp-row">' +
-      '<div class="fsp-header">' + FISH_SCORE_ICONS[fish] + ' ' + FISH_SCORE_LABELS[fish] +
+      '<div class="fsp-header">' + (FISH_PNG_MAP[fish] ? fishIconHtml(fish,'fsp-icon') : FISH_SCORE_ICONS[fish]) + ' ' + FISH_SCORE_LABELS[fish] +
       ' &nbsp;' + light.emoji + ' <strong>' + light.label + '</strong>' +
       '<span class="fsp-num">' + score.toFixed(1) + '/10</span></div>' +
       '<div class="fsp-score-bar"><div class="fsp-score-fill" style="width:'+pct+'%;background:'+fillColor+'"></div></div>' +
