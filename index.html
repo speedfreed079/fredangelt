@@ -359,6 +359,12 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
               border:1px solid var(--border);border-radius:3px;padding:0 4px;margin-left:5px;vertical-align:1px}
 .polyline-label{background:rgba(0,0,0,.75)!important;border:none!important;color:#fff!important;font-family:var(--mono);font-size:.7rem!important;padding:2px 7px!important;border-radius:4px!important;white-space:nowrap;box-shadow:none!important;}
 .polyline-label::before{display:none!important;}
+/* Tiefenlinien-Beschriftung: permanent gebunden, aber per CSS unsichtbar
+   bis Zoom >= DEPTH_LABEL_MIN_ZOOM (Klasse wird in JS auf #map gesetzt) --
+   vermeidet Kartenueberladung bei vielbaendigen Seen im weiten Zoom. */
+.depth-label{display:none!important;background:rgba(8,28,46,.82)!important;border:none!important;color:#dff3ff!important;font-family:var(--mono);font-size:.65rem!important;font-weight:700;padding:1px 5px!important;border-radius:3px!important;white-space:nowrap;box-shadow:none!important;pointer-events:none!important;}
+.depth-label::before{display:none!important;}
+#map.depth-labels-visible .depth-label{display:block!important;}
 </style>
 </head>
 <body>
@@ -123283,7 +123289,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.12.0";
+const APP_VERSION = "4.12.1";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -123396,6 +123402,8 @@ function initMap() {
   // damit beim Verschieben nicht sofort an den Rändern geclippt wird.
   depthRenderer = L.canvas({padding:1});
   depthLayerGroup = L.layerGroup().addTo(map);
+  map.on('zoomend', updateDepthLabelVisibility);
+  updateDepthLabelVisibility();
 }
 
 // ── Schriftgröße ─────────────────────────────────────────────────────────────
@@ -123729,7 +123737,8 @@ function highlightMarker(nr) {
 
 // ── Panel ─────────────────────────────────────────────────────────────────────
 var _currentPanelRow = null;
-function openPanel(row){
+function openPanel(row, opts){
+  var skipFlyTo = opts && opts.skipFlyTo;
   _currentPanelRow = row;
   _depthSelectedRow = row;
   updatePanelDepthLegend(row);
@@ -123834,8 +123843,10 @@ function openPanel(row){
   document.getElementById('panel').classList.add('open');
   document.getElementById('overlay').classList.add('show');
   updateDepthLayer();
-  // Desktop: auf Gewässer fliegen
-  if(window.innerWidth>640&&lat&&lon){
+  // Desktop: auf Gewässer fliegen (nicht bei Suchauswahl -- da hat
+  // zoomToWholeGewaesser() die Karte bereits gezielt auf den ganzen
+  // See positioniert, ein zusaetzliches flyTo wuerde das wieder verwerfen)
+  if(!skipFlyTo && window.innerWidth>640&&lat&&lon){
     map.flyTo([lat,lon],Math.max(map.getZoom(),13),{duration:.8});
   }
 }
@@ -123892,6 +123903,13 @@ function setDepthLegend(entry){
     '<span class="dl-label">'+Math.abs(deepest).toFixed(1)+' m</span></div>';
 }
 
+// Beschriftungen nur fuer Baender ab dieser Flaeche (m², in EPSG:25833
+// berechnet) -- sonst wuerden vielbaendige Seen (z.B. Parsteinersee mit
+// 187 Klassen durch mehrteilige Inselbecken) bei jedem Zoom >= DEPTH_LABEL_MIN_ZOOM
+// mit Dutzenden Mini-Labels ueberladen.
+var DEPTH_LABEL_MIN_AREA_M2 = 20000; // 2 ha
+var DEPTH_LABEL_MIN_ZOOM = 15;
+
 function renderDepthEntry(entry, row){
   var bands=entry.depth_bands;
   if(!bands || bands.length===0) return;
@@ -123909,10 +123927,28 @@ function renderDepthEntry(entry, row){
       {sticky:true,className:'polyline-label'});
     poly.on('click',function(){ openPanel(row); });
     depthLayerGroup.addLayer(poly);
+
+    // Permanente Tiefen-Beschriftung an einem garantiert innenliegenden Punkt
+    // (label_point = shapely representative_point, nicht Bounds-Mitte -- die
+    // koennte bei konkaven/ringfoermigen Klassen außerhalb liegen). Sichtbarkeit
+    // wird rein per CSS-Klasse auf #map gesteuert (updateDepthLabelVisibility),
+    // kein erneutes Rendering bei Zoom/Pan noetig.
+    if(band.label_point && band.area_m2 >= DEPTH_LABEL_MIN_AREA_M2){
+      var label=L.tooltip(band.label_point,{
+        permanent:true, direction:'center', className:'depth-label', interactive:false
+      }).setContent(Math.abs(band.depth).toFixed(1)+' m');
+      depthLayerGroup.addLayer(label);
+    }
   });
   if(_currentPanelRow && _currentPanelRow.depth_data_id===row.depth_data_id){
     setDepthLegend(entry);
   }
+}
+
+function updateDepthLabelVisibility(){
+  var mapEl=document.getElementById('map');
+  if(!mapEl || !map) return;
+  mapEl.classList.toggle('depth-labels-visible', map.getZoom() >= DEPTH_LABEL_MIN_ZOOM);
 }
 
 // Wird beim Öffnen eines Panels aufgerufen — zeichnet ausschließlich die
@@ -124981,6 +125017,34 @@ function searchOrt(val, existingCount, box) {
   }).catch(function(){});
 }
 
+// Bringt nach einer Suchauswahl das ganze Gewässer ins Bild statt fix auf
+// Zoom 14 zu springen: synchroner Fallback per Flaeche_ha (Kreisflaeche
+// angenommen, *1.4 Sicherheitsabstand), bei Tiefendaten-Seen anschließend
+// async auf die tatsaechliche Polygon-Ausdehnung nachgeschaerft.
+function zoomToWholeGewaesser(row, lat, lon){
+  var ha = parseFloat(row.Fläche_ha);
+  var radiusM = (ha && ha > 0) ? Math.sqrt(ha * 10000 / Math.PI) * 1.4 : 250;
+  radiusM = Math.max(radiusM, 120);
+  map.fitBounds(L.latLng(lat, lon).toBounds(radiusM * 2), {maxZoom: 17});
+
+  if (row.has_depth_data && row.depth_data_id) {
+    loadDepthData().then(function(allDepthData){
+      var entry = allDepthData && allDepthData[row.depth_data_id];
+      if (!entry || !entry.depth_bands || !entry.depth_bands.length) return;
+      var bounds = null;
+      entry.depth_bands.forEach(function(band){
+        band.rings.forEach(function(ring){
+          ring.forEach(function(pt){
+            if (!bounds) bounds = L.latLngBounds(pt, pt);
+            else bounds.extend(pt);
+          });
+        });
+      });
+      if (bounds && bounds.isValid()) map.fitBounds(bounds, {padding:[40,40]});
+    });
+  }
+}
+
 function bindSuggestionClicks(box) {
   box.querySelectorAll('.suggestion-item[data-type]').forEach(function(item){
     item.addEventListener('mousedown',function(e){
@@ -124992,12 +125056,13 @@ function bindSuggestionClicks(box) {
         document.getElementById('searchBox').value = row ? row.Gewässername : '';
         box.style.display='none';
         searchTerm='';
+        document.getElementById('searchBox').blur(); // Tastatur auf Mobilgeraeten schliessen
         renderMarkers();
         if (row) {
           var lat = parseFloat(row.lat), lon = parseFloat(row.lon);
-          map.setView([lat, lon], 14);
+          zoomToWholeGewaesser(row, lat, lon);
           highlightMarker(row.Gewässer_Nr);
-          openPanel(row); // Direkt öffnen — kein zusätzlicher Marker-Klick nötig
+          openPanel(row, {skipFlyTo:true}); // Direkt öffnen — kein zusätzlicher Marker-Klick nötig
         }
       } else if (type === 'ort') {
         var lat = parseFloat(item.getAttribute('data-lat'));
@@ -125006,6 +125071,7 @@ function bindSuggestionClicks(box) {
         document.getElementById('searchBox').value = '';
         box.style.display = 'none';
         searchTerm = '';
+        document.getElementById('searchBox').blur(); // Tastatur auf Mobilgeraeten schliessen
         setPlanMode(lat, lon, name);
       }
     });
