@@ -166,7 +166,7 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
 .gw-marker{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
            border:2px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center}
 .gw-marker.type-vb{background:var(--accent)}
-.gw-marker.type-vvg{background:var(--warn)}
+.gw-marker.type-vvg{background:#5aaa80}
 .gw-marker.type-sal{background:var(--sal)}
 .gw-marker.type-pacht{background:var(--pacht)}
 .gw-marker.type-sperr{background:var(--danger)}
@@ -124498,7 +124498,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.19.2";
+const APP_VERSION = "4.19.3";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -124925,7 +124925,7 @@ function markerType(row){
 }
 function makeIcon(row){
   var t=markerType(row);
-  var e=t==='sal'?'🌊':t==='vvg'?'⚓':t==='pacht'?'💰':t==='sperr'?'🚫':'🎣';
+  var e=t==='sal'?'🌊':t==='pacht'?'💰':t==='sperr'?'🚫':'🎣';
   var zk=row.zusatzkarte_pflicht==='ja'?'<span class="zk-badge">💳</span>':'';
   var dim=inProfileScope(row)?'':' profile-dim';
   return L.divIcon({className:'',
