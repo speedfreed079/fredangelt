@@ -408,12 +408,15 @@ body:not(.outdoor) #map .leaflet-tile-pane {
 .suggestion-item:hover,.suggestion-item.active{background:var(--surface2);color:var(--accent)}
 .suggestion-nr{font-family:var(--mono);font-size:.65rem;color:var(--d);margin-left:6px}
 #searchWrap{position:relative;flex:1;min-width:0}
-.layer-toggle{position:absolute;top:80px;right:10px;z-index:999;
-              display:flex;flex-direction:column;gap:4px}
+.layer-toggle{position:absolute;top:50px;right:10px;z-index:999;display:flex;flex-direction:column}
+.layer-toggle-menu{display:none;flex-direction:column;gap:4px;padding-top:4px}
+.layer-toggle.open .layer-toggle-menu{display:flex}
 .layer-btn{background:var(--surface);border:1px solid var(--border);border-radius:7px;
            padding:6px 9px;font-size:.68rem;font-family:var(--mono);color:var(--d);
            cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center}
 .layer-btn.on{border-color:var(--accent);color:var(--accent);background:rgba(61,153,112,.1)}
+.lt-arrow{font-size:.55rem;margin-left:3px;display:inline-block;transition:transform .15s;vertical-align:middle}
+.layer-toggle.open .lt-arrow{transform:rotate(180deg)}
 
 /* Listenansicht */
 #listView{background:var(--surface);border-top:1px solid var(--border);max-height:38vh;overflow-y:auto;flex-shrink:0;display:none;order:0;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
@@ -527,7 +530,7 @@ body:not(.outdoor) #map .leaflet-tile-pane {
 
 <div id="map">
   <button id="btnOutdoor" onclick="toggleOutdoor()"
-    style="position:absolute;top:80px;left:10px;z-index:999;
+    style="position:absolute;top:10px;right:10px;z-index:999;
            background:var(--surface);border:1px solid var(--border);
            border-radius:7px;padding:5px 10px;color:var(--d);
            font-size:.72rem;font-family:var(--mono);cursor:pointer;
@@ -535,12 +538,17 @@ body:not(.outdoor) #map .leaflet-tile-pane {
     title="Outdoor-Modus für Sonnenlicht">
     ☀ Outdoor
   </button>
-  <!-- Layer toggle -->
-  <div class="layer-toggle">
-    <div class="layer-btn on" id="layerStrasse"  onclick="setLayer('strasse')">🗺 Karte</div>
-    <div class="layer-btn"    id="layerDark"     onclick="setLayer('dark')">🌙 Dark</div>
-    <div class="layer-btn"    id="layerSatellit" onclick="setLayer('satellit')">🛰 Satellit</div>
-    <div class="layer-btn"    id="layerTopo"     onclick="setLayer('topo')">⛰ Topo</div>
+  <!-- Layer toggle (Klappdropdown) -->
+  <div class="layer-toggle" id="layerToggle">
+    <div class="layer-btn" id="layerToggleHeader" onclick="toggleLayerMenu()">
+      🗺 Karte <span class="lt-arrow">▾</span>
+    </div>
+    <div class="layer-toggle-menu" id="layerToggleMenu">
+      <div class="layer-btn" id="layerStrasse"  onclick="setLayer('strasse')">🗺 Karte</div>
+      <div class="layer-btn" id="layerDark"     onclick="setLayer('dark')">🌙 Dark</div>
+      <div class="layer-btn" id="layerSatellit" onclick="setLayer('satellit')">🛰 Satellit</div>
+      <div class="layer-btn" id="layerTopo"     onclick="setLayer('topo')">⛰ Topo</div>
+    </div>
   </div>
 </div>
 <div id="overlay"></div>
@@ -124488,7 +124496,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.18.7";
+const APP_VERSION = "4.18.8";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -124623,6 +124631,8 @@ const LAYERS = {
     {attribution:'© OpenTopoMap',subdomains:'abc',maxZoom:17}),
 };
 
+var LAYER_LABELS = {strasse:'🗺 Karte', dark:'🌙 Dark', satellit:'🛰 Satellit', topo:'⛰ Topo'};
+
 function setLayer(name) {
   Object.values(LAYERS).forEach(function(l){if(map.hasLayer(l))map.removeLayer(l);});
   LAYERS[name].addTo(map);
@@ -124631,7 +124641,21 @@ function setLayer(name) {
     document.getElementById('layer'+k.charAt(0).toUpperCase()+k.slice(1))
       .classList.toggle('on',k===name);
   });
+  // Header-Button aktualisieren und Menü schließen
+  var hdr = document.getElementById('layerToggleHeader');
+  if(hdr) hdr.innerHTML = (LAYER_LABELS[name]||name) + ' <span class="lt-arrow">▾</span>';
+  document.getElementById('layerToggle').classList.remove('open');
 }
+
+function toggleLayerMenu() {
+  document.getElementById('layerToggle').classList.toggle('open');
+}
+
+// Klick außerhalb schließt das Layer-Menü
+document.addEventListener('click', function(e) {
+  var toggle = document.getElementById('layerToggle');
+  if(toggle && !toggle.contains(e.target)) toggle.classList.remove('open');
+});
 
 // === OUTDOOR-MODUS =========================================
 function toggleOutdoor() {
