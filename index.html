@@ -280,9 +280,9 @@ body.outdoor .warn-box{color:var(--t)!important;border-color:rgba(122,79,10,.45)
 body.outdoor .warn-box strong{color:var(--warn)}
 
 /* Anklickbare Fish-Badges (mit Engine-Score) */
-.fish-badge.has-score{cursor:pointer;transition:border-color .15s,background .15s}
+.fish-badge.has-score{cursor:pointer;transition:border-color .15s,background .15s,box-shadow .15s}
 .fish-badge.has-score:hover{border-color:var(--accent);background:rgba(61,153,112,.18)}
-.fish-badge.has-score.active{border-color:var(--accent);background:rgba(61,153,112,.2)}
+.fish-badge.has-score.active{border:2px solid var(--accent);background:rgba(61,153,112,.32);color:#2d7a57;box-shadow:0 0 0 2px rgba(61,153,112,.25)}
 
 /* Beißindex Inline-Expand */
 #fish-score-panel{display:none;background:var(--surface2);border:1px solid var(--accent);
@@ -124500,7 +124500,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.19.5";
+const APP_VERSION = "4.19.6";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
