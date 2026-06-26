@@ -124498,7 +124498,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.19.1";
+const APP_VERSION = "4.19.2";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -125125,7 +125125,7 @@ function openPanel(row, opts){
       (zkLink?'<br><a href="'+escHtml(zkLink)+'" target="_blank" rel="noopener">Online kaufen ↗</a>':'')+
       '</div>';
   }else if(isVVG){
-    warn+='<div class="warn-box">⚠ <strong>Vertragsgewässer</strong> — zusätzlich zur LAVB-Marke ist eine <strong>Vollzahlermarke</strong> erforderlich. Die Bedingungen einzelner Vertragspartner können von der LAVB-Gewässerordnung abweichen (Mindestmaße, Schonzeiten, Gerät, Nachtangeln, Schutzbereiche).</div>';
+    warn+='<div class="warn-box">✅ <strong>Vertragsgewässer</strong> — Ihre aktive LAVB- oder Berliner DAV-Mitgliedsmarke (Vollzahler/Jugend) genügt als Angelerlaubnis. Die Bedingungen des Vertragspartners können von der LAVB-Gewässerordnung abweichen (Mindestmaße, Schonzeiten, Gerät, Nachtangeln, Schutzbereiche).</div>';
   }
   if(row.vvg_hinweistext){
     warn+='<div class="warn-box" style="background:rgba(192,159,42,.08);border-color:rgba(192,159,42,.35);color:#e8d28a;">📌 <strong>Sonderregel:</strong> '+escHtml(row.vvg_hinweistext)+'</div>';
