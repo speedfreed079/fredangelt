@@ -124488,25 +124488,25 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.18.6";
+const APP_VERSION = "4.18.7";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
 const FISH_DEF = [
-  {key:'hecht',     label:'Hecht',     icon:'🐟', png:'assets/icons/icon_hecht.png'},
-  {key:'zander',    label:'Zander',    icon:'🎣', png:'assets/icons/icon_zander.png'},
+  {key:'hecht',     label:'Hecht',     icon:'🐟', png:'assets/icons/icon_frei_hecht.png'},
+  {key:'zander',    label:'Zander',    icon:'🎣', png:'assets/icons/icon_frei_zander.png'},
   {key:'barsch',    label:'Barsch',    icon:'🐠', png:'assets/icons/icon_barsch.png'},
-  {key:'wels',      label:'Wels',      icon:'🦈', png:'assets/icons/icon_wels.png'},
-  {key:'aal',       label:'Aal',       icon:'🐍', png:'assets/icons/icon_aal.png'},
-  {key:'karpfen',   label:'Karpfen',   icon:'🐡', png:'assets/icons/icon_karpfen.png'},
-  {key:'schleie',   label:'Schleie',   icon:'🐟', png:'assets/icons/icon_schleie.png'},
-  {key:'forelle',   label:'Forelle',   icon:'🌊', png:'assets/icons/icon_forelle.png'},
-  {key:'aesche',    label:'Äsche',     icon:'🌊', png:'assets/icons/icon_aesche.png'},
-  {key:'maraene',   label:'Maräne',    icon:'🐟', png:'assets/icons/icon_maraene.png'},
-  {key:'rapfen',    label:'Rapfen',    icon:'🐟', png:'assets/icons/icon_rapfen.png'},
-  {key:'döbel',     label:'Döbel',     icon:'🐟', png:'assets/icons/icon_doebel.png'},
-  {key:'quappe',    label:'Quappe',    icon:'🐟', png:'assets/icons/icon_quappe.png'},
-  {key:'weissfisch',label:'Weißfisch', icon:'🐟', png:'assets/icons/icon_weissfisch.png'},
+  {key:'wels',      label:'Wels',      icon:'🦈', png:'assets/icons/icon_frei_wels.png'},
+  {key:'aal',       label:'Aal',       icon:'🐍', png:'assets/icons/icon_frei_aal.png'},
+  {key:'karpfen',   label:'Karpfen',   icon:'🐡', png:'assets/icons/icon_frei_karpfen.png'},
+  {key:'schleie',   label:'Schleie',   icon:'🐟', png:'assets/icons/icon_frei_schleie.png'},
+  {key:'forelle',   label:'Forelle',   icon:'🌊', png:'assets/icons/icon_frei_forelle.png'},
+  {key:'aesche',    label:'Äsche',     icon:'🌊', png:'assets/icons/icon_frei_aesche.png'},
+  {key:'maraene',   label:'Maräne',    icon:'🐟', png:'assets/icons/icon_frei_maraene.png'},
+  {key:'rapfen',    label:'Rapfen',    icon:'🐟', png:'assets/icons/icon_frei_rapfen.png'},
+  {key:'döbel',     label:'Döbel',     icon:'🐟', png:'assets/icons/icon_frei_doebel.png'},
+  {key:'quappe',    label:'Quappe',    icon:'🐟', png:'assets/icons/icon_frei_quappe.png'},
+  {key:'weissfisch',label:'Weißfisch', icon:'🐟', png:'assets/icons/icon_frei_weissfisch.png'},
 ];
 
 // Fischarten mit Beißindex-Score in der ActivityEngine (Zentrale Quelle — siehe ActivityEngine v3)
@@ -124651,13 +124651,14 @@ function toggleOutdoor() {
     btn.style.color       = '';
     btn.style.background  = '';
     setLayer('dark');
-    try { localStorage.removeItem('fred_outdoor'); } catch(e) {}
+    try { localStorage.setItem('fred_outdoor', '0'); } catch(e) {}
   }
 }
 
+// Outdoor ist Standard — nur wenn User explizit auf Dark gewechselt hat ('0'), bleibt Dark
 (function() {
   try {
-    if (localStorage.getItem('fred_outdoor') === '1') {
+    if (localStorage.getItem('fred_outdoor') !== '0') {
       toggleOutdoor();
     }
   } catch(e) {}
