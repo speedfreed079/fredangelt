@@ -11,6 +11,10 @@
   --sal:#6c63c0; --pacht:#2a9fc0; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono','Fira Mono',monospace;
   --safe-bottom:env(safe-area-inset-bottom,0px);
 }
+body.outdoor {
+  --bg:#f5f0e8; --surface:#ede8dc; --surface2:#e4ddd0; --border:#c8bfa8;
+  --t:#2c1f0e; --d:#6b5a3e; --accent:#2d6e45; --warn:#7a4f0a; --danger:#8b2020;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html{overflow-x:hidden}
 body{background:var(--bg);color:var(--t);font-family:var(--sans);line-height:1.5;padding-bottom:calc(40px + var(--safe-bottom))}
@@ -52,7 +56,7 @@ section li b{color:var(--t);font-weight:600}
 hr.sep{border:none;border-top:1px solid var(--border);margin:0 0 26px 0}
 </style>
 </head>
-<body>
+<body><script>try{if(localStorage.getItem('fred_outdoor')!=='0')document.body.classList.add('outdoor');}catch(e){}</script>
 
 <header>
   <div class="logo">🎣 Fred <span>angelt</span></div>
@@ -79,6 +83,7 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:0 0 26px 0}
     <a href="#planmodus">🗺️ Plan-Modus</a>
     <a href="#liste">☰ Liste</a>
     <a href="#profil">🪪 Profil</a>
+    <a href="#outdoor">☀️ Outdoor</a>
     <a href="#einstellungen">⚙️ Einstellungen</a>
   </nav>
 
@@ -127,7 +132,7 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:0 0 26px 0}
 
   <section id="tiefenlinien">
     <h2><span class="ic">🌊</span> Tiefenlinien (Tiefenkarte)</h2>
-    <p>Für 62 Seen liegen echte Tiefenisobathen aus der amtlichen Seenvermessung Brandenburg vor. Wähle ein passendes Gewässer aus — die Tiefenlinien erscheinen auf der Karte und bleiben auch nach dem Schließen des Panels sichtbar, bis du ein anderes Gewässer auswählst.</p>
+    <p>Für 67 Seen liegen echte Tiefenisobathen aus der amtlichen Seenvermessung Brandenburg vor. Wähle ein passendes Gewässer aus — die Tiefenlinien erscheinen auf der Karte und bleiben auch nach dem Schließen des Panels sichtbar, bis du ein anderes Gewässer auswählst.</p>
     <p>Ab einer bestimmten Zoomstufe werden größere Tiefenbänder direkt mit ihrem Tiefenwert beschriftet, damit du Werte ohne Antippen ablesen kannst.</p>
   </section>
 
@@ -164,10 +169,27 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:0 0 26px 0}
     <p>Über den <span class="chip">🪪</span>-Button stellst du ein, welche Angelkarte du besitzt: nur Berlin (DAV), nur Brandenburg (LAVB) oder beide. Gewässer außerhalb deines Profils werden in der Karte/Liste abgeblendet dargestellt, bleiben aber sichtbar.</p>
   </section>
 
+  <section id="outdoor">
+    <h2><span class="ic">☀️</span> Outdoor-Modus</h2>
+    <p>Die App startet automatisch im <b>Outdoor-Modus</b> — heller Papier/Sepia-Hintergrund, optimiert für Sonnenlicht am Wasser. Der Button <span class="chip">🌙 Dark</span> oben rechts auf der Karte wechselt ins Dark-Theme.</p>
+    <ul>
+      <li>Im Outdoor-Modus wechselt die Kartenebene automatisch auf <b>🗺 Karte</b> (hell), Fisch-Icons werden dunkler und kontrastreicher dargestellt.</li>
+      <li>Im Dark-Modus wechselt die Karte automatisch auf <b>🌙 Dark</b>. Der Button zeigt dann <span class="chip">☀ Outdoor</span>.</li>
+      <li>Die Wahl wird gespeichert — wer einmal auf Dark umschaltet, bleibt beim nächsten Start im Dark-Modus.</li>
+    </ul>
+  </section>
+
   <section id="einstellungen">
     <h2><span class="ic">⚙️</span> Schriftgröße &amp; Kartenebenen</h2>
     <p>Die <b>A A A</b>-Buttons im Header stellen die Schriftgröße der ganzen App in drei Stufen ein — wichtig bei hellem Tageslicht draußen.</p>
-    <p>Unter der Karte wechselst du zwischen den Kartenebenen <b>🗺 Karte</b> (Standard), <b>🌙 Dark</b>, <b>🛰 Satellit</b> und <b>⛰ Topo</b>.</p>
+    <p>Der <b>Kartenebenen-Button</b> oben rechts (direkt unter dem Outdoor-Toggle) zeigt die aktuell aktive Ebene. Antippen klappt alle vier Optionen aus:</p>
+    <ul>
+      <li><b>🗺 Karte</b> — helle OpenStreetMap-Basiskarte (Standard im Outdoor-Modus)</li>
+      <li><b>🌙 Dark</b> — dunkle Karte (Standard im Dark-Modus)</li>
+      <li><b>🛰 Satellit</b> — Luftbild (Esri)</li>
+      <li><b>⛰ Topo</b> — Topografische Karte mit Höhenlinien</li>
+    </ul>
+    <p>Nach der Auswahl schließt das Menü automatisch. Ein Klick auf die Karte schließt es ebenfalls.</p>
   </section>
 
   <hr class="sep">
