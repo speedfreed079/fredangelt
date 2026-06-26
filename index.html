@@ -276,6 +276,8 @@ body:not(.outdoor) #map .leaflet-tile-pane {
           border-radius:8px;padding:9px 12px;font-size:.77rem;line-height:1.5;
           color:#ddc080;margin-bottom:10px;flex-shrink:0}
 .warn-box strong{color:var(--warn)}
+body.outdoor .warn-box{color:var(--t)!important;border-color:rgba(122,79,10,.45)}
+body.outdoor .warn-box strong{color:var(--warn)}
 
 /* Anklickbare Fish-Badges (mit Engine-Score) */
 .fish-badge.has-score{cursor:pointer;transition:border-color .15s,background .15s}
@@ -124498,7 +124500,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.19.3";
+const APP_VERSION = "4.19.4";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -125085,6 +125087,7 @@ var _panelMinimized = false;
 function openPanel(row, opts){
   var skipFlyTo = opts && opts.skipFlyTo;
   _panelMinimized = false;
+  if(listVisible) toggleList();
   document.getElementById('panelPeek').classList.remove('show');
   _currentPanelRow = row;
   _depthSelectedRow = row;
@@ -125196,11 +125199,8 @@ function openPanel(row, opts){
   document.getElementById('panel').classList.add('open');
   document.getElementById('overlay').classList.add('show');
   updateDepthLayer();
-  // Desktop: auf Gewässer fliegen (nicht bei Suchauswahl -- da hat
-  // zoomToWholeGewaesser() die Karte bereits gezielt auf den ganzen
-  // See positioniert, ein zusaetzliches flyTo wuerde das wieder verwerfen)
-  if(!skipFlyTo && window.innerWidth>640&&lat&&lon){
-    map.flyTo([lat,lon],Math.max(map.getZoom(),13),{duration:.8});
+  if(!skipFlyTo && lat&&lon){
+    zoomToWholeGewaesser(row, lat, lon);
   }
 }
 
