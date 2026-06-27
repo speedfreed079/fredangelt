@@ -585,7 +585,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
   <div class="panel-body">
     <div id="p-warn"></div>
     <div id="p-depth-legend"></div>
-    <div class="section-title">Fischarten <span style="font-size:.58rem;color:var(--accent);font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:400">— antippen für Beißindex</span></div>
+    <div class="section-title">Fischarten <span style="font-size:.58rem;color:var(--accent);font-family:var(--mono);text-transform:none;letter-spacing:0;font-weight:400">— antippen für Beiß-Score</span></div>
     <div class="fish-grid" id="p-fish"></div>
     <div id="fish-score-panel"></div>
     <div class="quality-hint" id="p-quality"></div>
@@ -124500,7 +124500,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.19.8";
+const APP_VERSION = "4.19.9";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -125514,7 +125514,7 @@ function renderFishScorePanel() {
       (hint   ? '<div class="fsp-hint">' + hint   + '</div>' : '') +
       '</div>';
   });
-  panel.innerHTML = '<div class="fsp-title">🎣 Beißindex</div>' + rows;
+  panel.innerHTML = '<div class="fsp-title">🎣 Beiß-Score</div>' + rows;
   panel.className = 'show';
 }
 document.getElementById('overlay').addEventListener('click',minimizePanel);
