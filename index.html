@@ -124500,7 +124500,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.19.7";
+const APP_VERSION = "4.19.8";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -126532,6 +126532,12 @@ function bindSuggestionClicks(box) {
         box.style.display = 'none';
         searchTerm = '';
         document.getElementById('searchBox').blur(); // Tastatur auf Mobilgeraeten schliessen
+        // Auto-Umkreis 20 km wenn noch kein Radius aktiv (ID 21)
+        if (radiusKm === 0) {
+          radiusKm = 20;
+          document.querySelectorAll('.radius-chip').forEach(function(c){c.classList.remove('on');});
+          document.querySelector('.radius-chip[data-km="20"]').classList.add('on');
+        }
         setPlanMode(lat, lon, name);
       }
     });
