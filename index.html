@@ -135252,7 +135252,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.19.18";
+const APP_VERSION = "4.19.19";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -135470,9 +135470,13 @@ function initMap() {
   // v.a. auf iOS Safari). Canvas zeichnet pro Frame neu und ist davon nicht betroffen.
   // padding:1 hält außerdem einen ganzen Bildschirm Puffer rund um den Ausschnitt vor,
   // damit beim Verschieben nicht sofort an den Rändern geclippt wird.
-  depthRenderer = L.canvas({padding:1});
+  depthRenderer = L.canvas({padding:2});
   depthLayerGroup = L.layerGroup().addTo(map);
   map.on('zoomend', updateDepthLabelVisibility);
+  map.on('moveend', function(){
+    if(!depthLayerGroup) return;
+    depthLayerGroup.eachLayer(function(l){ if(l.redraw) l.redraw(); });
+  });
   updateDepthLabelVisibility();
   // Karten-Klick → Umkreissuche von diesem Punkt (Plan-Modus). Marker/Polylines/
   // Tiefenpolygone stoppen ihren eigenen Klick (L.DomEvent.stopPropagation in
