@@ -500,7 +500,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
     </div>
     <div class="header-right">
       <button class="icon-btn" id="profileBtn" onclick="toggleProfilePopover()" title="Meine Angelkarte">🪪</button>
-      <button class="icon-btn active" id="gpsBtn" onclick="toggleGps()" title="GPS ein/ausschalten">📍</button>
+      <button class="icon-btn active" id="gpsBtn" onclick="zoomToGps()" title="Zum Standort zoomen">📍</button>
       <button class="icon-btn" id="listToggleBtn" onclick="toggleList()" title="Listenansicht">☰</button>
       <button class="icon-btn" id="howtoBtn" onclick="window.open('howto.html','_blank')" title="Hilfe / Howto">❓</button>
       <div class="header-count" id="headerCount">— Gewässer</div>
@@ -134974,8 +134974,8 @@ const LAVB_DATA = [
     "fisch_rotfeder": "nein",
     "fisch_ukelei": "nein",
     "fisch_zope": "nein",
-    "lat": 52.425,
-    "lon": 13.235,
+    "lat": 52.441177440625005,
+    "lon": 13.234716272993392,
     "koordinaten_quelle": "Manuell_Recherche_2026",
     "_fisch_quelle": "manuell_pachtgewaesser_2026",
     "_fisch_bucket": "manual",
@@ -135121,8 +135121,8 @@ const LAVB_DATA = [
     "pacht_ticket_url": ""
   },
   {
-    "Gewässer_Nr": "SPERR-BE-05",
-    "Gewässername": "Schlachtensee & Krumme Lanke",
+    "Gewässer_Nr": "SPERR-BE-05a",
+    "Gewässername": "Schlachtensee",
     "KAV": "Bewirtschaftung durch den Angelverein Wels e.V.",
     "Bereich": "Berlin",
     "Fläche_ha": "",
@@ -135160,8 +135160,70 @@ const LAVB_DATA = [
     "fisch_rotfeder": "nein",
     "fisch_ukelei": "nein",
     "fisch_zope": "nein",
-    "lat": 52.446,
-    "lon": 13.223,
+    "lat": 52.4364,
+    "lon": 13.2156,
+    "koordinaten_quelle": "Manuell_Recherche_2026",
+    "_fisch_quelle": "manuell_pachtgewaesser_2026",
+    "_fisch_bucket": "manual",
+    "_fisch_score": 1.0,
+    "bbox_lat_span": 0.0,
+    "bbox_lon_span": 0.0,
+    "lat_start": "",
+    "lon_start": "",
+    "lat_end": "",
+    "lon_end": "",
+    "zusatzkarte_pflicht": "nein",
+    "zusatzkarte_name": "",
+    "zusatzkarte_preis_info": "",
+    "zusatzkarte_link": "",
+    "vvg_hinweistext": "",
+    "pacht_beschreibung": "Zwei stark frequentierte Waldseen im Berliner Südwesten (Grunewald).",
+    "pacht_preise": "KEIN ÖFFENTLICHER KARTENVERTRIEB - VERGABE NUR AN MITGLIEDER",
+    "pacht_kontakt": "Bewirtschaftung durch den Angelverein Wels e.V., Am Bahnhof Westend 2, Aufgang 3, 14059 Berlin.",
+    "pacht_ticket_url": ""
+  },
+  {
+    "Gewässer_Nr": "SPERR-BE-05b",
+    "Gewässername": "Krumme Lanke (Zehlendorf)",
+    "KAV": "Bewirtschaftung durch den Angelverein Wels e.V.",
+    "Bereich": "Berlin",
+    "Fläche_ha": "",
+    "gewässer_typ": "Sperrgewässer",
+    "gewässer_art": "Stillgewässer",
+    "ist_salmonide": "nein",
+    "angelkarte": "",
+    "fisch_hecht": "ja",
+    "fisch_zander": "ja",
+    "fisch_barsch": "ja",
+    "fisch_wels": "nein",
+    "fisch_aal": "ja",
+    "fisch_rapfen": "nein",
+    "fisch_döbel": "nein",
+    "fisch_quappe": "nein",
+    "fisch_karpfen": "ja",
+    "fisch_schleie": "ja",
+    "fisch_forelle": "nein",
+    "fisch_aesche": "nein",
+    "fisch_maraene": "nein",
+    "fisch_weissfisch": "nein",
+    "fisch_dorsch": "nein",
+    "fisch_meerforelle": "nein",
+    "fisch_hering": "nein",
+    "fisch_hornhecht": "nein",
+    "fisch_plattfisch": "nein",
+    "fisch_makrele": "nein",
+    "fisch_alande": "nein",
+    "fisch_barbe": "nein",
+    "fisch_guester": "nein",
+    "fisch_hasel": "nein",
+    "fisch_karausche": "nein",
+    "fisch_moderlieschen": "nein",
+    "fisch_regenbogenforelle": "nein",
+    "fisch_rotfeder": "nein",
+    "fisch_ukelei": "nein",
+    "fisch_zope": "nein",
+    "lat": 52.4474,
+    "lon": 13.2333,
     "koordinaten_quelle": "Manuell_Recherche_2026",
     "_fisch_quelle": "manuell_pachtgewaesser_2026",
     "_fisch_bucket": "manual",
@@ -135188,7 +135250,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.19.14";
+const APP_VERSION = "4.19.15";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -135265,7 +135327,7 @@ function fishIconHtml(key, cssClass) {
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let allData=[], markerMap={}, clusterGroup, gpsMarker=null;
+let allData=[], markerMap={}, clusterGroup, gpsMarker=null, gpsCircle=null, gpsWatchId=null;
 let activeFilters=new Set(), searchTerm='', map;
 let userLat=null, userLon=null;
 let currentLayer='strasse';
@@ -135495,67 +135557,71 @@ function hideGpsToast() {
   t.style.display = '';
 }
 
-function toggleGps() {
-  gpsEnabled = !gpsEnabled;
-  var btn = document.getElementById('gpsBtn');
-  if (!gpsEnabled) {
-    btn.classList.remove('active','searching');
-    hideGpsToast();
-    if(gpsMarker){map.removeLayer(gpsMarker);gpsMarker=null;}
-    userLat=null;userLon=null;
-    document.getElementById('radiusBar').style.display='none';
-    radiusKm=0;
-    document.querySelectorAll('.radius-chip').forEach(function(c){c.classList.remove('on');});
-    document.querySelector('.radius-chip[data-km="0"]').classList.add('on');
-    renderMarkers();
+function zoomToGps() {
+  if (userLat && userLon) {
+    map.setView([userLat, userLon], 15);
+    var btn = document.getElementById('gpsBtn');
+    btn.classList.add('searching');
+    setTimeout(function(){ btn.classList.remove('searching'); }, 700);
   } else {
-    btn.classList.add('active');
-    locateMe();
+    startGpsTracking();
   }
 }
 
-function locateMe() {
-  var btn = document.getElementById('gpsBtn');
+function startGpsTracking() {
   if (!navigator.geolocation) {
     showGpsToast('⚠️ GPS nicht verfügbar auf diesem Gerät.', true);
     return;
   }
+  var btn = document.getElementById('gpsBtn');
   btn.classList.add('active','searching');
   showGpsToast('📍 Standort wird ermittelt…', false);
-  navigator.geolocation.getCurrentPosition(
+  if (gpsWatchId !== null) { navigator.geolocation.clearWatch(gpsWatchId); }
+  gpsWatchId = navigator.geolocation.watchPosition(
     function(pos){
       btn.classList.remove('searching');
-      userLat=pos.coords.latitude;userLon=pos.coords.longitude;
+      var lat=pos.coords.latitude, lon=pos.coords.longitude;
       var acc=Math.round(pos.coords.accuracy);
+      var firstFix=(userLat===null);
+      userLat=lat; userLon=lon;
       hideGpsToast();
-      if(gpsMarker){map.removeLayer(gpsMarker);gpsMarker=null;}
-      gpsMarker = L.marker([userLat, userLon], {
-        icon: L.divIcon({
-          className: '',
-          html: '<div class="gps-dot"></div>',
-          iconSize: [18,18],
-          iconAnchor: [9,9]
-        }),
-        zIndexOffset: 9000
-      }).addTo(map);
-      gpsMarker.bindPopup('<b>📍 Dein Standort</b><br>±'+acc+' m Genauigkeit');
-      map.setView([userLat,userLon],11);
-      document.getElementById('radiusBar').style.display='flex';
-      renderMarkers();
+      if(gpsMarker){
+        gpsMarker.setLatLng([lat,lon]);
+        gpsMarker.setPopupContent('<b>📍 Dein Standort</b><br>±'+acc+' m Genauigkeit');
+      } else {
+        gpsMarker = L.marker([lat,lon],{
+          icon: L.divIcon({className:'',html:'<div class="gps-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]}),
+          zIndexOffset:9000
+        }).addTo(map);
+        gpsMarker.bindPopup('<b>📍 Dein Standort</b><br>±'+acc+' m Genauigkeit');
+      }
+      if(gpsCircle){
+        gpsCircle.setLatLng([lat,lon]);
+        gpsCircle.setRadius(acc);
+      } else {
+        gpsCircle = L.circle([lat,lon],{
+          radius:acc, color:'#4fc3f7', fillColor:'#4fc3f7',
+          fillOpacity:0.08, weight:1, opacity:0.35, interactive:false
+        }).addTo(map);
+      }
+      if(firstFix){
+        map.setView([lat,lon],13);
+        document.getElementById('radiusBar').style.display='flex';
+        renderMarkers();
+      }
     },
     function(err){
-      btn.classList.remove('active','searching');
-      gpsEnabled=false;
+      btn.classList.remove('searching');
+      var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
       var msg;
-      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      if(err.code===1) msg = isIOS
+      if(err.code===1) msg=isIOS
         ? '⚠️ Standort verweigert. iOS: Einstellungen → Datenschutz → Ortungsdienste → Safari Websites → Beim Verwenden der App'
         : '⚠️ Standort verweigert. Chrome: 🔒 in der Adressleiste → Standort → Zulassen, dann Seite neu laden.';
       else if(err.code===2) msg='⚠️ Standort konnte nicht ermittelt werden.';
       else msg='⚠️ GPS nicht gefunden — ist der Standort aktiviert?';
       showGpsToast(msg, true);
     },
-    {enableHighAccuracy:true,timeout:5000,maximumAge:60000}
+    {enableHighAccuracy:true, timeout:10000, maximumAge:0}
   );
 }
 
@@ -137297,8 +137363,8 @@ function loadCSV(){
 }
 initMap();
 loadCSV();
-// GPS automatisch starten
-locateMe();
+// GPS-Tracking automatisch starten (watchPosition — dauerhaft)
+startGpsTracking();
 </script>
 </body>
 </html>
