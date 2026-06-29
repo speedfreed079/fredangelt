@@ -480,7 +480,8 @@ body.outdoor .warn-box strong{color:var(--warn)}
 /* Tiefenlinien-Beschriftung: alle Labels werden erzeugt, Sichtbarkeit
    wird viewport-basiert per JS gesteuert (updateDepthLabelVisibility).
    display:none ohne !important — JS überschreibt mit style.display='block'. */
-.depth-label{display:none;background:rgba(255,255,255,.82)!important;border:none!important;color:#0b3d5c!important;font-family:var(--mono);font-size:.65rem!important;font-weight:700;padding:1px 5px!important;border-radius:3px!important;white-space:nowrap;box-shadow:none!important;pointer-events:none!important;}
+.depth-label{display:none!important;background:rgba(255,255,255,.82)!important;border:none!important;color:#0b3d5c!important;font-family:var(--mono);font-size:.65rem!important;font-weight:700;padding:1px 5px!important;border-radius:3px!important;white-space:nowrap;box-shadow:none!important;pointer-events:none!important;}
+.depth-label.dl-vis{display:block!important;}
 .depth-label::before{display:none!important;}
 </style>
 </head>
@@ -135251,7 +135252,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.19.20";
+const APP_VERSION = "4.19.21";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -136083,7 +136084,7 @@ function updateDepthLabelVisibility(){
   var vp=show ? map.getBounds().pad(0.05) : null;
   depthLayerGroup.eachLayer(function(l){
     if(!l._depthLL || !l._container) return;
-    l._container.style.display=(show && vp.contains(l._depthLL)) ? 'block' : 'none';
+    l._container.classList.toggle('dl-vis', show && vp.contains(l._depthLL));
   });
 }
 
