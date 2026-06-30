@@ -135297,7 +135297,7 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.19.25";
+const APP_VERSION = "4.19.26";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -137359,6 +137359,14 @@ function bindSuggestionClicks(box) {
 
 document.getElementById('searchBox').addEventListener('blur',function(){
   setTimeout(function(){document.getElementById('searchSuggestions').style.display='none';},150);
+});
+document.getElementById('searchBox').addEventListener('focus',function(){
+  if(this.value.trim()){
+    this.value='';
+    searchTerm='';
+    document.getElementById('searchSuggestions').style.display='none';
+    renderMarkers();
+  }
 });
 
 // ── Filters ───────────────────────────────────────────────────────────────────
