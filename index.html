@@ -46,6 +46,51 @@ body.outdoor .marker-cluster-medium div {
 }
 /* ========================================================= */
 
+/* === FISCH-FARBPALETTE ====================================
+   Jede Fischart hat eine CSS-Variable --fish-<key>.
+   Dark-Mode (default :root): Signal-Palette (leuchtend, gut lesbar auf dunklem BG).
+   Outdoor-Mode (body.outdoor): Naturfarben mit leichtem Sättigungs-Boost.
+   Verwendung: SVG-Silhouetten erben via `color: var(--fish-<key>)`
+               PNGs via CSS filter auf Dark-Mode-Silhouetten.
+   ========================================================= */
+:root {
+  --fish-hecht:            #4FC3F7;
+  --fish-zander:           #FFB74D;
+  --fish-barsch:           #81C784;
+  --fish-wels:             #CE93D8;
+  --fish-aal:              #F48FB1;
+  --fish-karpfen:          #FFD54F;
+  --fish-schleie:          #4DB6AC;
+  --fish-forelle:          #EF9A9A;
+  --fish-regenbogenforelle:#FF80AB;
+  --fish-meerforelle:      #80DEEA;
+  --fish-aesche:           #90CAF9;
+  --fish-maraene:          #B0BEC5;
+  --fish-rapfen:           #FFAB40;
+  --fish-doebel:           #A5D6A7;
+  --fish-quappe:           #B39DDB;
+  --fish-weissfisch:       #E0E0E0;
+}
+body.outdoor {
+  --fish-hecht:            #607B4A;
+  --fish-zander:           #8B7D55;
+  --fish-barsch:           #5C7A3E;
+  --fish-wels:             #6B4C3B;
+  --fish-aal:              #4A5C3A;
+  --fish-karpfen:          #A07820;
+  --fish-schleie:          #708050;
+  --fish-forelle:          #9B6060;
+  --fish-regenbogenforelle:#A05070;
+  --fish-meerforelle:      #5A7A8A;
+  --fish-aesche:           #7A8E9A;
+  --fish-maraene:          #6A8A9A;
+  --fish-rapfen:           #8A9080;
+  --fish-doebel:           #7A8A70;
+  --fish-quappe:           #5A4A60;
+  --fish-weissfisch:       #909AA0;
+}
+/* ========================================================= */
+
 *{box-sizing:border-box;margin:0;padding:0}
 html{overflow-x:hidden}
 body{background:var(--bg);color:var(--t);font-family:var(--sans);height:100dvh;overflow:hidden;display:flex;flex-direction:column}
@@ -135252,25 +135297,27 @@ const LAVB_DATA = [
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.19.21";
+const APP_VERSION = "4.19.22";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
 const FISH_DEF = [
-  {key:'hecht',     label:'Hecht',     icon:'🐟', png:'assets/icons/icon_frei_hecht.png'},
-  {key:'zander',    label:'Zander',    icon:'🎣', png:'assets/icons/icon_frei_zander.png'},
-  {key:'barsch',    label:'Barsch',    icon:'🐠', png:'assets/icons/icon_frei_barsch.png'},
-  {key:'wels',      label:'Wels',      icon:'🦈', png:'assets/icons/icon_frei_wels.png'},
-  {key:'aal',       label:'Aal',       icon:'🐍', png:'assets/icons/icon_frei_aal.png'},
-  {key:'karpfen',   label:'Karpfen',   icon:'🐡', png:'assets/icons/icon_frei_karpfen.png'},
-  {key:'schleie',   label:'Schleie',   icon:'🐟', png:'assets/icons/icon_frei_schleie.png'},
-  {key:'forelle',   label:'Forelle',   icon:'🌊', png:'assets/icons/icon_frei_forelle.png'},
-  {key:'aesche',    label:'Äsche',     icon:'🌊', png:'assets/icons/icon_frei_aesche.png'},
-  {key:'maraene',   label:'Maräne',    icon:'🐟', png:'assets/icons/icon_frei_maraene.png'},
-  {key:'rapfen',    label:'Rapfen',    icon:'🐟', png:'assets/icons/icon_frei_rapfen.png'},
-  {key:'döbel',     label:'Döbel',     icon:'🐟', png:'assets/icons/icon_frei_doebel.png'},
-  {key:'quappe',    label:'Quappe',    icon:'🐟', png:'assets/icons/icon_frei_quappe.png'},
-  {key:'weissfisch',label:'Weißfisch', icon:'🐟', png:'assets/icons/icon_frei_weissfisch.png'},
+  {key:'hecht',             label:'Hecht',             png:'assets/icons/icon_hecht_dark.png'},
+  {key:'zander',            label:'Zander',            png:'assets/icons/icon_zander_dark.png'},
+  {key:'barsch',            label:'Barsch',            png:'assets/icons/icon_barsch_dark.png'},
+  {key:'wels',              label:'Wels',              png:'assets/icons/icon_wels_dark.png'},
+  {key:'aal',               label:'Aal',               png:'assets/icons/icon_aal_dark.png'},
+  {key:'karpfen',           label:'Karpfen',           png:'assets/icons/icon_karpfen_dark.png'},
+  {key:'schleie',           label:'Schleie',           png:'assets/icons/icon_schleie_dark.png'},
+  {key:'forelle',           label:'Forelle',           png:'assets/icons/icon_forelle_dark.png'},
+  {key:'aesche',            label:'Äsche',             png:'assets/icons/icon_aesche_dark.png'},
+  {key:'maraene',           label:'Maräne',            png:'assets/icons/icon_maraene_dark.png'},
+  {key:'rapfen',            label:'Rapfen',            png:'assets/icons/icon_rapfen_dark.png'},
+  {key:'döbel',             label:'Döbel',             png:'assets/icons/icon_doebel_dark.png'},
+  {key:'quappe',            label:'Quappe',            png:'assets/icons/icon_quappe_dark.png'},
+  {key:'weissfisch',        label:'Weißfisch',         png:'assets/icons/icon_weissfisch_dark.png'},
+  {key:'regenbogenforelle', label:'Regenbogenforelle', png:'assets/icons/icon_regenbogenforelle_dark.png'},
+  {key:'meerforelle',       label:'Meerforelle',       png:'assets/icons/icon_meerforelle_dark.png'},
 ];
 
 // Fischarten mit Beißindex-Score in der ActivityEngine (Zentrale Quelle — siehe ActivityEngine v3)
@@ -135280,52 +135327,52 @@ const ENGINE_FISH = ['hecht','zander','barsch','forelle','karpfen','wels','aal',
 var FISH_PNG_MAP = {};
 FISH_DEF.forEach(function(f){ if(f.png) FISH_PNG_MAP[f.key] = f.png; });
 
-// Naturfarben als CSS-Filter — sepia(1) direkt auf das dunkle Icon, dann Hue verschieben + aufhellen.
-// brightness(0)+invert(1) NICHT verwenden: macht alles weiß, sepia() hat dann keine Farbinfo.
-// Quelle der Farbwahl: Gemini-Empfehlung dezente Naturfarben, 25.06.2026
+// Farbrad: Basis-Icon-Hue ≈ 218°. Ziel-Hue = 218 + rotate. Häufige Fische: ≥ 50° Abstand.
+// Salmoniden-Cluster (Forelle/Regen/Meerforelle) dürfen sich ähneln.
 var FISH_ICON_FILTER = {
-  hecht:     'sepia(1) hue-rotate(100deg) saturate(3.5) brightness(2.2)',  // Schilfgrün
-  zander:    'sepia(1) hue-rotate(48deg)  saturate(3.5) brightness(2.6)',  // Sandoliv/Gold
-  barsch:    'sepia(1) hue-rotate(82deg)  saturate(3.0) brightness(2.0)',  // Moosgrün
-  wels:      'sepia(1) hue-rotate(15deg)  saturate(1.5) brightness(2.0)',  // Dunkelbraun
-  aal:       'sepia(0.8)                               brightness(1.8)',   // Anthrazit
-  karpfen:   'sepia(1) hue-rotate(18deg)  saturate(3.0) brightness(2.4)',  // Bronze/Ocker
-  schleie:   'sepia(1) hue-rotate(70deg)  saturate(2.8) brightness(2.4)',  // Oliv-Gold
-  forelle:   'sepia(1) hue-rotate(335deg) saturate(4.5) brightness(2.5)',  // Rostrot
-  aesche:    'sepia(1) hue-rotate(278deg) saturate(3.0) brightness(2.4)',  // Rosé-Violett
-  maraene:   'sepia(1) hue-rotate(195deg) saturate(3.5) brightness(2.5)',  // Silberblau
-  rapfen:    'sepia(1) hue-rotate(208deg) saturate(3.5) brightness(2.5)',  // Stahlblau
-  'döbel':   'sepia(1) hue-rotate(38deg)  saturate(3.5) brightness(2.8)',  // Messing/Altgold
-  quappe:    'sepia(1) hue-rotate(22deg)  saturate(1.8) brightness(2.0)',  // Graubraun
-  weissfisch:'sepia(1) hue-rotate(205deg) saturate(2.0) brightness(1.8)'   // Silbergrau
+  zander:            'hue-rotate(174deg) saturate(4) brightness(3.5)',    // 32°  Orange
+  karpfen:           'hue-rotate(200deg) saturate(4.5) brightness(4)',    // 58°  Gold
+  rapfen:            'hue-rotate(-133deg) saturate(4) brightness(4)',     // 85°  Gelbgrün
+  barsch:            'hue-rotate(-96deg) saturate(4) brightness(3.5)',    // 122° Grün
+  'döbel':           'hue-rotate(-63deg) saturate(3.5) brightness(3.5)', // 155° Blaugrün
+  schleie:           'hue-rotate(-43deg) saturate(4) brightness(4)',      // 175° Cyan — 53° von Barsch!
+  meerforelle:       'hue-rotate(-35deg) saturate(3.5) brightness(4)',    // 183° Türkis (Salmonid)
+  aesche:            'hue-rotate(-8deg) saturate(3) brightness(4)',       // 210° Himmelblau (Salmonid)
+  hecht:             'hue-rotate(17deg) saturate(4) brightness(4)',       // 235° Blau
+  wels:              'hue-rotate(50deg) saturate(4) brightness(3.5)',     // 268° Violett
+  quappe:            'hue-rotate(80deg) saturate(4) brightness(3.5)',     // 298° Lila
+  regenbogenforelle: 'hue-rotate(104deg) saturate(5) brightness(4)',      // 322° Pink (Salmonid)
+  aal:               'hue-rotate(130deg) saturate(5) brightness(4)',      // 348° Tiefrose
+  forelle:           'hue-rotate(142deg) saturate(4) brightness(4)',      // 0°   Rot (Salmonid)
+  maraene:           'saturate(0.3) brightness(4.5)',                     // Silbergrau
+  weissfisch:        'saturate(0) brightness(5.5)',                       // Weiß
 };
 
-// CSS-Filter für Outdoor-Theme (heller Hintergrund → dunklere, sattere Werte)
 var FISH_ICON_FILTER_OUTDOOR = {
-  hecht:      'sepia(1) hue-rotate(100deg) saturate(4.0) brightness(0.85)',
-  zander:     'sepia(1) hue-rotate(48deg)  saturate(4.0) brightness(0.80)',
-  barsch:     'sepia(1) hue-rotate(82deg)  saturate(3.5) brightness(0.80)',
-  wels:       'sepia(1) hue-rotate(15deg)  saturate(2.0) brightness(0.75)',
-  aal:        'sepia(0.9)                               brightness(0.60)',
-  karpfen:    'sepia(1) hue-rotate(18deg)  saturate(3.5) brightness(0.80)',
-  schleie:    'sepia(1) hue-rotate(70deg)  saturate(3.2) brightness(0.80)',
-  forelle:    'sepia(1) hue-rotate(335deg) saturate(5.0) brightness(0.80)',
-  aesche:     'sepia(1) hue-rotate(278deg) saturate(3.5) brightness(0.80)',
-  maraene:    'sepia(1) hue-rotate(195deg) saturate(4.0) brightness(0.80)',
-  rapfen:     'sepia(1) hue-rotate(208deg) saturate(4.0) brightness(0.80)',
-  'döbel':    'sepia(1) hue-rotate(38deg)  saturate(4.0) brightness(0.82)',
-  quappe:     'sepia(1) hue-rotate(22deg)  saturate(2.2) brightness(0.75)',
-  weissfisch: 'sepia(1) hue-rotate(205deg) saturate(2.5) brightness(0.75)'
+  zander:            'hue-rotate(174deg) saturate(1.5) brightness(1.8)',
+  karpfen:           'hue-rotate(200deg) saturate(1.5) brightness(1.8)',
+  rapfen:            'hue-rotate(-133deg) saturate(1.5) brightness(1.8)',
+  barsch:            'hue-rotate(-96deg) saturate(1.5) brightness(1.8)',
+  'döbel':           'hue-rotate(-63deg) saturate(1.3) brightness(1.7)',
+  schleie:           'hue-rotate(-43deg) saturate(1.5) brightness(1.8)',
+  meerforelle:       'hue-rotate(-35deg) saturate(1.3) brightness(1.8)',
+  aesche:            'hue-rotate(-8deg) saturate(1.2) brightness(1.8)',
+  hecht:             'hue-rotate(17deg) saturate(1.5) brightness(2.0)',
+  wels:              'hue-rotate(50deg) saturate(1.5) brightness(1.8)',
+  quappe:            'hue-rotate(80deg) saturate(1.5) brightness(1.6)',
+  regenbogenforelle: 'hue-rotate(104deg) saturate(1.8) brightness(1.8)',
+  aal:               'hue-rotate(130deg) saturate(1.8) brightness(1.8)',
+  forelle:           'hue-rotate(142deg) saturate(1.5) brightness(1.8)',
+  maraene:           'saturate(0.2) brightness(2.0)',
+  weissfisch:        'saturate(0.2) brightness(2.5)',
 };
 
 function fishIconHtml(key, cssClass) {
   var src = FISH_PNG_MAP[key];
   if (!src) return '';
-  var _filter = document.body.classList.contains('outdoor')
-    ? (FISH_ICON_FILTER_OUTDOOR[key] || FISH_ICON_FILTER[key])
-    : FISH_ICON_FILTER[key];
-  var filt = _filter ? ' style="filter:'+_filter+'"' : '';
-  return '<img class="'+cssClass+'" src="'+src+'" alt=""'+filt+'>';
+  var filterMap = document.body.classList.contains('outdoor') ? FISH_ICON_FILTER_OUTDOOR : FISH_ICON_FILTER;
+  var filt = filterMap[key] ? ' style="filter:' + filterMap[key] + '"' : '';
+  return '<img class="' + cssClass + '" src="' + src + '" alt=""' + filt + '>';
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -135925,10 +135972,11 @@ function openPanel(row, opts){
     var val=row['fisch_'+f.key]||'';
     if(val!=='ja') return;
     var hasScore = ENGINE_FISH.indexOf(f.key) > -1;
-    var scoreAttr = hasScore ? ' data-fish="'+f.key+'" onclick="toggleFishScore(this)"' : '';
-    var scoreCls  = hasScore ? ' has-score' : '';
-    var activeCls = hasScore && _activeFishScores.has(f.key) ? ' active' : '';
-    var iconHtml  = '<div class="icon">'+f.icon+'</div>';
+    var scoreClick = hasScore ? ' onclick="toggleFishScore(this)"' : '';
+    var scoreAttr  = ' data-fish="'+f.key+'"'+scoreClick;
+    var scoreCls   = hasScore ? ' has-score' : '';
+    var activeCls  = hasScore && _activeFishScores.has(f.key) ? ' active' : '';
+    var iconHtml   = fishIconHtml(f.key, 'fb-img') || '<div class="icon">'+f.icon+'</div>';
     fishHtml+='<div class="fish-badge fb-ja'+scoreCls+activeCls+'"'+scoreAttr+'>'+iconHtml+
               '<div>'+f.label+'</div></div>';
   });
