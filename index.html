@@ -672,7 +672,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.21.2";
+const APP_VERSION = "4.22.1";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1157,8 +1157,10 @@ function makeIcon(row){
   var e=t==='sal'?'🌊':t==='pacht'?'💰':t==='sperr'?'🚫':'🎣';
   var zk=row.zusatzkarte_pflicht==='ja'?'<span class="zk-badge">💳</span>':'';
   var dim=inProfileScope(row)?'':' profile-dim';
+  var farbe=/^#[0-9a-f]{6}$/i.test(row.betreiber_farbe||'')?row.betreiber_farbe:'';
+  var style='position:relative'+(farbe?';background:'+farbe:'');
   return L.divIcon({className:'',
-    html:'<div class="gw-marker type-'+t+dim+'" style="position:relative"><div class="gw-marker-inner">'+e+'</div>'+zk+'</div>',
+    html:'<div class="gw-marker type-'+t+dim+'" style="'+style+'"><div class="gw-marker-inner">'+e+'</div>'+zk+'</div>',
     iconSize:[28,28],iconAnchor:[14,28],popupAnchor:[0,-28]});
 }
 
@@ -1362,9 +1364,15 @@ function openPanel(row, opts){
   }
   if(isSal)warn+='<div class="warn-box" style="background:rgba(108,99,192,.08);border-color:rgba(108,99,192,.35);color:#c4bff5;">🌊 <strong>Salmonidengewässer</strong> — separate Salmoniden-Angelkarte erforderlich.</div>';
   if(angelkarte&&!zkPflicht)warn+='<div class="warn-box">📋 <strong>Angelkarte:</strong> '+escHtml(angelkarte)+'</div>';
+  var betreiberFarbe=/^#[0-9a-f]{6}$/i.test(row.betreiber_farbe||'')?row.betreiber_farbe:'';
+  var betreiberLine=betreiberFarbe&&row.betreiber_name?
+    '<br><span style="display:inline-block;width:10px;height:10px;border-radius:50%;'+
+    'background:'+betreiberFarbe+';margin-right:6px;vertical-align:middle"></span>'+
+    '<strong>'+escHtml(row.betreiber_name)+'</strong>':'';
   if(row.gewässer_typ==='Pachtgewässer'){
     warn+='<div class="warn-box" style="background:rgba(42,159,192,.08);border-color:rgba(42,159,192,.35);color:#7fd4ec;">'+
       '💰 <strong>Kein LAVB/DAV-Gewässer</strong> — eigene Angelkarte erforderlich, Verbandsmitgliedschaft gilt hier nicht.'+
+      betreiberLine+
       (row.pacht_beschreibung?'<br>'+escHtml(row.pacht_beschreibung):'')+
       (row.pacht_preise?'<br>'+escHtml(row.pacht_preise):'')+
       (row.pacht_ticket_url?'<br><a href="'+escHtml(row.pacht_ticket_url)+'" target="_blank" rel="noopener">Online kaufen ↗</a>':'')+
@@ -1373,6 +1381,7 @@ function openPanel(row, opts){
   } else if(row.gewässer_typ==='Sperrgewässer'){
     warn+='<div class="warn-box" style="background:rgba(192,58,43,.08);border-color:rgba(192,58,43,.35);color:#f0a89e;">'+
       '🚫 <strong>Kein öffentlicher Kartenvertrieb / stark eingeschränkt</strong>'+
+      betreiberLine+
       (row.pacht_beschreibung?'<br>'+escHtml(row.pacht_beschreibung):'')+
       (row.pacht_preise?'<br>'+escHtml(row.pacht_preise):'')+
       (row.pacht_kontakt?'<br>'+escHtml(row.pacht_kontakt):'')+
