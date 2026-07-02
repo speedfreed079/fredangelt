@@ -1,0 +1,61 @@
+{
+  "_meta": {
+    "stand": "2026-07-02",
+    "quelle": "07_Recherchen/Angelregeln Ostseeküste M-V 2026.md (Gemini DeepResearch), Teil 2",
+    "zweck": "Spot-Marker-Layer für MV-Küstengewässer (schema_phase2.md Abschnitt 0.4). Separat von gewaesser.json -- kein vollwertiger Gewässer-Datensatz, wird per bindPopup() statt openPanel() gerendert.",
+    "typ_werte": "'spot' = benannter Angel-Hotspot, 'hafen' = Hafen mit fischereirechtlicher Sonderregel"
+  },
+  "spots": [
+    { "name": "Rerik (Ostseestrand & Seebrücke)", "typ": "spot", "lat": 54.1000, "lon": 11.6500, "zielfisch": ["Meerforelle","Plattfisch","Hornhecht"], "saison": "Frühjahr/Herbst", "hinweis": "Strukturreicher Mischgrund (\"Leopardengrund\"). Seebrücke hat zeitliche Einschränkungen." },
+    { "name": "Boinsdorfer Werder (Salzhaff)", "typ": "spot", "lat": 54.0350, "lon": 11.7100, "zielfisch": ["Plattfisch","Hornhecht"], "saison": "Mai–September", "hinweis": "Weites Flachwassergebiet, ideal für Watangler. Achtung: saisonale NSG-Sperrung ab 15.09. (500m-Uferstreifen)." },
+    { "name": "Schnatermann (Rostocker Heide)", "typ": "spot", "lat": 54.1700, "lon": 12.1300, "zielfisch": ["Hering","Hornhecht","Barsch"], "saison": "Frühjahr", "hinweis": "Flachwasserplateau bricht steil zur Fahrrinne ab. Erstklassig zum Watangeln an der Kante." },
+    { "name": "Warnemünde Mittelmole", "typ": "hafen", "lat": 54.1810, "lon": 12.0850, "zielfisch": ["Barsch","Plattfisch","Wittling"], "saison": "Ganzjährig", "hinweis": "Tiefe Spundwand an der Fahrrinne, strömungsintensiv. Angelverbot auf allen aktiven Fähr-/Ro-Ro-Terminals." },
+    { "name": "Stadthafen Rostock", "typ": "hafen", "lat": 54.0870, "lon": 12.1330, "zielfisch": ["Hering","Zander","Barsch"], "saison": "März (Hering), Herbst (Zander)", "hinweis": "Urbane Kaianlage, starker Anglerdruck im Frühjahr. Hansestadt Rostock hat eigenes Fischereirecht für Unterwarnow/Breitling — eigene Angelerlaubnis nötig, normale Küstenkarte gilt hier nicht." },
+    { "name": "Wismar Alter Holzhafen (Westkai)", "typ": "hafen", "lat": 53.8930, "lon": 11.4600, "zielfisch": [], "saison": "", "hinweis": "Temporäre Verbote bei Frachtschiffbewegungen. Angeln direkt von Liegeplätzen der Berufsschifffahrt untersagt." },
+
+    { "name": "Recknitzmündung (Ribnitz-Damgarten)", "typ": "spot", "lat": 54.2470, "lon": 12.4380, "zielfisch": ["Hecht","Barsch","Weißfisch"], "saison": "Frühjahr/Herbst", "hinweis": "Übergangszone. Ab der Straßenbrücke Ribnitz (Paß-Gehöft) gilt Küstenrecht." },
+    { "name": "Koppelstrom (Born a. Darß)", "typ": "spot", "lat": 54.3800, "lon": 12.5700, "zielfisch": ["Hecht","Barsch"], "saison": "Herbst", "hinweis": "Engpass mit Krautfeldern. Befahrensverbot für Motorboote im 200m-Schilfgürtel." },
+    { "name": "Bock-Reede (Grabow)", "typ": "spot", "lat": 54.4200, "lon": 12.7500, "zielfisch": ["Hecht","Zander"], "saison": "September–November", "hinweis": "Tiefe Rinne an der Grenze zur Nationalpark-Schutzzone I. Nur vom Boot fischbar." },
+    { "name": "Prerow Hafen", "typ": "hafen", "lat": 54.4460, "lon": 12.5720, "zielfisch": [], "saison": "", "hinweis": "Absolutes Angelverbot vom 1. Mai bis 30. September." },
+    { "name": "Barhöft Hafen", "typ": "hafen", "lat": 54.4200, "lon": 12.9700, "zielfisch": [], "saison": "", "hinweis": "Liegeverbot an der südlichen Kaikante (Fischereivorbehalt). Angeln im Hafenbecken stark eingeschränkt, Befahren der angrenzenden Nationalpark-Kernzone verboten." },
+
+    { "name": "Südufer Kubitzer Bodden", "typ": "spot", "lat": 54.4700, "lon": 13.0000, "zielfisch": ["Hecht"], "saison": "Mai/Oktober", "hinweis": "Sehr weites Flachwassergebiet über Sandboden, ideal für Watangler." },
+    { "name": "Vieregge (Großer Jasmunder Bodden)", "typ": "spot", "lat": 54.5300, "lon": 13.4000, "zielfisch": ["Zander","Hecht","Barsch"], "saison": "Sommer/Herbst", "hinweis": "Steil abfallende Rinnen in Hafennähe. Nur vom Boot effektiv zu befischen." },
+    { "name": "Lietzow (Kleiner Jasmunder Bodden)", "typ": "spot", "lat": 54.5100, "lon": 13.4800, "zielfisch": ["Hecht","Barsch","Zander"], "saison": "Ganzjährig", "hinweis": "Krautreiches Flachwasser, sehr guter Hechtbestand im ufernahen Bereich." },
+    { "name": "Sassnitz Ostmole", "typ": "hafen", "lat": 54.5150, "lon": 13.6440, "zielfisch": [], "saison": "", "hinweis": "Angeln ausschließlich vom Leuchtturm bis zum 3. Wendehammer, 00:00–10:00 Uhr. Außerhalb dieser Zeiten striktes Angelverbot." },
+    { "name": "Wiek Marina", "typ": "hafen", "lat": 54.6200, "lon": 13.2900, "zielfisch": [], "saison": "", "hinweis": "Anerkannter Anlandeort und Winterlagerbereich. Angeln im Sportboothafen in der Hauptsaison untersagt. Ausgabeort für Fangtagebücher." },
+
+    { "name": "Altefähr (Flachwasser)", "typ": "spot", "lat": 54.3070, "lon": 13.1050, "zielfisch": ["Meerforelle","Hornhecht","Barsch"], "saison": "April–Juni", "hinweis": "Sandiges Plateau mit Steinen, exzellentes Revier für Watangler." },
+    { "name": "Rügendamm (Stralsund)", "typ": "spot", "lat": 54.3120, "lon": 13.1000, "zielfisch": ["Hering","Barsch"], "saison": "Frühjahr", "hinweis": "Achtung: Angeln direkt von den Brückenbauwerken des Rügendamms ist streng verboten!" },
+    { "name": "Stralsunder Hafen (Winterlager)", "typ": "hafen", "lat": 54.3150, "lon": 13.0930, "zielfisch": ["Hecht","Zander","Barsch"], "saison": "12.10.–10.03. (Winterlager)", "hinweis": "Winterlager-Sonderregelung: Angeln nur 10:00–18:00 Uhr, Nachtangeln verboten. Nur 1 Handangel mit Einzelhaken (max. 9mm Hakenbogen). Drop-Shot: Köder min. 10cm, Abstand Blei-Haken min. 50cm. Naturköder nur an feststehender Pose. Tageslimit: 1 Hecht, 2 Zander, 6 Barsche. Fangtagebuchpflicht. Boote müssen im Strelasund verankert sein." },
+
+    { "name": "Palmer Ort (Südrügen)", "typ": "spot", "lat": 54.2100, "lon": 13.5000, "zielfisch": ["Meerforelle","Hornhecht"], "saison": "Frühjahr/Herbst", "hinweis": "Weit ins Wasser ragende Sand- und Steinnase. Klassisches Watangelrevier." },
+    { "name": "Gahlkower Haken (Festland)", "typ": "spot", "lat": 54.1500, "lon": 13.4700, "zielfisch": ["Meerforelle"], "saison": "März–Mai", "hinweis": "Flacher Mischgrund mit großen Steinen, sehr beliebt bei Spinnfischern." },
+    { "name": "Lubmin (Strand & Seebrücke)", "typ": "spot", "lat": 54.1370, "lon": 13.6650, "zielfisch": ["Plattfisch","Hornhecht"], "saison": "Spätsommer/Herbst", "hinweis": "Sandbänke. Seebrückenangeln in der Hauptsaison nur nachts (21:00–07:00 Uhr) erlaubt." },
+    { "name": "Lauterbach (Kommunal-/Yachthafen)", "typ": "hafen", "lat": 54.2380, "lon": 13.5350, "zielfisch": [], "saison": "", "hinweis": "Ganzjähriges, absolutes Angelverbot im gesamten Hafen- und Yachthafenbereich." },
+    { "name": "Freest Fischereihafen", "typ": "hafen", "lat": 54.1600, "lon": 13.7650, "zielfisch": [], "saison": "", "hinweis": "Strenge Sicherheitsabstände zu Anlegern der Berufsfischerei. Verbindlicher Fisch-Anlandeort." },
+
+    { "name": "Lassaner Bucht (Achterwasser)", "typ": "spot", "lat": 53.9400, "lon": 13.7700, "zielfisch": ["Zander","Barsch"], "saison": "Sommer/Herbst", "hinweis": "Übergang zum Peenestrom, tiefere Rinnen bieten Schutz bei Ostwind." },
+    { "name": "Lieper Winkel", "typ": "spot", "lat": 53.9000, "lon": 13.9200, "zielfisch": ["Hecht","Zander"], "saison": "Oktober/November", "hinweis": "Abfallende Kanten unweit des Schilfgürtels, nur vom Boot befischbar." },
+    { "name": "Gnitz (Halbinsel)", "typ": "spot", "lat": 53.9500, "lon": 13.9600, "zielfisch": ["Barsch","Hecht"], "saison": "Sommer", "hinweis": "Steinigere Uferstrukturen im Norden des Achterwassers." },
+    { "name": "Krummin (Naturhafen)", "typ": "hafen", "lat": 53.9500, "lon": 13.7900, "zielfisch": [], "saison": "", "hinweis": "Ganzjähriges, vollständiges Angelverbot." },
+    { "name": "Seebrücke Koserow", "typ": "hafen", "lat": 54.0350, "lon": 13.9950, "zielfisch": ["Plattfisch","Hornhecht"], "saison": "Spätsommer/Herbst", "hinweis": "Angeln ausschließlich in den Nachtstunden von 20:00–08:00 Uhr gestattet." },
+
+    { "name": "Zecheriner Brücke (Peenestrom)", "typ": "spot", "lat": 53.9850, "lon": 13.7550, "zielfisch": ["Zander","Barsch","Hecht"], "saison": "Sommer/Herbst", "hinweis": "Brückenpfeiler erzeugen starke Strömungswirbel, exzellenter Einstand für Räuber." },
+    { "name": "Rankwitz (Fahrrinnenkante)", "typ": "spot", "lat": 53.9350, "lon": 13.8500, "zielfisch": ["Zander","Barsch"], "saison": "September–November", "hinweis": "Sehr steile Kanten direkt vor dem Hafenbecken. Nur vom Boot fischbar." },
+    { "name": "Peenemündung (Südteil)", "typ": "spot", "lat": 54.1200, "lon": 13.7700, "zielfisch": ["Hecht","Barsch"], "saison": "Herbst", "hinweis": "Übergang zum Greifswalder Bodden. Achtung: ganzjährige Angelverbote in NSG-Zonen (Peenemünder Haken–Struck) beachten!" },
+    { "name": "Wolgaster Hafen (Winterlager)", "typ": "hafen", "lat": 54.0530, "lon": 13.7750, "zielfisch": ["Hecht","Zander","Barsch"], "saison": "01.11.–31.03. (Winterlager)", "hinweis": "Winterlager-Sonderregelung (analog Stralsund): Angeln nur 10:00–18:00 Uhr. Einzelhaken-Pflicht, Drop-Shot-Regelung (min. 10cm Köder, min. 50cm Abstand zum Blei), Posenpflicht bei Naturködern. Tageslimit: 1 Hecht, 2 Zander, 6 Barsche. Fangtagebuchpflicht." },
+
+    { "name": "Ueckermündung", "typ": "spot", "lat": 53.7400, "lon": 14.0600, "zielfisch": ["Zander","Barsch","Brassen"], "saison": "Herbst/Winter", "hinweis": "Mündungsbereich mit Steinpackungen. Ab der Straßenbrücke gilt Küstenrecht." },
+    { "name": "Altwarp (Buhnen & Sandbänke)", "typ": "spot", "lat": 53.7350, "lon": 14.2900, "zielfisch": ["Barsch","Plattfisch"], "saison": "Sommer", "hinweis": "Strukturreicher Bereich im östlichsten Teil des deutschen Haffgebietes." },
+    { "name": "Kamminke (Hafenmole)", "typ": "spot", "lat": 53.9200, "lon": 14.1650, "zielfisch": ["Zander","Barsch"], "saison": "Sommer", "hinweis": "Einer der wenigen guten Uferplätze direkt an der Grenze zu Polen." },
+    { "name": "Kamp (Wasserwanderrastplatz)", "typ": "hafen", "lat": 53.7300, "lon": 14.0900, "zielfisch": [], "saison": "", "hinweis": "Ganzjähriges, vollständiges Angelverbot im gesamten Hafen- und Stegbereich." },
+    { "name": "Ueckermünde Hafen", "typ": "hafen", "lat": 53.7400, "lon": 14.0700, "zielfisch": [], "saison": "", "hinweis": "Temporäre Fischschonbezirke im Mündungsbereich der Uecker. Einschränkungen bezüglich Angeln im Fahrwasser der Berufsschifffahrt." },
+
+    { "name": "Kap Arkona (Rügen)", "typ": "spot", "lat": 54.6800, "lon": 13.4350, "zielfisch": ["Meerforelle","Lachs"], "saison": "Frühjahr/Spätherbst", "hinweis": "Extrem steiniges, exponiertes Riff. Sehr starke Strömung, anspruchsvolles Watangeln." },
+    { "name": "Glowe (Königsörn-Riff)", "typ": "spot", "lat": 54.5900, "lon": 13.4300, "zielfisch": ["Meerforelle","Lachs"], "saison": "Februar–Mai", "hinweis": "Sandige Bucht geht in steinige Riffe über. Sehr beliebtes Trolling-Revier. Lachs nur mit gültiger EU-Sonderregel (1 Satzfisch/Tag, Fettflosse geschnitten)." },
+    { "name": "Buhnenfelder Wustrow", "typ": "spot", "lat": 54.1750, "lon": 12.3700, "zielfisch": ["Plattfisch","Hornhecht"], "saison": "Herbst (Brandung), Mai", "hinweis": "Tiefe Rinnen zwischen den langen Holzbuhnen, erstklassig für Brandungsangler." },
+    { "name": "Seebrücke Heringsdorf (Usedom)", "typ": "hafen", "lat": 53.9550, "lon": 14.1550, "zielfisch": ["Plattfisch","Hornhecht"], "saison": "Spätsommer/Herbst", "hinweis": "Sandbänke. Angeln ganzjährig erst ab 20:00 Uhr bis zum Beginn des Schiffsverkehrs erlaubt." },
+    { "name": "Kühlungsborn Bootshafen", "typ": "hafen", "lat": 54.1450, "lon": 11.7700, "zielfisch": [], "saison": "", "hinweis": "01.08.–28.02.: vollständiges Angelverbot auf allen Molen und im gesamten Hafenbereich (Mündungsschutz Bollhäger Fließ). Seebrücke: Hauptsaison 19:00–07:00 Uhr, Nebensaison 16:00–07:00 Uhr." }
+  ]
+}

@@ -11,7 +11,7 @@
 :root {
   --bg:#0b1117; --surface:#131b24; --surface2:#1a2535; --border:#243044;
   --t:#dde6f0; --d:#6b8099; --accent:#3d9970; --warn:#c0892a; --danger:#c03a2b;
-  --sal:#6c63c0; --pacht:#2a9fc0; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono','Fira Mono',monospace;
+  --sal:#6c63c0; --pacht:#2a9fc0; --kueste:#d1782a; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono','Fira Mono',monospace;
   --panel-w:380px; --safe-bottom:env(safe-area-inset-bottom,0px);
 }
 
@@ -28,6 +28,7 @@ body.outdoor {
   --danger:   #8b2020;
   --sal:      #4a3a8a;
   --pacht:    #1a7a9a;
+  --kueste:   #b8621a;
 }
 
 /* Karte-Overlay im Outdoor-Modus aufhellen */
@@ -215,12 +216,24 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
 .gw-marker.type-sal{background:var(--sal)}
 .gw-marker.type-pacht{background:var(--pacht)}
 .gw-marker.type-sperr{background:var(--danger)}
+.gw-marker.type-kueste{background:var(--kueste)}
 .gw-marker.profile-dim{opacity:.32;filter:grayscale(60%)}
 .gw-marker-inner{transform:rotate(45deg);font-size:11px;line-height:1}
 .gw-marker .zk-badge{position:absolute;top:-4px;right:-4px;font-size:9px;
                      background:#c0892a;border-radius:50%;width:13px;height:13px;
                      display:flex;align-items:center;justify-content:center;
                      border:1px solid rgba(0,0,0,.3);line-height:1}
+/* Küsten-Spot-Marker (schema_phase2.md 0.4) — rund statt Tropfenform, damit optisch
+   klar von den normalen Gewässer-Markern (.gw-marker) unterscheidbar */
+.spot-marker{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.3);
+             display:flex;align-items:center;justify-content:center;background:var(--kueste)}
+.spot-marker.type-hafen{background:var(--danger)}
+.spot-marker-inner{font-size:11px;line-height:1}
+.spot-popup{max-width:220px;font-size:.82rem;line-height:1.4}
+.spot-popup strong{display:block;margin-bottom:2px}
+.spot-popup .spot-fisch,.spot-popup .spot-saison{color:var(--d);margin-top:2px}
+.spot-popup .spot-hinweis{margin-top:4px}
+#spotsBtn.active{border-color:var(--kueste);color:var(--kueste);background:rgba(209,120,42,.12)}
 /* Fließgewässer Polyline */
 .fliess-line{stroke:#4fc3f7;stroke-width:2.5;stroke-opacity:.55;stroke-dasharray:6,4;fill:none}
 /* Dark-Basemap leicht aufhellen damit Gewässer sichtbar bleiben */
@@ -545,6 +558,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
     </div>
     <div class="header-right">
       <button class="icon-btn" id="profileBtn" onclick="toggleProfilePopover()" title="Meine Angelkarte">🪪</button>
+      <button class="icon-btn" id="spotsBtn" onclick="toggleSpotsLayer()" title="Küsten-Spots (Hotspots &amp; Häfen)">⚓</button>
       <button class="icon-btn active" id="gpsBtn" onclick="zoomToGps()" title="Zum Standort zoomen">📍</button>
       <button class="icon-btn" id="listToggleBtn" onclick="toggleList()" title="Listenansicht">☰</button>
       <button class="icon-btn" id="howtoBtn" onclick="window.open('howto.html','_blank')" title="Hilfe / Howto">❓</button>
@@ -672,7 +686,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.22.5";
+const APP_VERSION = "4.23.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -693,6 +707,13 @@ const FISH_DEF = [
   {key:'weissfisch',        label:'Weißfisch',         png:'assets/icons/icon_weissfisch_dark.png'},
   {key:'regenbogenforelle', label:'Regenbogenforelle', png:'assets/icons/icon_regenbogenforelle_dark.png'},
   {key:'meerforelle',       label:'Meerforelle',       png:'assets/icons/icon_meerforelle_dark.png'},
+  // Küsten-Meeresfischarten (02.07.2026, siehe schema_phase2.md 0.4) — noch kein
+  // PNG-Icon-Asset vorhanden, nutzen bewusst den Emoji-Fallback (icon-Feld statt png).
+  {key:'dorsch',            label:'Dorsch',            icon:'🐟'},
+  {key:'hering',            label:'Hering',            icon:'🐟'},
+  {key:'hornhecht',         label:'Hornhecht',         icon:'🐟'},
+  {key:'plattfisch',        label:'Plattfisch',        icon:'🐡'},
+  {key:'makrele',           label:'Makrele',           icon:'🐟'},
 ];
 
 // Fischarten mit Beißindex-Score in der ActivityEngine (Zentrale Quelle — siehe ActivityEngine v3)
@@ -758,6 +779,7 @@ let currentLayer='strasse';
 let radiusKm=0;
 let polylineGroup=null; // Fließgewässer-Linien
 let depthLayerGroup=null; // Tiefenlinien-Polygone (Lazy-Load pro See)
+let spotsLayerGroup=null; // Küsten-Spot-Marker (schema_phase2.md 0.4), standardmäßig ausgeblendet
 let depthRenderer=null; // Eigener Canvas-Renderer (s.u. — robuster als SVG bei Zoom/Pan)
 let _depthDataPromise=null; // Cache: Promise auf tiefenlinien_pilot.json (einmalig laden)
 // ── Profil (Verband-Zugehörigkeit) ───────────────────────────────────────────
@@ -800,6 +822,9 @@ function inProfileScope(row){
   // 'privat' (Pacht-/Sperrgewässer, siehe schema_phase2.md 0.2) hat keinen LAVB/DAV-Bezug
   // und braucht daher unabhängig vom gewählten Profil eine eigene Karte -- immer im Scope.
   if(getRowVerband(row)==='privat')return true;
+  // 'kueste_mv' (Küstengewässer M-V, schema_phase2.md 0.4) läuft über eine eigene
+  // staatliche Erlaubnis, unabhängig vom Vereins-/GF-System -- ebenfalls immer im Scope.
+  if(getRowVerband(row)==='kueste_mv')return true;
   return cardProfile.verbände.indexOf(getRowVerband(row))!==-1;
 }
 function matchProfilePreset(profile){
@@ -938,6 +963,7 @@ function initMap() {
   // damit beim Verschieben nicht sofort an den Rändern geclippt wird.
   depthRenderer = L.canvas({padding:2});
   depthLayerGroup = L.layerGroup().addTo(map);
+  spotsLayerGroup = L.layerGroup(); // NICHT addTo(map) -- standardmäßig aus, per Toggle-Button einblendbar
   map.on('zoomend', updateDepthLabelVisibility);
   map.on('moveend', function(){
     if(!depthLayerGroup) return;
@@ -1147,6 +1173,7 @@ async function getDrivingInfo(toLat,toLon) {
 function markerType(row){
   if(row.gewässer_typ==='Sperrgewässer')return'sperr';
   if(row.gewässer_typ==='Pachtgewässer')return'pacht';
+  if(row.gewässer_typ==='Küstengewässer')return'kueste';
   var nr=row.Gewässer_Nr||'';
   if(nr.startsWith('Salmo-')||row.ist_salmonide==='ja')return'sal';
   if(nr.match(/^V[CFP]/))return'vvg';
@@ -1154,7 +1181,7 @@ function markerType(row){
 }
 function makeIcon(row){
   var t=markerType(row);
-  var e=t==='sal'?'🌊':t==='pacht'?'💰':t==='sperr'?'🚫':'🎣';
+  var e=t==='sal'?'🌊':t==='pacht'?'💰':t==='sperr'?'🚫':t==='kueste'?'⚓':'🎣';
   var zk=row.zusatzkarte_pflicht==='ja'?'<span class="zk-badge">💳</span>':'';
   var dim=inProfileScope(row)?'':' profile-dim';
   var farbe=/^#[0-9a-f]{6}$/i.test(row.betreiber_farbe||'')?row.betreiber_farbe:'';
@@ -1688,25 +1715,34 @@ function schonzeitRowHtml(label, land, png, fishKey){
          '<span class="sz-zeit">'+schonzeitText(land)+'</span>'+
          '<span class="sz-mass">'+mindestmassText(land)+'</span></div>';
 }
+// Zander-Mindestmaß-Ausnahme Küste (40cm statt 45cm) -- schema_phase2.md 0.4 / recherche_schonzeit_mindesmass_kueste_mv.md
+const ZANDER_40CM_KUESTE_IDS = ['KUESTE-MV-02','KUESTE-MV-07','KUESTE-MV-08'];
 function renderSchonzeitPanel(row){
-  var bereich = row && row.Bereich==='Berlin' ? 'berlin' : 'brandenburg';
+  var isKueste = getRowVerband(row)==='kueste_mv';
+  var bereich = isKueste ? 'mv_kueste' : (row && row.Bereich==='Berlin' ? 'berlin' : 'brandenburg');
+  var brackZander = isKueste && ZANDER_40CM_KUESTE_IDS.indexOf(row.Gewässer_Nr)!==-1;
+  function landFor(key, entry){
+    if(key==='zander' && brackZander) return entry.mv_kueste_brack || entry[bereich];
+    return entry[bereich];
+  }
   var rowsHtml='';
   FISH_DEF.forEach(function(f){
     if(row['fisch_'+f.key]!=='ja') return;
     var entry=SCHONZEIT_DATA[f.key];
     if(!entry) return;
-    rowsHtml+=schonzeitRowHtml(entry.label, entry[bereich], f.png||null);
+    rowsHtml+=schonzeitRowHtml(entry.label, landFor(f.key, entry), f.png||null);
   });
+  var order = isKueste ? SCHONZEIT_ORDER_KUESTE : SCHONZEIT_ORDER;
   var allRowsHtml='';
-  SCHONZEIT_ORDER.forEach(function(key){
+  order.forEach(function(key){
     var entry=SCHONZEIT_DATA[key];
-    var land=entry[bereich];
+    var land=landFor(key, entry);
     allRowsHtml+='<tr><td>'+escHtml(entry.label)+'</td><td>'+schonzeitText(land)+'</td><td>'+mindestmassText(land)+'</td></tr>';
   });
-  var landLabel = bereich==='berlin' ? 'Berlin, LFischO' : 'Brandenburg, BbgFischO';
+  var landLabel = isKueste ? 'Küstengewässer M-V, KüFVO' : (bereich==='berlin' ? 'Berlin, LFischO' : 'Brandenburg, BbgFischO');
   var html = rowsHtml ? '<div class="schonzeit-list">'+rowsHtml+'</div>'
                        : '<div class="schonzeit-empty">Keine erfassten Zielfischarten mit gesetzlicher Sonderregel an diesem Gewässer.</div>';
-  html += '<details class="schonzeit-details"><summary>Gesetzliche Übersicht — alle 15 Arten ('+landLabel+')</summary>'+
+  html += '<details class="schonzeit-details"><summary>Gesetzliche Übersicht — alle '+order.length+' Arten ('+landLabel+')</summary>'+
           '<table class="schonzeit-table"><thead><tr><th>Art</th><th>Schonzeit</th><th>Mindestmaß</th></tr></thead><tbody>'+allRowsHtml+'</tbody></table>'+
           '<div class="schonzeit-foot">Gesetzlicher Mindeststandard. Hegepläne, Schonbezirke und Vereins-Gewässerordnungen können verschärfen, niemals lockern.</div>'+
           '</details>';
@@ -1808,13 +1844,23 @@ const FISH_PARAMS_V3 = {
 // 'forelle' bildet hier die Bachforelle ab; Meerforelle ist wegen abweichender Regeln ein eigener Eintrag.
 const SCHONZEIT_DATA = {
   hecht:   { label:'Hecht',        brandenburg:{start:'01-02',end:'31-03',mindestmass:45,  hinweis:'Regionale Schonzeiten in Hegeplänen und Spreewald-Gewässern (15.01.–30.04.) beachten.'},
-                                    berlin:     {start:'01-01',end:'30-04',mindestmass:45,  hinweis:'Absolutes Spinnangel- und Raubfischköderverbot im gesamten Berliner Stadtgebiet 01.01.–30.04.'} },
+                                    berlin:     {start:'01-01',end:'30-04',mindestmass:45,  hinweis:'Absolutes Spinnangel- und Raubfischköderverbot im gesamten Berliner Stadtgebiet 01.01.–30.04.'},
+                                    mv_kueste:  {start:'01-03',end:'30-04',mindestmass:50,  hinweis:'Kombiniertes Tageslimit mit Zander/Salmoniden: max. 3 Stück gesamt/Tag.'} },
   zander:  { label:'Zander',       brandenburg:{start:'01-04',end:'31-05',mindestmass:45,  hinweis:'Regionale Schonzeiten in Hegeplänen und Spreewald-Gewässern (15.01.–31.05.) beachten.'},
-                                    berlin:     {start:'01-01',end:'31-05',mindestmass:45,  hinweis:'Tägliches Entnahmelimit von max. 3 Zandern/Aalen insgesamt beachten.'} },
+                                    berlin:     {start:'01-01',end:'31-05',mindestmass:45,  hinweis:'Tägliches Entnahmelimit von max. 3 Zandern/Aalen insgesamt beachten.'},
+                                    mv_kueste:  {start:'23-04',end:'22-05',mindestmass:45,  hinweis:'Kombiniertes Tageslimit mit Hecht/Salmoniden: max. 3 Stück gesamt/Tag. In Boddenkette Fischland-Darß-Zingst, Peenestrom, Stettiner Haff gilt 40cm.'},
+                                    mv_kueste_brack:{start:'23-04',end:'22-05',mindestmass:40,hinweis:'Brackwasser-Ausnahme (Boddenkette Fischland-Darß-Zingst, Peenestrom, Stettiner Haff). Kombiniertes Tageslimit mit Hecht/Salmoniden: max. 3 Stück gesamt/Tag.'} },
   barsch:  { label:'Flussbarsch',  brandenburg:{start:null,   end:null,   mindestmass:null, hinweis:'Keine gesetzliche Schonzeit und kein Mindestmaß.'},
-                                    berlin:     {start:null,   end:null,   mindestmass:null, hinweis:'Während der Raubfischschonzeit (01.01.–30.04.) nur mit Naturködern an Friedfischmontagen.'} },
+                                    berlin:     {start:null,   end:null,   mindestmass:null, hinweis:'Während der Raubfischschonzeit (01.01.–30.04.) nur mit Naturködern an Friedfischmontagen.'},
+                                    mv_kueste:  {start:null,   end:null,   mindestmass:20,   hinweis:'In ausgewiesenen Winterlagern/Häfen (z.B. Stralsund, Wolgast) temporäres Limit von max. 6 Barschen.'} },
   aal:     { label:'Aal',          brandenburg:{start:null,   end:null,   mindestmass:50,   hinweis:'Tägliches Entnahmelimit: 3 Stück in offenen, 5 Stück in geschlossenen Gewässern.'},
-                                    berlin:     {start:null,   end:null,   mindestmass:50,   hinweis:'Tägliches Entnahmelimit von max. 3 Aalen/Zandern insgesamt beachten.'} },
+                                    berlin:     {start:null,   end:null,   mindestmass:50,   hinweis:'Tägliches Entnahmelimit von max. 3 Aalen/Zandern insgesamt beachten.'},
+                                    mv_kueste:  {start:'01-01',end:'31-12',mindestmass:50,   hinweis:'EU-weites Verbot der Freizeitfischerei auf Aal in Küstengewässern (2026). Bag-Limit 0 Stück, auch Beifänge zurücksetzen.'} },
+  dorsch:  { label:'Dorsch',       mv_kueste:  {start:'01-01',end:'31-12',mindestmass:35,   hinweis:'EU-Verordnung 2025/2454: striktes Entnahmeverbot für Freizeitangler in ICES-Gebieten 22-24 (2026). Bag-Limit 0 Stück, Beifänge sofort zurücksetzen.'} },
+  hering:  { label:'Hering',       mv_kueste:  {start:null,   end:null,   mindestmass:null, hinweis:'Keine Mindestmaße oder Schonzeiten für Freizeitangler.'} },
+  hornhecht:{ label:'Hornhecht',   mv_kueste:  {start:null,   end:null,   mindestmass:null, hinweis:'Keine Einschränkungen bekannt.'} },
+  plattfisch:{ label:'Plattfisch', mv_kueste:  {start:null,   end:null,   mindestmass:25,   hinweis:'Flunder/Scholle: 25cm, keine Schonzeit. Steinbutt (nicht separat erfasst): 30cm, Schonzeit 01.06.–31.07.'} },
+  makrele: { label:'Makrele',      mv_kueste:  {start:null,   end:null,   mindestmass:null, hinweis:'Keine Einschränkungen bekannt.'} },
   karpfen: { label:'Karpfen',      brandenburg:{start:null,   end:null,   mindestmass:35,   hinweis:'In Spreewald-Sondergewässern für Schuppenkarpfen erhöhtes Mindestmaß von 40 cm.'},
                                     berlin:     {start:null,   end:null,   mindestmass:35,   hinweis:'Anfüttern auf max. 500 g Nassgewicht pro Angler/Kalendertag begrenzt.'} },
   schleie: { label:'Schleie',      brandenburg:{start:null,   end:null,   mindestmass:25,   hinweis:'Gesetzliches Mindestmaß ganzjährig gültig.'},
@@ -1833,7 +1879,8 @@ const SCHONZEIT_DATA = {
                                     berlin:     {start:null,   end:null,   mindestmass:30,   hinweis:'Keine gesetzliche Schonzeit, Mindestmaß 30 cm einzuhalten.'} },
   // Kein eigenes fisch_*-Flag im Gewässer-Datensatz vorhanden — nur in der Gesetzesübersicht sichtbar:
   meerforelle:{ label:'Meerforelle', noFlag:true, brandenburg:{start:'01-01',end:'31-12',mindestmass:null,hinweis:'Wilde Meerforellen ganzjährig geschont. Satzfische: 16.10.–15.04., 60 cm Mindestmaß.'},
-                                                   berlin:     {start:'01-01',end:'31-12',mindestmass:null,hinweis:'Ganzjährig geschützt, gezieltes Angeln/Entnahme verboten.'} },
+                                                   berlin:     {start:'01-01',end:'31-12',mindestmass:null,hinweis:'Ganzjährig geschützt, gezieltes Angeln/Entnahme verboten.'},
+                                                   mv_kueste:  {start:'15-09',end:'14-12',mindestmass:45,  hinweis:'Keine Wild-/Satzfisch-Differenzierung wie beim Lachs. Kombiniertes Tageslimit mit Hecht/Zander/Salmoniden: max. 3 Stück gesamt/Tag.'} },
   barbe:      { label:'Barbe',       noFlag:true, brandenburg:{start:'01-05',end:'31-07',mindestmass:40,  hinweis:'Schonzeit während der Hauptlaichzeit im Sommer.'},
                                                    berlin:     {start:'01-01',end:'31-12',mindestmass:null,hinweis:'In Berlin ganzjährig geschützt — abweichend von Brandenburg.'} },
   aland:      { label:'Aland',       noFlag:true, brandenburg:{start:null,   end:null,   mindestmass:30,  hinweis:'Keine Schonzeit, Mindestmaß 30 cm gilt ganzjährig.'},
@@ -1842,6 +1889,11 @@ const SCHONZEIT_DATA = {
 // Anzeigereihenfolge für die allgemeine Gesetzesübersicht (alle 15 recherchierten Arten)
 const SCHONZEIT_ORDER = ['hecht','zander','barsch','aal','karpfen','schleie','wels','forelle',
                           'meerforelle','aesche','barbe','quappe','rapfen','aland','döbel'];
+// Eigene Reihenfolge für Küstengewässer M-V (verband='kueste_mv') -- bewusst getrennt von
+// SCHONZEIT_ORDER, damit Dorsch/Hering/Hornhecht/Plattfisch/Makrele NICHT mit leeren '–'-
+// Zeilen in der Brandenburg/Berlin-Gesetzesübersicht auftauchen (schema_phase2.md 0.4).
+const SCHONZEIT_ORDER_KUESTE = ['dorsch','aal','meerforelle','hecht','zander','plattfisch',
+                                 'hering','hornhecht','makrele','barsch'];
 
 // ActivityEngine
 var ActivityEngine = {
@@ -2845,7 +2897,7 @@ function zoomToFilterOverview(){
     map.setView([userLat,userLon],9);
   } else if(activeFilters.size>0){
     // Ohne GPS: Brandenburg-Übersicht
-    map.fitBounds(L.latLngBounds([51.2,11.0],[53.7,15.0]),{padding:[20,20]});
+    map.fitBounds(L.latLngBounds([51.2,10.5],[54.8,15.0]),{padding:[20,20]}); // Nordgrenze bis MV-Ostseeküste (Rügen ~54.7°N) erweitert, siehe schema_phase2.md 0.4
   }
 }
 
@@ -2857,15 +2909,55 @@ function loadCSV(){
       allData=data;
       document.getElementById('loading').style.display='none';
       renderMarkers();
-      map.fitBounds(L.latLngBounds([51.2,11.0],[53.7,15.0]),{padding:[20,20]});
+      map.fitBounds(L.latLngBounds([51.2,10.5],[54.8,15.0]),{padding:[20,20]}); // Nordgrenze bis MV-Ostseeküste (Rügen ~54.7°N) erweitert, siehe schema_phase2.md 0.4
     })
     .catch(function(e){
       console.error('gewaesser.json konnte nicht geladen werden:',e);
       document.querySelector('#loading p').textContent='Gewässerdaten konnten nicht geladen werden. Bitte Seite neu laden.';
     });
 }
+
+// ── Küsten-Spot-Marker-Layer (schema_phase2.md 0.4) ─────────────────────────
+// Eigenständige Datenquelle, kein Bezug zu gewaesser.json/activeFilters/inProfileScope
+// -- bewusst NICHT ins Chip-Filter-System eingehängt (eigener Toggle-Button stattdessen).
+function makeSpotIcon(spot){
+  var e = spot.typ==='hafen' ? '⚓' : '🐟';
+  return L.divIcon({className:'',
+    html:'<div class="spot-marker type-'+spot.typ+'"><div class="spot-marker-inner">'+e+'</div></div>',
+    iconSize:[22,22], iconAnchor:[11,22], popupAnchor:[0,-22]});
+}
+function renderSpotPopup(spot){
+  var fischHtml = (spot.zielfisch&&spot.zielfisch.length) ? '<div class="spot-fisch">🎯 '+escHtml(spot.zielfisch.join(', '))+'</div>' : '';
+  var saisonHtml = spot.saison ? '<div class="spot-saison">📅 '+escHtml(spot.saison)+'</div>' : '';
+  return '<div class="spot-popup"><strong>'+escHtml(spot.name)+'</strong>'+fischHtml+saisonHtml+
+         '<div class="spot-hinweis">'+escHtml(spot.hinweis)+'</div></div>';
+}
+function loadKuestenSpots(){
+  fetchWithTimeout('data/kuesten_spots.json',15000)
+    .then(function(resp){ if(!resp.ok)throw new Error('HTTP '+resp.status); return resp.json(); })
+    .then(function(data){
+      (data.spots||[]).forEach(function(spot){
+        var m=L.marker([spot.lat,spot.lon],{icon:makeSpotIcon(spot)});
+        m.bindPopup(renderSpotPopup(spot));
+        spotsLayerGroup.addLayer(m);
+      });
+    })
+    .catch(function(e){ console.error('kuesten_spots.json konnte nicht geladen werden:',e); });
+}
+function toggleSpotsLayer(){
+  var btn=document.getElementById('spotsBtn');
+  if(map.hasLayer(spotsLayerGroup)){
+    map.removeLayer(spotsLayerGroup);
+    if(btn) btn.classList.remove('active');
+  } else {
+    map.addLayer(spotsLayerGroup);
+    if(btn) btn.classList.add('active');
+  }
+}
+
 initMap();
 loadCSV();
+loadKuestenSpots();
 // GPS-Tracking automatisch starten (watchPosition — dauerhaft)
 startGpsTracking();
 </script>
