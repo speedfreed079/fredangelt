@@ -123,6 +123,16 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
    horizontales Overflow, nicht nur optisch). Erster Kandidat zum Einsparen:
    der Gewaesser-Zaehler -- Info ist in der Listenansicht ohnehin verfuegbar. */
 @media(max-width:480px){.header-count{display:none}}
+/* 6. Icon-Button (#authBtn, Login/Konto) hinzugefügt -- reicht bei 412px trotz
+   ausgeblendetem Zähler wieder nicht (gemessen: 81px Overflow). Padding/Gaps
+   verengen statt Buttons ausblenden, damit keine Funktion verloren geht. */
+@media(max-width:480px){
+  .header-top{gap:4px}
+  .icon-btn{padding:4px 5px;font-size:.9rem}
+  .header-right{gap:3px}
+  .font-toggle{gap:0;margin-left:2px}
+  .font-btn{padding:2px 3px}
+}
 
 /* Profil-Popover (Angelkarte: Berlin/Brandenburg) */
 #profileBtn.active{border-color:#4fc3f7;color:#4fc3f7;background:rgba(79,195,247,.12)}
@@ -135,6 +145,23 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .profile-opt:hover{background:var(--surface2)}
 .profile-opt.sel{color:#4fc3f7;font-weight:600}
 .profile-opt .pc-check{width:14px;flex-shrink:0;font-size:.75rem}
+
+/* Auth-Popover (Login/Register/Konto) */
+#authPopover{position:fixed;top:54px;right:12px;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:14px;display:none;flex-direction:column;gap:8px;z-index:3500;
+  box-shadow:0 6px 20px rgba(0,0,0,.5);min-width:260px;max-width:300px}
+#authPopover.show{display:flex}
+.auth-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+           color:var(--t);font-family:var(--sans);font-size:.82rem;padding:7px 11px;outline:none}
+.auth-input:focus{border-color:var(--accent)}
+.auth-input::placeholder{color:var(--d)}
+.auth-tabs{display:flex;gap:4px;margin-bottom:2px}
+.auth-tab{flex:1;text-align:center;padding:6px;border-radius:7px;font-size:.76rem;cursor:pointer;
+          color:var(--d);border:1px solid var(--border);transition:all .15s}
+.auth-tab.on{color:var(--accent);border-color:var(--accent);background:rgba(61,153,112,.12)}
+.auth-view{display:none;flex-direction:column;gap:6px}
+.auth-view.on{display:flex}
+.auth-user-row{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--t);font-weight:600}
 .header-search{display:flex;gap:6px;align-items:center}
 
 #searchBox{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
@@ -564,6 +591,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
       <button class="icon-btn active" id="gpsBtn" onclick="zoomToGps()" title="Zum Standort zoomen">📍</button>
       <button class="icon-btn" id="listToggleBtn" onclick="toggleList()" title="Listenansicht">☰</button>
       <button class="icon-btn" id="howtoBtn" onclick="window.open('howto.html','_blank')" title="Hilfe / Howto">❓</button>
+      <button class="icon-btn" id="authBtn" onclick="toggleAuthPopover()" title="Login / Konto">👤</button>
       <div class="header-count" id="headerCount">— Gewässer</div>
     </div>
   </div>
@@ -581,6 +609,34 @@ body.outdoor .warn-box strong{color:var(--warn)}
   <div class="profile-opt" data-profile="berlin"><span class="pc-check"></span>Nur Berlin (DAV)</div>
   <div class="profile-opt" data-profile="brandenburg"><span class="pc-check"></span>Nur Brandenburg (LAVB)</div>
   <div class="profile-opt" data-profile="mv"><span class="pc-check"></span>Nur MV (LAV MV)</div>
+</div>
+
+<div id="authPopover">
+  <div class="auth-view on" id="authViewLoggedOut">
+    <div class="auth-tabs">
+      <div class="auth-tab on" id="authTabLogin">Anmelden</div>
+      <div class="auth-tab" id="authTabRegister">Registrieren</div>
+    </div>
+    <div class="auth-view on" id="authFormLogin">
+      <input type="email" class="auth-input" id="authLoginEmail" placeholder="E-Mail" autocomplete="username">
+      <input type="password" class="auth-input" id="authLoginPw" placeholder="Passwort" autocomplete="current-password">
+      <button class="btn-primary" onclick="handleAuthLogin()">Anmelden</button>
+    </div>
+    <div class="auth-view" id="authFormRegister">
+      <input type="email" class="auth-input" id="authRegEmail" placeholder="E-Mail" autocomplete="username">
+      <input type="password" class="auth-input" id="authRegPw" placeholder="Passwort (min. 6 Zeichen)" autocomplete="new-password">
+      <input type="text" class="auth-input" id="authRegUsername" placeholder="Benutzername (3-20 Zeichen)" autocomplete="off">
+      <button class="btn-primary" onclick="handleAuthRegister()">Registrieren</button>
+    </div>
+    <button class="btn-secondary" onclick="handleAuthGoogle()">Mit Google anmelden</button>
+    <div class="warn-box" id="authError" style="display:none;margin-top:2px"></div>
+  </div>
+  <div class="auth-view" id="authViewLoggedIn">
+    <div class="auth-user-row">👤 <span id="authUsernameDisplay"></span></div>
+    <button class="btn-primary" onclick="openFangbuchPanel()">📖 Fangbuch öffnen</button>
+    <button class="btn-secondary" onclick="handleAuthRename()">Namen ändern</button>
+    <button class="btn-secondary" onclick="handleAuthSignOut()">Abmelden</button>
+  </div>
 </div>
 
 <div id="gpsToast"><span id="gpsToastText"></span><button class="toast-close" onclick="hideGpsToast()">✕</button></div>
@@ -688,7 +744,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.23.5";
+const APP_VERSION = "4.23.6";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -877,6 +933,113 @@ document.addEventListener('click',function(e){
   if(pop.classList.contains('show')&&!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('show');
 });
 syncProfileUI();
+
+// ── AUTH / FANGBUCH (Firebase) ──────────────────────────────────────────────
+function toggleAuthPopover(){
+  document.getElementById('authPopover').classList.toggle('show');
+}
+document.addEventListener('click', function(e){
+  var pop = document.getElementById('authPopover'), btn = document.getElementById('authBtn');
+  if(pop.classList.contains('show') && !pop.contains(e.target) && e.target !== btn) pop.classList.remove('show');
+});
+
+function showAuthError(msg){
+  var box = document.getElementById('authError');
+  box.textContent = msg;
+  box.style.display = 'block';
+}
+function hideAuthError(){
+  document.getElementById('authError').style.display = 'none';
+}
+
+function setAuthTab(mode){
+  document.getElementById('authTabLogin').classList.toggle('on', mode==='login');
+  document.getElementById('authTabRegister').classList.toggle('on', mode==='register');
+  document.getElementById('authFormLogin').classList.toggle('on', mode==='login');
+  document.getElementById('authFormRegister').classList.toggle('on', mode==='register');
+  hideAuthError();
+}
+document.getElementById('authTabLogin').addEventListener('click', function(){ setAuthTab('login'); });
+document.getElementById('authTabRegister').addEventListener('click', function(){ setAuthTab('register'); });
+
+function setAuthLoggedInUI(isLoggedIn, username){
+  document.getElementById('authViewLoggedOut').classList.toggle('on', !isLoggedIn);
+  document.getElementById('authViewLoggedIn').classList.toggle('on', isLoggedIn);
+  document.getElementById('authBtn').classList.toggle('active', isLoggedIn);
+  if(isLoggedIn) document.getElementById('authUsernameDisplay').textContent = username || '…';
+}
+
+// Platzhalter — wird durch das Fangbuch-Panel (Claude-Design-Handoff) ersetzt.
+function openFangbuchPanel(){
+  alert('Das Fangbuch kommt in Kürze!');
+}
+
+async function handleAuthLogin(){
+  hideAuthError();
+  var email = document.getElementById('authLoginEmail').value.trim();
+  var pw = document.getElementById('authLoginPw').value;
+  var res = await window.FreddyAuth.signInEmail(email, pw);
+  if(!res.ok) showAuthError(res.message);
+}
+
+async function handleAuthRegister(){
+  hideAuthError();
+  var email = document.getElementById('authRegEmail').value.trim();
+  var pw = document.getElementById('authRegPw').value;
+  var username = document.getElementById('authRegUsername').value.trim();
+  if(username.length < 3 || username.length > 20){
+    showAuthError('Benutzername muss 3-20 Zeichen lang sein.');
+    return;
+  }
+  var res = await window.FreddyAuth.signUpEmail(email, pw);
+  if(!res.ok){ showAuthError(res.message); return; }
+  var claim = await window.FreddyAuth.claimUsername(username);
+  if(!claim.ok){ showAuthError(claim.message); return; }
+  setAuthLoggedInUI(true, username);
+}
+
+async function handleAuthGoogle(){
+  hideAuthError();
+  var res = await window.FreddyAuth.signInGoogle();
+  if(!res.ok){ showAuthError(res.message); return; }
+  if(res.needsUsername){
+    var username = prompt('Willkommen! Wähle einen Benutzernamen (3-20 Zeichen):');
+    if(username){
+      var claim = await window.FreddyAuth.claimUsername(username.trim());
+      if(claim.ok) setAuthLoggedInUI(true, username.trim());
+      else showAuthError(claim.message);
+    }
+  }
+}
+
+function handleAuthSignOut(){
+  window.FreddyAuth.signOutUser();
+}
+
+async function handleAuthRename(){
+  var neu = prompt('Neuer Benutzername (3-20 Zeichen):');
+  if(!neu) return;
+  var res = await window.FreddyAuth.changeUsername(neu.trim());
+  if(res.ok) setAuthLoggedInUI(true, neu.trim());
+  else alert(res.message);
+}
+
+window.onFreddyAuthReady = function(bridge){
+  bridge.onAuthChange(async function(user){
+    if(!user){
+      setAuthLoggedInUI(false);
+      return;
+    }
+    var profile = await bridge.getUserProfile();
+    if(profile && profile.username){
+      setAuthLoggedInUI(true, profile.username);
+    } else {
+      // Angemeldet, aber noch kein Firestore-Profil (z.B. abgebrochene Google-Erstregistrierung)
+      setAuthLoggedInUI(false);
+      document.getElementById('authBtn').classList.add('active');
+    }
+  });
+};
 
 // ── Tile layers ───────────────────────────────────────────────────────────────
 const LAYERS = {
@@ -3098,6 +3261,234 @@ loadCSV();
 loadKuestenSpots();
 // GPS-Tracking automatisch starten (watchPosition — dauerhaft)
 startGpsTracking();
+</script>
+
+<script type="module">
+// ── Firebase Bridge (fred-angelt-8921b) ─────────────────────────────────────
+// ESM-only SDK, daher type="module" — läuft erst nach vollständigem Parsen.
+// Klassisches Script definiert window.onFreddyAuthReady VOR diesem Block;
+// Timing wird über den expliziten Ready-Callback gelöst, nicht Script-Reihenfolge.
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, writeBatch, collection, addDoc, query, orderBy,
+  onSnapshot, deleteDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import {
+  getStorage, ref, uploadBytes, getDownloadURL, deleteObject
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDT8VzJdFZOw2yzUkFtzvwNrTGyODxJQNo",
+  authDomain: "fred-angelt-8921b.firebaseapp.com",
+  projectId: "fred-angelt-8921b",
+  storageBucket: "fred-angelt-8921b.firebasestorage.app",
+  messagingSenderId: "730432583561",
+  appId: "1:730432583561:web:7d5116acde3864e0511358"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+function germanAuthError(code){
+  var map = {
+    'auth/email-already-in-use': 'Diese E-Mail-Adresse ist bereits registriert.',
+    'auth/invalid-email': 'Ungültige E-Mail-Adresse.',
+    'auth/weak-password': 'Passwort zu schwach (mind. 6 Zeichen).',
+    'auth/wrong-password': 'Falsches Passwort.',
+    'auth/invalid-credential': 'E-Mail oder Passwort falsch.',
+    'auth/user-not-found': 'Kein Konto mit dieser E-Mail-Adresse gefunden.',
+    'auth/too-many-requests': 'Zu viele Versuche. Bitte später erneut versuchen.',
+    'auth/network-request-failed': 'Netzwerkfehler. Bitte Verbindung prüfen.',
+    'auth/popup-closed-by-user': 'Anmeldung abgebrochen.'
+  };
+  return map[code] || 'Fehler bei der Anmeldung (' + code + ').';
+}
+
+async function signUpEmail(email, pw){
+  try {
+    var cred = await createUserWithEmailAndPassword(auth, email, pw);
+    return { ok:true, user:cred.user };
+  } catch(e){
+    return { ok:false, code:e.code, message: germanAuthError(e.code) };
+  }
+}
+
+async function signInEmail(email, pw){
+  try {
+    var cred = await signInWithEmailAndPassword(auth, email, pw);
+    return { ok:true, user:cred.user };
+  } catch(e){
+    return { ok:false, code:e.code, message: germanAuthError(e.code) };
+  }
+}
+
+async function signInGoogle(){
+  var provider = new GoogleAuthProvider();
+  try {
+    var cred;
+    try {
+      cred = await signInWithPopup(auth, provider);
+    } catch(popupErr){
+      if(popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/cancelled-popup-request'){
+        await signInWithRedirect(auth, provider);
+        return { ok:true, pending:true };
+      }
+      throw popupErr;
+    }
+    var uid = cred.user.uid;
+    var profileSnap = await getDoc(doc(db, 'users', uid));
+    return { ok:true, user:cred.user, needsUsername: !profileSnap.exists() };
+  } catch(e){
+    return { ok:false, code:e.code, message: germanAuthError(e.code) };
+  }
+}
+
+function signOutUser(){
+  return signOut(auth);
+}
+
+async function claimUsername(username){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  if(!username || username.length < 3 || username.length > 20){
+    return { ok:false, message:'Benutzername muss 3-20 Zeichen lang sein.' };
+  }
+  var lower = username.toLowerCase();
+  try {
+    var existing = await getDoc(doc(db, 'usernames', lower));
+    if(existing.exists()){
+      return { ok:false, message:'Dieser Benutzername ist bereits vergeben.' };
+    }
+    var batch = writeBatch(db);
+    batch.set(doc(db, 'usernames', lower), { uid: uid, createdAt: serverTimestamp() });
+    batch.set(doc(db, 'users', uid), {
+      username: username, usernameLower: lower,
+      provider: (auth.currentUser.providerData[0] && auth.currentUser.providerData[0].providerId) || 'password',
+      email: auth.currentUser.email || null,
+      photoURL: auth.currentUser.photoURL || null,
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+      visibilityPref: 'private'
+    });
+    await batch.commit();
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Speichern des Benutzernamens.' };
+  }
+}
+
+async function changeUsername(newUsername){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  if(!newUsername || newUsername.length < 3 || newUsername.length > 20){
+    return { ok:false, message:'Benutzername muss 3-20 Zeichen lang sein.' };
+  }
+  var newLower = newUsername.toLowerCase();
+  try {
+    var profileSnap = await getDoc(doc(db, 'users', uid));
+    if(!profileSnap.exists()) return { ok:false, message:'Kein Profil gefunden.' };
+    var oldLower = profileSnap.data().usernameLower;
+    if(newLower === oldLower) return { ok:true };
+    var existing = await getDoc(doc(db, 'usernames', newLower));
+    if(existing.exists()){
+      return { ok:false, message:'Dieser Benutzername ist bereits vergeben.' };
+    }
+    var batch = writeBatch(db);
+    batch.delete(doc(db, 'usernames', oldLower));
+    batch.set(doc(db, 'usernames', newLower), { uid: uid, createdAt: serverTimestamp() });
+    batch.update(doc(db, 'users', uid), { username: newUsername, usernameLower: newLower, updatedAt: serverTimestamp() });
+    await batch.commit();
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Ändern des Benutzernamens.' };
+  }
+}
+
+async function getUserProfile(){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return null;
+  var snap = await getDoc(doc(db, 'users', uid));
+  return snap.exists() ? snap.data() : null;
+}
+
+function getCurrentUser(){
+  return auth.currentUser;
+}
+
+async function addCatch(data){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  try {
+    var docRef = await addDoc(collection(db, 'users', uid, 'catches'), Object.assign({
+      uid: uid, visibility: 'private',
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    }, data));
+    return { ok:true, id: docRef.id };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Speichern des Fangs.' };
+  }
+}
+
+function listenCatches(cb){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid){ cb([]); return function(){}; }
+  var q = query(collection(db, 'users', uid, 'catches'), orderBy('caughtAt', 'desc'));
+  return onSnapshot(q, function(snap){
+    var list = [];
+    snap.forEach(function(d){ list.push(Object.assign({ id: d.id }, d.data())); });
+    cb(list);
+  });
+}
+
+async function deleteCatch(catchId, photoPath){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false };
+  try {
+    await deleteDoc(doc(db, 'users', uid, 'catches', catchId));
+    if(photoPath){
+      try { await deleteObject(ref(storage, photoPath)); } catch(e){ /* Foto evtl. schon weg, kein Blocker */ }
+    }
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Löschen.' };
+  }
+}
+
+async function uploadCatchPhoto(catchId, blob){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  try {
+    var path = 'fangbuch/' + uid + '/' + catchId + '/photo.jpg';
+    var storageRef = ref(storage, path);
+    await uploadBytes(storageRef, blob, { contentType:'image/jpeg' });
+    var url = await getDownloadURL(storageRef);
+    return { ok:true, photoURL:url, photoPath:path };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Foto-Upload.' };
+  }
+}
+
+function onAuthChange(cb){
+  onAuthStateChanged(auth, cb);
+}
+
+// Redirect-Fallback: falls signInWithRedirect genutzt wurde, Ergebnis nach Rückkehr abholen.
+getRedirectResult(auth).catch(function(){ /* kein Redirect-Flow aktiv, ignorieren */ });
+
+window.FreddyAuth = {
+  onAuthChange, signUpEmail, signInEmail, signInGoogle, signOutUser,
+  claimUsername, changeUsername, getUserProfile, getCurrentUser,
+  addCatch, listenCatches, deleteCatch, uploadCatchPhoto
+};
+
+if (typeof window.onFreddyAuthReady === 'function') {
+  window.onFreddyAuthReady(window.FreddyAuth);
+}
 </script>
 </body>
 </html>
