@@ -127,12 +127,18 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
    ausgeblendetem Zähler wieder nicht (gemessen: 81px Overflow). Padding/Gaps
    verengen statt Buttons ausblenden, damit keine Funktion verloren geht. */
 @media(max-width:480px){
+  header{padding:8px 7px}
+  .logo{font-size:.78rem}
   .header-top{gap:4px}
   .icon-btn{padding:4px 5px;font-size:.9rem}
   .header-right{gap:3px}
   .font-toggle{gap:0;margin-left:2px}
   .font-btn{padding:2px 3px}
 }
+/* Bei sehr schmalen Screens (iPhone SE & kleiner) reicht auch das noch nicht --
+   Schriftgroessen-Toggle ist das naechst-entbehrlichste Element (Browser-Zoom
+   bleibt als Alternative), bleibt aber auf allen groesseren Phones erhalten. */
+@media(max-width:390px){.font-toggle{display:none}}
 
 /* Profil-Popover (Angelkarte: Berlin/Brandenburg) */
 #profileBtn.active{border-color:#4fc3f7;color:#4fc3f7;background:rgba(79,195,247,.12)}
@@ -297,6 +303,117 @@ body:not(.outdoor) #map .leaflet-tile-pane {
   .logo{font-size:.82rem}
   .panel-body{scrollbar-width:thin;scrollbar-color:var(--border) transparent}
 }
+
+/* ===== Fangbuch-Panel (Claude-Design-Handoff 02.07.2026) ===== */
+#fangbuchPanel{position:fixed;top:0;right:0;width:var(--panel-w);height:100dvh;
+       background:var(--surface);border-left:1px solid var(--border);
+       transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+       z-index:2000;display:flex;flex-direction:column;overflow:hidden}
+#fangbuchPanel.open{transform:translateX(0)}
+@media(max-width:640px){
+  #fangbuchPanel{top:auto;bottom:0;right:0;left:0;width:100%;height:83vh;
+         border-left:none;border-top:1px solid var(--border);border-radius:16px 16px 0 0;
+         transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+  #fangbuchPanel.open{transform:translateY(0)}
+}
+.fb-grip{flex-shrink:0;display:flex;justify-content:center;padding:9px 0 4px;cursor:grab}
+.fb-grip span{width:38px;height:4px;border-radius:99px;background:var(--border)}
+.sheet-head{flex-shrink:0;display:flex;align-items:center;gap:10px;
+  padding:6px 14px 12px;border-bottom:1px solid var(--border)}
+.sheet-title{flex:1;font-size:1.02rem;font-weight:700;color:var(--t);letter-spacing:.2px}
+.fb-icon-btn{flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  width:38px;height:38px;border-radius:10px;cursor:pointer;background:transparent;
+  border:1px solid transparent;color:var(--d);font-size:1.1rem;transition:all .14s}
+.fb-icon-btn:hover{background:var(--surface2);color:var(--t)}
+.fb-icon-btn.back{font-size:1.25rem}
+.sheet-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;
+  -webkit-overflow-scrolling:touch}
+.sheet-body::-webkit-scrollbar{width:0}
+.catch-card{display:flex;align-items:center;gap:12px;padding:11px 12px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:12px}
+.catch-ico{flex-shrink:0;width:46px;height:46px;border-radius:11px;display:flex;
+  align-items:center;justify-content:center;font-size:1.45rem;
+  background:var(--surface);border:1px solid var(--border)}
+.catch-ico img{width:32px;height:22px;object-fit:contain}
+.catch-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.catch-name{font-size:.92rem;font-weight:600;color:var(--t);line-height:1}
+.catch-metrics{display:flex;gap:7px;flex-wrap:wrap}
+.metric{font-family:var(--mono);font-size:.7rem;font-weight:600;color:var(--accent);
+  background:rgba(61,153,112,.12);border-radius:5px;padding:2px 6px;line-height:1.3}
+body.outdoor .metric{background:rgba(45,110,69,.14)}
+.catch-sub{display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--d);font-family:var(--mono)}
+.catch-sub .dot{opacity:.5}
+.catch-del{flex-shrink:0;align-self:flex-start;width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  background:transparent;border:1px solid transparent;color:var(--d);font-size:.95rem;transition:all .14s}
+.catch-del:hover{background:rgba(192,58,43,.12);border-color:rgba(192,58,43,.4);color:var(--danger)}
+.fb-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:12px;padding:34px 22px;min-height:260px}
+.fb-empty-ico{font-size:3.1rem;line-height:1}
+.fb-empty-h{font-size:1rem;font-weight:700;color:var(--t)}
+.fb-empty-p{font-size:.82rem;color:var(--d);max-width:230px;line-height:1.5}
+.sheet-foot{flex-shrink:0;padding:12px 14px;border-top:1px solid var(--border);background:var(--surface);
+  padding-bottom:calc(12px + var(--safe-bottom))}
+.field{display:flex;flex-direction:column;gap:6px}
+.f-label{font-size:.64rem;font-family:var(--mono);font-weight:600;color:var(--d);
+  text-transform:uppercase;letter-spacing:.7px}
+.water-chip{display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:10px;
+  background:var(--surface2);border:1px solid var(--border)}
+.water-chip .w-ico{font-size:1.15rem}
+.water-chip .w-name{font-size:.9rem;font-weight:600;color:var(--t)}
+.water-chip .w-tag{margin-left:auto;font-size:.6rem;font-family:var(--mono);color:var(--d);
+  text-transform:uppercase;letter-spacing:.6px}
+.fb-fish-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+@media(max-width:400px){.fb-fish-grid{grid-template-columns:repeat(3,1fr)}}
+.fb-fish-badge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  min-height:64px;padding:8px 3px;border-radius:11px;cursor:pointer;user-select:none;text-align:center;
+  background:var(--surface2);border:1px solid var(--border);color:var(--d);
+  font-family:var(--sans);font-size:.64rem;font-weight:600;line-height:1.05;transition:all .14s}
+.fb-fish-badge .fb-emoji{font-size:1.25rem;line-height:1}
+.fb-fish-badge img.fb-emoji{width:26px;height:18px;object-fit:contain}
+.fb-fish-badge:hover{border-color:var(--d)}
+.fb-fish-badge.active{border-color:var(--accent);background:rgba(61,153,112,.15);color:var(--t)}
+body.outdoor .fb-fish-badge.active{background:rgba(45,110,69,.16)}
+.f-input,.f-area{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:9px;
+  color:var(--t);font-family:var(--sans);font-size:16px;padding:13px 13px;outline:none;
+  transition:border-color .14s;-webkit-appearance:none;appearance:none}
+.f-input:focus,.f-area:focus{border-color:var(--accent)}
+.f-input::placeholder,.f-area::placeholder{color:var(--d)}
+.f-area{min-height:74px;resize:vertical;line-height:1.45;font-size:.9rem}
+.two-col{display:flex;gap:10px}
+.two-col>.field{flex:1;min-width:0}
+.unit-wrap{position:relative}
+.unit-wrap .f-input{padding-right:42px}
+.unit{position:absolute;right:13px;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);font-size:.78rem;color:var(--d);pointer-events:none}
+.photo{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:7px;min-height:104px;padding:16px;border-radius:12px;text-align:center;cursor:pointer;
+  background:var(--surface2);border:2px dashed var(--border);transition:border-color .14s}
+.photo:hover{border-color:var(--accent)}
+.photo .p-ico{font-size:1.7rem;line-height:1}
+.photo .p-txt{font-size:.76rem;color:var(--d)}
+.photo .p-txt b{color:var(--t);font-weight:600}
+.photo input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.photo.has{flex-direction:row;justify-content:flex-start;gap:11px;min-height:0;
+  padding:9px 44px 9px 9px;border-style:solid;border-color:var(--accent)}
+.photo .thumb{display:none;position:relative;flex-shrink:0;width:54px;height:54px;border-radius:9px;
+  overflow:hidden;background:var(--surface);border:1px solid var(--border)}
+.photo.has .thumb{display:block}
+.thumb .thumb-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.2rem;opacity:.4}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.thumb img[src]{display:block}
+.photo .p-info{display:none;flex-direction:column;gap:2px;text-align:left;min-width:0}
+.photo.has .p-info{display:flex}
+.photo.has .p-ico,.photo.has .p-txt{display:none}
+.p-info b{font-size:.8rem;color:var(--t);font-weight:600}
+.p-info small{font-size:.66rem;color:var(--d);font-family:var(--mono)}
+.photo .p-remove{display:none;position:absolute;top:8px;right:8px;z-index:2;align-items:center;gap:4px;
+  padding:5px 9px;border-radius:7px;cursor:pointer;background:var(--surface2);border:1px solid var(--border);
+  color:var(--d);font-family:var(--mono);font-size:.6rem;font-weight:600;line-height:1;transition:all .14s}
+.photo .p-remove:hover{border-color:var(--danger);color:var(--danger)}
+.photo.has .p-remove{display:inline-flex}
+.form-actions{display:flex;flex-direction:column;gap:8px;padding-top:2px}
+
 .drag-handle{width:40px;height:4px;background:var(--border);border-radius:2px;
              margin:8px auto 4px;flex-shrink:0;display:none;position:relative;
              touch-action:none}
@@ -722,8 +839,11 @@ body.outdoor .warn-box strong{color:var(--warn)}
     </details>
     <a class="btn-primary"   id="p-route"  href="#" target="_blank" rel="noopener">&#x1F697; Route in Google Maps</a>
     <a class="btn-secondary" id="p-maps"   href="#" target="_blank" rel="noopener">&#x1F4CD; Auf Karte zeigen</a>
+    <button class="btn-secondary" onclick="openAddCatchForm(_currentPanelRow)">🐟 Fang eintragen</button>
   </div>
 </div>
+
+<div id="fangbuchPanel"></div>
 
 <!-- Fisch-Filterbar — unten, Daumen-erreichbar -->
 <div class="filterbar">
@@ -744,7 +864,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.23.6";
+const APP_VERSION = "4.24.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -775,7 +895,12 @@ const FISH_DEF = [
 ];
 
 // Fischarten mit Beißindex-Score in der ActivityEngine (Zentrale Quelle — siehe ActivityEngine v3)
-const ENGINE_FISH = ['hecht','zander','barsch','forelle','karpfen','wels','aal','schleie','rapfen','döbel'];
+// Seit v4.24.0 (ActivityEngine v4 / FISH_PARAMS) deckt der Beiss-Score alle FISH_DEF-Arten
+// außer 'makrele' ab -- dafür existiert weder in der alten noch neuen Recherche ein Parameter-
+// satz (siehe FISH_PARAMS-Kommentar), kein Wert wird erfunden.
+const ENGINE_FISH = ['hecht','zander','barsch','forelle','karpfen','wels','aal','schleie','rapfen','döbel',
+                      'aesche','maraene','quappe','regenbogenforelle','meerforelle','dorsch','hering',
+                      'hornhecht','plattfisch','weissfisch'];
 
 // PNG-Pfade aus FISH_DEF — single source of truth
 var FISH_PNG_MAP = {};
@@ -969,9 +1094,300 @@ function setAuthLoggedInUI(isLoggedIn, username){
   if(isLoggedIn) document.getElementById('authUsernameDisplay').textContent = username || '…';
 }
 
-// Platzhalter — wird durch das Fangbuch-Panel (Claude-Design-Handoff) ersetzt.
+// ── Fangbuch-Panel (Claude-Design-Handoff 02.07.2026) ───────────────────────
+var _fbState = { view:'list', gewaesserNr:'', gewaesserName:'', catches:[], selFish:null, photoFile:null };
+var _fbUnsubscribe = null;
+
+function _fbRequireAuth(){
+  var user = window.FreddyAuth && window.FreddyAuth.getCurrentUser();
+  if(!user){
+    toggleAuthPopover();
+    return false;
+  }
+  return true;
+}
+
+function _fbStartListening(){
+  if(_fbUnsubscribe) return;
+  _fbUnsubscribe = window.FreddyAuth.listenCatches(function(list){
+    _fbState.catches = list;
+    if(_fbState.view === 'list') _fbRenderList();
+  });
+}
+
 function openFangbuchPanel(){
-  alert('Das Fangbuch kommt in Kürze!');
+  if(!_fbRequireAuth()) return;
+  _fbState.view = 'list';
+  _fbStartListening();
+  _fbRenderList();
+  document.getElementById('fangbuchPanel').classList.add('open');
+  if(window.innerWidth<=640) document.getElementById('overlay').classList.add('show');
+}
+
+function openAddCatchForm(row){
+  if(!_fbRequireAuth()) return;
+  _fbState.view = 'form';
+  _fbState.gewaesserNr = (row && row.Gewässer_Nr) || '';
+  _fbState.gewaesserName = (row && row.Gewässername) || 'Unbekanntes Gewässer';
+  _fbState.selFish = null;
+  _fbState.photoFile = null;
+  _fbStartListening();
+  _fbRenderForm();
+  document.getElementById('fangbuchPanel').classList.add('open');
+  if(window.innerWidth<=640) document.getElementById('overlay').classList.add('show');
+}
+
+function closeFangbuchPanel(){
+  document.getElementById('fangbuchPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  if(_fbUnsubscribe){ _fbUnsubscribe(); _fbUnsubscribe = null; }
+}
+
+function _fbBackToList(){
+  _fbState.view = 'list';
+  _fbRenderList();
+}
+
+function _fbEsc(s){ return String(s||'').replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+function _fbFishDef(speciesKey){
+  for(var i=0;i<FISH_DEF.length;i++){ if(FISH_DEF[i].key===speciesKey) return FISH_DEF[i]; }
+  return null;
+}
+
+function _fbCatchIconHtml(speciesKey){
+  var f = _fbFishDef(speciesKey);
+  if(f && f.png) return fishIconHtml(speciesKey,'');
+  return '<span>'+((f&&f.icon)||'🐟')+'</span>';
+}
+
+function _fbFishLabel(speciesKey){
+  var f = _fbFishDef(speciesKey);
+  return f ? f.label : speciesKey;
+}
+
+function _fbFormatDate(ts){
+  if(!ts) return '';
+  var d = ts.toDate ? ts.toDate() : new Date(ts);
+  if(isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) + ' · '
+       + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+}
+
+function _fbRenderList(){
+  var host = document.getElementById('fangbuchPanel');
+  var body;
+  if(_fbState.catches.length === 0){
+    body = '<div class="fb-empty">'
+         +   '<div class="fb-empty-ico">🎣</div>'
+         +   '<div class="fb-empty-h">Noch kein Fang im Buch</div>'
+         +   '<div class="fb-empty-p">Dein erster Fang wartet da draußen. Öffne ein Gewässer auf der Karte und trag ihn dort ein.</div>'
+         + '</div>';
+  } else {
+    body = _fbState.catches.map(function(c){
+      var metrics = '';
+      if(c.weightKg) metrics += '<span class="metric">'+_fbEsc(c.weightKg)+' kg</span>';
+      if(c.lengthCm) metrics += '<span class="metric">'+_fbEsc(c.lengthCm)+' cm</span>';
+      return '<div class="catch-card">'
+           +   '<div class="catch-ico">'+_fbCatchIconHtml(c.speciesKey)+'</div>'
+           +   '<div class="catch-main">'
+           +     '<div class="catch-name">'+_fbEsc(_fbFishLabel(c.speciesKey))+'</div>'
+           +     (metrics ? '<div class="catch-metrics">'+metrics+'</div>' : '')
+           +     '<div class="catch-sub">🎣 '+_fbEsc(c.gewaesserName)+' <span class="dot">•</span> '+_fbFormatDate(c.caughtAt)+'</div>'
+           +   '</div>'
+           +   '<div class="catch-del" data-del="'+c.id+'" title="Fang löschen">🗑</div>'
+           + '</div>';
+    }).join('');
+  }
+
+  host.innerHTML =
+     '<div class="fb-grip"><span></span></div>'
+    +'<div class="sheet-head">'
+    +  '<div class="sheet-title">Mein Fangbuch</div>'
+    +  '<div class="fb-icon-btn" onclick="closeFangbuchPanel()" title="Schließen">✕</div>'
+    +'</div>'
+    +'<div class="sheet-body">'+body+'</div>'
+    +'<div class="sheet-foot">'
+    +  '<button class="btn-primary" onclick="openAddCatchForm(_currentPanelRow)">＋ Fang eintragen</button>'
+    +'</div>';
+
+  host.querySelectorAll('[data-del]').forEach(function(btn){
+    btn.onclick = function(){
+      if(!confirm('Diesen Fang wirklich löschen?')) return;
+      var id = btn.getAttribute('data-del');
+      var entry = _fbState.catches.filter(function(c){ return c.id===id; })[0];
+      window.FreddyAuth.deleteCatch(id, entry && entry.photoPath);
+    };
+  });
+}
+
+function _fbNowLocal(){
+  var d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0,16);
+}
+
+function _fbRenderForm(){
+  var host = document.getElementById('fangbuchPanel');
+  var badges = FISH_DEF.map(function(f){
+    var icon = f.png ? fishIconHtml(f.key,'fb-emoji') : '<span class="fb-emoji">'+(f.icon||'🐟')+'</span>';
+    return '<div class="fb-fish-badge'+(_fbState.selFish===f.key?' active':'')+'" data-fish="'+f.key+'">'
+         +   icon + _fbEsc(f.label)
+         + '</div>';
+  }).join('');
+
+  host.innerHTML =
+     '<div class="fb-grip"><span></span></div>'
+    +'<div class="sheet-head">'
+    +  '<div class="fb-icon-btn back" onclick="_fbBackToList()" title="Zurück">‹</div>'
+    +  '<div class="sheet-title">Neuer Fang</div>'
+    +'</div>'
+    +'<div class="sheet-body">'
+    +  '<div class="field">'
+    +    '<span class="f-label">Gewässer</span>'
+    +    '<div class="water-chip"><span class="w-ico">🎣</span><span class="w-name">'+_fbEsc(_fbState.gewaesserName)+'</span><span class="w-tag">aktueller Spot</span></div>'
+    +  '</div>'
+    +  '<div class="field">'
+    +    '<span class="f-label">Fischart</span>'
+    +    '<div class="fb-fish-grid" id="fb-fish-grid">'+badges+'</div>'
+    +  '</div>'
+    +  '<div class="field">'
+    +    '<span class="f-label">Datum &amp; Uhrzeit</span>'
+    +    '<input class="f-input" type="datetime-local" id="fb-when" value="'+_fbNowLocal()+'">'
+    +  '</div>'
+    +  '<div class="two-col">'
+    +    '<div class="field"><span class="f-label">Gewicht</span>'
+    +      '<div class="unit-wrap"><input class="f-input" id="fb-kg" type="number" inputmode="decimal" min="0" step="0.1" placeholder="z.B. 4.2"><span class="unit">kg</span></div>'
+    +    '</div>'
+    +    '<div class="field"><span class="f-label">Länge</span>'
+    +      '<div class="unit-wrap"><input class="f-input" id="fb-cm" type="number" inputmode="numeric" min="0" step="1" placeholder="z.B. 89"><span class="unit">cm</span></div>'
+    +    '</div>'
+    +  '</div>'
+    +  '<div class="field">'
+    +    '<span class="f-label">Notizen</span>'
+    +    '<textarea class="f-area" id="fb-notes" placeholder="Köder, Technik, Wetter, Tiefe …"></textarea>'
+    +  '</div>'
+    +  '<div class="field">'
+    +    '<span class="f-label">Foto</span>'
+    +    '<label class="photo" id="fb-photo">'
+    +      '<span class="thumb"><span class="thumb-ph">🖼️</span><img alt="Fang"></span>'
+    +      '<span class="p-info"><b class="p-name">Foto geladen</b><small>Tippen zum Ändern</small></span>'
+    +      '<span class="p-ico">📸</span>'
+    +      '<span class="p-txt"><b>Foto hinzufügen</b><br>Kamera oder Galerie</span>'
+    +      '<button type="button" class="p-remove">✕ entfernen</button>'
+    +      '<input type="file" accept="image/*" capture="environment" id="fb-photo-input">'
+    +    '</label>'
+    +  '</div>'
+    +  '<div class="form-actions">'
+    +    '<button class="btn-primary" id="fb-save">🎣 Fang speichern</button>'
+    +    '<button class="btn-secondary" onclick="_fbBackToList()">Abbrechen</button>'
+    +  '</div>'
+    +'</div>';
+
+  host.querySelectorAll('[data-fish]').forEach(function(b){
+    b.onclick = function(){
+      _fbState.selFish = b.getAttribute('data-fish');
+      host.querySelectorAll('.fb-fish-badge').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+    };
+  });
+
+  // Foto-Vorschau (nur lokale Auswahl -- der eigentliche Upload folgt separat)
+  var photo = document.getElementById('fb-photo');
+  var fileInput = document.getElementById('fb-photo-input');
+  var img = photo.querySelector('img');
+  fileInput.onchange = function(){
+    var f = fileInput.files && fileInput.files[0];
+    if(!f) return;
+    _fbState.photoFile = f;
+    var url = URL.createObjectURL(f);
+    img.onload = function(){ URL.revokeObjectURL(url); };
+    img.src = url;
+    photo.classList.add('has');
+  };
+  photo.querySelector('.p-remove').onclick = function(ev){
+    ev.preventDefault(); ev.stopPropagation();
+    _fbState.photoFile = null;
+    photo.classList.remove('has');
+    img.removeAttribute('src');
+    fileInput.value = '';
+  };
+
+  document.getElementById('fb-save').onclick = function(){ _fbSaveCatch(); };
+}
+
+// Verkleinert ein Foto vor dem Upload auf max. maxDim px (lange Kante), um
+// Firebase-Storage-Datenverkehr/-Kosten zu schonen (siehe Projekt-Backlog).
+function _fbResizeImage(file, maxDim){
+  return new Promise(function(resolve, reject){
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function(){
+      URL.revokeObjectURL(url);
+      var w = img.width, h = img.height;
+      var scale = Math.min(1, maxDim / Math.max(w, h));
+      var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+      var canvas = document.createElement('canvas');
+      canvas.width = cw; canvas.height = ch;
+      canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+      canvas.toBlob(function(blob){
+        if(blob) resolve(blob); else reject(new Error('Canvas-Export fehlgeschlagen'));
+      }, 'image/jpeg', 0.85);
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('Bild konnte nicht geladen werden')); };
+    img.src = url;
+  });
+}
+
+async function _fbSaveCatch(){
+  if(!_fbState.selFish){
+    alert('Bitte zuerst eine Fischart auswählen.');
+    return;
+  }
+  var saveBtn = document.getElementById('fb-save');
+  saveBtn.disabled = true;
+  var whenVal = document.getElementById('fb-when').value;
+  var kgVal = document.getElementById('fb-kg').value.trim();
+  var cmVal = document.getElementById('fb-cm').value.trim();
+  var notesVal = document.getElementById('fb-notes').value.trim();
+
+  var data = {
+    gewaesserNr: _fbState.gewaesserNr || '',
+    gewaesserName: _fbState.gewaesserName || '',
+    speciesKey: _fbState.selFish,
+    weightKg: kgVal ? parseFloat(kgVal) : null,
+    lengthCm: cmVal ? parseInt(cmVal,10) : null,
+    caughtAt: whenVal ? new Date(whenVal) : new Date(),
+    method: null,
+    notes: notesVal || null,
+    photoURL: null,
+    photoPath: null
+  };
+
+  var res = await window.FreddyAuth.addCatch(data);
+  if(!res.ok){
+    saveBtn.disabled = false;
+    alert(res.message || 'Fang konnte nicht gespeichert werden.');
+    return;
+  }
+
+  if(_fbState.photoFile){
+    saveBtn.textContent = '📸 Foto wird hochgeladen…';
+    try {
+      var blob = await _fbResizeImage(_fbState.photoFile, 1600);
+      var up = await window.FreddyAuth.uploadCatchPhoto(res.id, blob);
+      if(up.ok){
+        await window.FreddyAuth.updateCatch(res.id, { photoURL: up.photoURL, photoPath: up.photoPath });
+      } else {
+        console.warn('Foto-Upload fehlgeschlagen (Fang wurde trotzdem gespeichert):', up.message);
+      }
+    } catch(e){
+      console.warn('Foto-Upload fehlgeschlagen (Fang wurde trotzdem gespeichert):', e);
+    }
+  }
+
+  saveBtn.disabled = false;
+  _fbBackToList();
 }
 
 async function handleAuthLogin(){
@@ -1028,6 +1444,7 @@ window.onFreddyAuthReady = function(bridge){
   bridge.onAuthChange(async function(user){
     if(!user){
       setAuthLoggedInUI(false);
+      if(document.getElementById('fangbuchPanel').classList.contains('open')) closeFangbuchPanel();
       return;
     }
     var profile = await bridge.getUserProfile();
@@ -1846,17 +2263,29 @@ function refreshPanelActivity() {
 
 var _activeFishScores = new Set();
 
+// Seit ActivityEngine v4.24.0 (FISH_PARAMS) für alle 20 gescorten Arten befüllt -- Labels/
+// Icons soweit vorhanden aus FISH_DEF übernommen (single source of truth für Anzeigenamen).
 var FISH_SCORE_LABELS = {hecht:'Hecht',zander:'Zander',barsch:'Barsch',forelle:'Forelle',karpfen:'Karpfen',
-                          wels:'Wels',aal:'Aal',schleie:'Schleie',rapfen:'Rapfen','döbel':'Döbel'};
+                          wels:'Wels',aal:'Aal',schleie:'Schleie',rapfen:'Rapfen','döbel':'Döbel',
+                          aesche:'Äsche',maraene:'Maräne',quappe:'Quappe',regenbogenforelle:'Regenbogenforelle',
+                          meerforelle:'Meerforelle',dorsch:'Dorsch',hering:'Hering',hornhecht:'Hornhecht',
+                          plattfisch:'Plattfisch',weissfisch:'Weißfisch'};
 var FISH_SCORE_ICONS = {hecht:'🐟',zander:'🎣',barsch:'🐠',forelle:'🌊',karpfen:'🐡',
-                        wels:'🦈',aal:'🐍',schleie:'🐟',rapfen:'🐟','döbel':'🐟'};
-var FISH_SCORE_HINTS  = {forelle:'⚠️ Lufttemperatur als Näherungswert',
-                         karpfen:'⚠️ Lufttemperatur als Näherungswert',
-                         wels:'⚠️ Lufttemperatur als Näherungswert',
-                         aal:'⚠️ Lufttemperatur als Näherungswert',
-                         schleie:'⚠️ Lufttemperatur als Näherungswert',
-                         rapfen:'⚠️ Lufttemperatur als Näherungswert',
-                         'döbel':'⚠️ Lufttemperatur als Näherungswert'};
+                        wels:'🦈',aal:'🐍',schleie:'🐟',rapfen:'🐟','döbel':'🐟',
+                        aesche:'🌊',maraene:'🐟',quappe:'🐟',regenbogenforelle:'🌊',meerforelle:'🌊',
+                        dorsch:'🐟',hering:'🐟',hornhecht:'🐟',plattfisch:'🐡',weissfisch:'🐟'};
+// Lufttemperatur-als-Näherungswert-Hinweis gilt jetzt für ALLE Arten (einheitliches
+// FISH_PARAMS-Modell nutzt überall w.temp als Proxy für die Wassertemperatur). Hartkodierte
+// Liste statt Object.keys(FISH_PARAMS) -- FISH_PARAMS wird erst weiter unten im Skript
+// deklariert (const-TDZ), ein Vorwärtszugriff hier würde zur Laufzeit crashen.
+var FISH_SCORE_HINT_TEXT = '⚠️ Lufttemperatur als Näherungswert';
+var FISH_SCORE_HINTS = {hecht:FISH_SCORE_HINT_TEXT,zander:FISH_SCORE_HINT_TEXT,barsch:FISH_SCORE_HINT_TEXT,
+                         forelle:FISH_SCORE_HINT_TEXT,karpfen:FISH_SCORE_HINT_TEXT,wels:FISH_SCORE_HINT_TEXT,
+                         aal:FISH_SCORE_HINT_TEXT,schleie:FISH_SCORE_HINT_TEXT,rapfen:FISH_SCORE_HINT_TEXT,
+                         'döbel':FISH_SCORE_HINT_TEXT,aesche:FISH_SCORE_HINT_TEXT,maraene:FISH_SCORE_HINT_TEXT,
+                         quappe:FISH_SCORE_HINT_TEXT,regenbogenforelle:FISH_SCORE_HINT_TEXT,
+                         meerforelle:FISH_SCORE_HINT_TEXT,dorsch:FISH_SCORE_HINT_TEXT,hering:FISH_SCORE_HINT_TEXT,
+                         hornhecht:FISH_SCORE_HINT_TEXT,plattfisch:FISH_SCORE_HINT_TEXT,weissfisch:FISH_SCORE_HINT_TEXT};
 
 function toggleFishScore(el) {
   var fish = el.dataset.fish;
@@ -1973,7 +2402,13 @@ function renderFishScorePanel() {
   panel.innerHTML = '<div class="fsp-title">🎣 Beiss-Score</div>' + rows;
   panel.className = 'show';
 }
-document.getElementById('overlay').addEventListener('click',minimizePanel);
+document.getElementById('overlay').addEventListener('click',function(){
+  if (document.getElementById('fangbuchPanel').classList.contains('open')) {
+    closeFangbuchPanel();
+  } else {
+    minimizePanel();
+  }
+});
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 var _weatherCache = {};
@@ -2000,16 +2435,55 @@ function getMoonPhase() {
   return ((elapsed % CYCLE) + CYCLE) % CYCLE;
 }
 
-// ActivityEngine v3 — gewichtetes gaußsches Temperatur-/Licht-/Wind-/Solunar-Modell
-// für die neuen physostomen Zielarten (Wels, Aal, Schleie, Rapfen, Döbel).
-// Bestehende Arten (Hecht/Zander/Barsch/Forelle/Karpfen) bleiben bei ihrer
-// empirisch getunten Scoring-Logik weiter unten — siehe projektlog.md v4.7.0.
-const FISH_PARAMS_V3 = {
-  wels:   {topt:27.0, sigmaL:5.0, sigmaH:3.0, wTemp:.40, wBaro:.10, wLicht:.35, wWind:.15, mSolunarMax:1.30, turbidity:'positive', coldFloor:10},
-  aal:    {topt:22.5, sigmaL:6.0, sigmaH:4.0, wTemp:.35, wBaro:.10, wLicht:.45, wWind:.10, mSolunarMax:1.50, turbidity:'neutral',  lunarInverse:true},
-  schleie:{topt:24.0, sigmaL:6.0, sigmaH:4.0, wTemp:.45, wBaro:.10, wLicht:.30, wWind:.15, mSolunarMax:1.20, turbidity:'positive'},
-  rapfen: {topt:25.0, sigmaL:5.0, sigmaH:3.0, wTemp:.30, wBaro:.15, wLicht:.35, wWind:.20, mSolunarMax:1.20, turbidity:'negative'},
-  'döbel':{topt:18.6, sigmaL:5.0, sigmaH:4.0, wTemp:.30, wBaro:.10, wLicht:.40, wWind:.20, mSolunarMax:1.10, turbidity:'neutral'}
+// ActivityEngine v4 — einheitliches, physiologisch fundiertes Gauß-Modell für ALLE 20
+// gescorten Arten (Quelle: 07_Recherchen/recherche_NEU_beissscore.md, Stand 02.07.2026).
+// Löst v3 komplett ab: Hecht/Zander/Barsch/Forelle/Karpfen hatten bisher eigene handgetunte
+// Funktionen OHNE artspezifische Luftdruck-Logik (Zander/Barsch als Physoklisten reagierten
+// gar nicht auf Druck). Jetzt bekommt jede Art topt/sigma (asymmetrische Gauß-Kurve),
+// baro{drop,rise,high,low} (Schwimmblasentyp-abhängige Reaktion: Physostome empfinden
+// fallenden Druck als präfrontalen Fressreiz, Physoklisten als Störung — Recherche Teil 2B),
+// licht{dawn,dusk,sun,clouds} und Gewichte w{temp,baro,licht,wind}, deren Summe 1 ergibt.
+// Feldherkunft: alle Werte 1:1 aus der Recherche-JSON übernommen, AUSSER:
+//  - weissfisch: kein eigener Recherche-Eintrag -> Proxy mit Brassen-Parametern (nächstliegender
+//    Cluster-I-Generalist)
+//  - plattfisch: Sammelflag für Flunder/Scholle/Steinbutt -> arithmetisches Mittel der drei
+//    A-Physostom-Profile (alle drei sind ohnehin druckneutral, Topt/Licht liegen nah beieinander)
+// Periodische Überprüfungspflicht: siehe CLAUDE.md Abschnitt "🎣 Beiss-Score-Modell".
+const FISH_PARAMS = {
+  // ── Physostome Cypriniden/Siluriden (Cluster I) ──────────────────────────────────────
+  karpfen:  {topt:24.5, sigmaL:6.0, sigmaH:4.0, baro:{drop:1.15,rise:0.85,high:1.10,low:1.00}, licht:{dawn:1.20,dusk:1.25,sun:0.60,clouds:1.10}, w:{temp:.45,baro:.15,licht:.20,wind:.20}, mSolunarMax:1.15, turbidity:'positive'},
+  schleie:  {topt:24.0, sigmaL:6.0, sigmaH:4.0, baro:{drop:1.10,rise:0.90,high:1.10,low:1.00}, licht:{dawn:1.25,dusk:1.30,sun:0.50,clouds:1.15}, w:{temp:.45,baro:.10,licht:.30,wind:.15}, mSolunarMax:1.20, turbidity:'positive', nocturnal:true},
+  // Kein eigenes FISH_DEF-Badge für "Brassen" -- weissfisch (Sammelbegriff) nutzt dessen Werte als Proxy.
+  weissfisch:{topt:21.0, sigmaL:5.0, sigmaH:4.0, baro:{drop:1.10,rise:0.90,high:1.05,low:1.05}, licht:{dawn:1.20,dusk:1.20,sun:0.70,clouds:1.10}, w:{temp:.40,baro:.15,licht:.25,wind:.20}, mSolunarMax:1.15, turbidity:'positive'},
+  'döbel':  {topt:18.6, sigmaL:5.0, sigmaH:4.0, baro:{drop:1.05,rise:0.95,high:1.10,low:0.95}, licht:{dawn:1.15,dusk:1.15,sun:0.90,clouds:1.10}, w:{temp:.30,baro:.10,licht:.40,wind:.20}, mSolunarMax:1.10, turbidity:'neutral'},
+  wels:     {topt:27.0, sigmaL:5.0, sigmaH:3.0, baro:{drop:1.20,rise:0.80,high:1.05,low:1.10}, licht:{dawn:1.30,dusk:1.35,sun:0.30,clouds:1.20}, w:{temp:.40,baro:.10,licht:.35,wind:.15}, mSolunarMax:1.30, turbidity:'positive', nocturnal:true, coldFloor:10},
+  aal:      {topt:22.5, sigmaL:6.0, sigmaH:4.0, baro:{drop:1.25,rise:0.75,high:1.00,low:1.15}, licht:{dawn:1.10,dusk:1.40,sun:0.10,clouds:1.15}, w:{temp:.35,baro:.10,licht:.45,wind:.10}, mSolunarMax:1.50, turbidity:'neutral', nocturnal:true, lunarInverse:true},
+  // ── Physoklisten/Kaltwasser (Cluster II/III Gadidae+Salmonidae+Percidae) ─────────────
+  quappe:   {topt:14.5, sigmaL:4.0, sigmaH:3.0, baro:{drop:0.70,rise:1.20,high:1.15,low:0.85}, licht:{dawn:1.10,dusk:1.30,sun:0.20,clouds:1.20}, w:{temp:.40,baro:.25,licht:.25,wind:.10}, mSolunarMax:1.30, turbidity:'neutral', nocturnal:true},
+  forelle:  {topt:14.5, sigmaL:4.0, sigmaH:3.0, baro:{drop:1.10,rise:0.90,high:1.05,low:0.95}, licht:{dawn:1.25,dusk:1.25,sun:0.60,clouds:1.15}, w:{temp:.45,baro:.10,licht:.25,wind:.20}, mSolunarMax:1.00, turbidity:'negative'},
+  regenbogenforelle:{topt:16.0, sigmaL:4.0, sigmaH:3.0, baro:{drop:1.10,rise:0.90,high:1.05,low:0.95}, licht:{dawn:1.25,dusk:1.25,sun:0.65,clouds:1.15}, w:{temp:.40,baro:.10,licht:.30,wind:.20}, mSolunarMax:1.00, turbidity:'negative'},
+  meerforelle:{topt:13.0, sigmaL:4.0, sigmaH:3.0, baro:{drop:1.10,rise:0.90,high:1.05,low:0.95}, licht:{dawn:1.30,dusk:1.30,sun:0.50,clouds:1.15}, w:{temp:.40,baro:.10,licht:.30,wind:.20}, mSolunarMax:1.05, turbidity:'negative'},
+  aesche:   {topt:14.0, sigmaL:3.5, sigmaH:2.5, baro:{drop:1.05,rise:0.95,high:1.10,low:0.90}, licht:{dawn:1.20,dusk:1.20,sun:0.70,clouds:1.10}, w:{temp:.50,baro:.10,licht:.25,wind:.15}, mSolunarMax:1.00, turbidity:'negative'},
+  maraene:  {topt:11.5, sigmaL:4.0, sigmaH:3.0, baro:{drop:1.05,rise:0.95,high:1.10,low:0.95}, licht:{dawn:1.15,dusk:1.15,sun:0.80,clouds:1.10}, w:{temp:.50,baro:.15,licht:.20,wind:.15}, mSolunarMax:1.05, turbidity:'negative'},
+  // ── Limnische Prädationsspezialisten (Cluster III) ───────────────────────────────────
+  // Hecht: solunarMode:'both' erhält die bisherige Vollmond-UND-Neumond-Logik der alten
+  // handgetunten Funktion (klassische Solunar-Theorie), damit hier nichts verloren geht.
+  hecht:    {topt:14.01, sigmaL:5.0, sigmaH:3.0, baro:{drop:1.25,rise:0.75,high:1.10,low:1.00}, licht:{dawn:1.20,dusk:1.20,sun:0.85,clouds:1.15}, w:{temp:.30,baro:.15,licht:.30,wind:.25}, mSolunarMax:1.25, turbidity:'positive', solunarMode:'both'},
+  zander:   {topt:18.837, sigmaL:4.0, sigmaH:2.0, baro:{drop:0.75,rise:1.25,high:1.20,low:0.80}, licht:{dawn:1.25,dusk:1.30,sun:0.40,clouds:1.20}, w:{temp:.35,baro:.30,licht:.25,wind:.10}, mSolunarMax:1.15, turbidity:'neutral'},
+  barsch:   {topt:20.01, sigmaL:5.0, sigmaH:3.0, baro:{drop:0.80,rise:1.20,high:1.15,low:0.85}, licht:{dawn:1.20,dusk:1.20,sun:0.70,clouds:1.15}, w:{temp:.40,baro:.25,licht:.20,wind:.15}, mSolunarMax:1.10, turbidity:'neutral'},
+  rapfen:   {topt:25.0, sigmaL:5.0, sigmaH:3.0, baro:{drop:1.10,rise:0.90,high:1.10,low:0.95}, licht:{dawn:1.35,dusk:1.35,sun:0.90,clouds:1.10}, w:{temp:.30,baro:.15,licht:.35,wind:.20}, mSolunarMax:1.20, turbidity:'negative'},
+  // ── Ostsee (Cluster IV) ───────────────────────────────────────────────────────────────
+  // Windrichtung positiv bei Dorsch/Plattfisch: Westwind-Großwetterlagen treiben sauerstoff-
+  // reiches Salzwasser über die Darßer Schwelle ein (Recherche Teil 2D) -- kein Trübungseffekt
+  // wie im Binnenland, sondern Belüftungseffekt, aber gleiches Vorzeichen im Modell.
+  dorsch:   {topt:8.5,  sigmaL:4.0, sigmaH:3.0, baro:{drop:0.70,rise:1.20,high:1.15,low:0.85}, licht:{dawn:1.15,dusk:1.15,sun:0.70,clouds:1.10}, w:{temp:.45,baro:.25,licht:.15,wind:.15}, mSolunarMax:1.15, turbidity:'positive'},
+  hering:   {topt:11.0, sigmaL:4.0, sigmaH:3.0, baro:{drop:1.10,rise:0.90,high:1.10,low:0.95}, licht:{dawn:1.25,dusk:1.25,sun:0.80,clouds:1.15}, w:{temp:.35,baro:.15,licht:.30,wind:.20}, mSolunarMax:1.10, turbidity:'neutral'},
+  hornhecht:{topt:18.0, sigmaL:5.0, sigmaH:3.5, baro:{drop:1.00,rise:1.00,high:1.10,low:0.90}, licht:{dawn:1.10,dusk:1.10,sun:1.20,clouds:0.80}, w:{temp:.30,baro:.10,licht:.40,wind:.20}, mSolunarMax:1.10, turbidity:'negative'},
+  // Mittelwert Flunder/Scholle/Steinbutt (alle drei A-Physostom, druckneutral) -- kein eigenes
+  // "plattfisch"-Sammel-Badge in der Recherche vorhanden, daher arithmetisches Mittel gebildet.
+  plattfisch:{topt:16.3, sigmaL:5.3, sigmaH:3.7, baro:{drop:1.00,rise:1.00,high:1.00,low:1.00}, licht:{dawn:1.17,dusk:1.22,sun:0.67,clouds:1.10}, w:{temp:.48,baro:.05,licht:.27,wind:.20}, mSolunarMax:1.13, turbidity:'positive'}
+  // makrele bleibt bewusst OHNE Eintrag -- weder alte noch neue Recherche liefert Parameter,
+  // kein Wert wird erfunden (siehe openSpotPanel()-Kommentar weiter unten).
 };
 
 // Gesetzliche Schonzeiten (DD-MM) — nur Arten mit echtem Zeitfenster in mind. einem Bundesland.
@@ -2112,103 +2586,64 @@ var ActivityEngine = {
     return Math.abs(now - rise) / 60000 <= windowMin ||
            Math.abs(now - set)  / 60000 <= windowMin;
   },
-  hecht: function(w) {
-    var score = 5;
-    // Wind
-    if (w.wind > 25)       score += 2.0;
-    else if (w.wind > 15)  score += 1.0;
-    else if (w.wind < 5)   score -= 1.0;
-    // Temperatur: kühl ist gut
-    if (w.temp < 10)       score += 2.0;
-    else if (w.temp < 14)  score += 1.0;
-    else if (w.temp > 22)  score -= 2.0;
-    // Mondphase: Vollmond (Tag 13-17) + Neumond (Tag 0-2 / 27-29) nachts
-    var moon = getMoonPhase();
-    var isNight = (function() {
-      if (!w.sunrise || !w.sunset) return false;
-      var n = new Date();
-      return n < new Date(w.sunrise) || n > new Date(w.sunset);
-    })();
-    if (isNight && (moon >= 13 && moon <= 17)) score += 2.0; // Vollmond
-    if (isNight && (moon <= 2 || moon >= 27))  score += 1.0; // Neumond
-    // Drucktrend: fallende Front = Bonus (stärker als vorher)
-    if (w.pressureTrend < -5 && w.wind > 15)  score += 2.5; // Front + Wind
-    else if (w.pressureTrend < -3)             score += 1.0;
-    // Kaltfront: negatives deltaTemp
-    if (w.deltaTemp < -2)  score += 1.0;
-    return Math.max(0, Math.min(10, score));
+  // Hecht/Zander/Barsch/Forelle/Karpfen hatten hier bis v4.23.6 eigene handgetunte Score-
+  // Funktionen OHNE einheitliche Luftdruck-Logik (Zander/Barsch als Physoklisten bekamen gar
+  // keinen Baro-Term). Seit v4.24.0 laufen ALLE Arten über scoreGeneric()+FISH_PARAMS — die
+  // qualitativen Effekte (Hecht-Vollmond/Neumond, Zander-Dämmerung, Forellen-Temperaturfenster
+  // etc.) sind in FISH_PARAMS/moonFactor/getContext/getBestWindow erhalten, nicht verloren
+  // gegangen (siehe projektlog.md-Eintrag zu v4.24.0 und CLAUDE.md "🎣 Beiss-Score-Modell").
+  isNearSunrise: function(sunriseStr, windowMin) {
+    windowMin = windowMin || 60;
+    if (!sunriseStr) return false;
+    return Math.abs(new Date() - new Date(sunriseStr)) / 60000 <= windowMin;
   },
-  zander: function(w) {
-    var score = 4;
-    // Dämmerung: massiver Bonus
-    if (ActivityEngine.isDusk(w.sunrise, w.sunset, 60)) score += 3.5;
-    // Stoffwechseloptimum 18.8°C
-    var tempDiff = Math.abs(w.temp - 18.8);
-    if (tempDiff < 2)       score += 2.0;
-    else if (w.temp > 14)   score += 0.5;
-    else if (w.temp < 10)   score -= 2.5; // drastischer Rückzug unter 10°C
-    // Positiver Temperaturtrend
-    if (w.deltaTemp > 1.5)  score += 0.5;
-    // Bewölkung leicht positiv
-    if (w.clouds > 70)      score += 0.5;
-    return Math.max(0, Math.min(10, score));
-  },
-  barsch: function(w) {
-    // Mond + Luftdruck: Faktor 0 (Gemini: statistisch kein Effekt)
-    var score = 5;
-    // Lichtintensität: hohe Bewölkung = gut
-    if (w.clouds > 75)          score += 2.5;
-    else if (w.clouds > 50)     score += 1.0;
-    else if (w.clouds < 20)     score -= 1.5;
-    // Temperatur: moderat-warm
-    if (w.temp >= 16 && w.temp <= 24) score += 2.5;
-    else if (w.temp >= 12)      score += 0.5;
-    else if (w.temp < 8)        score -= 2.5;
-    return Math.max(0, Math.min(10, score));
-  },
-  forelle: function(w) {
-    // Mond + Drucktrend: ignoriert (Gemini: kein statistischer Zusammenhang)
-    // Optimum 12-16°C; geglättete Logik statt hartem Cut-off
-    var temp = w.temp;
-    var score;
-    if (temp >= 12 && temp <= 16) {
-      score = 10;
-    } else if (temp < 12) {
-      score = Math.max(3, 10 - (12 - temp) * 0.8);
-    } else {
-      // Über 16°C: glatte Kurve, aber erst bei anhaltend hoher Lufttemp hart bestrafen
-      score = Math.max(0, 10 - (temp - 16) * 1.5);
-      // Wenn deltaTemp positiv (Temperatur steigt weiter) → zusätzlicher Malus
-      if (w.deltaTemp > 1) score = Math.max(0, score - 1.5);
-    }
-    return Math.max(0, Math.min(10, score));
-  },
-  karpfen: function(w) {
-    // Optimum 24.5°C Wassertemp; Lufttemp als Proxy
-    var score = 3;
-    var tempDiff = Math.abs(w.temp - 24.5);
-    if (tempDiff < 2)        score += 4.5; // ~22-27°C Luft
-    else if (w.temp >= 20)   score += 2.5;
-    else if (w.temp >= 16)   score += 1.0;
-    else if (w.temp < 10)    score -= 2.0;
-    // Sonnenschein
-    if (w.clouds < 30)       score += 1.0;
-    // Temperatursturz: hart bestrafen
-    if (w.deltaTemp < -3)    score -= 3.0;
-    else if (w.deltaTemp < -1.5) score -= 1.5;
-    // Temperaturanstieg: Bonus
-    if (w.deltaTemp > 2)     score += 1.0;
-    return Math.max(0, Math.min(10, score));
+  isNearSunset: function(sunsetStr, windowMin) {
+    windowMin = windowMin || 60;
+    if (!sunsetStr) return false;
+    return Math.abs(new Date() - new Date(sunsetStr)) / 60000 <= windowMin;
   },
 
-  // ── v3-Modell: generische Bausteine für die 5 neuen physostomen Arten ──────
+  // ── v4-Modell: generische Bausteine für ALLE 20 Arten in FISH_PARAMS ──────
   gaussianTemp: function(temp, topt, sigmaL, sigmaH) {
     var sigma = temp < topt ? sigmaL : sigmaH;
     var diff = temp - topt;
     return Math.exp(-(diff * diff) / (2 * sigma * sigma));
   },
-  baroFactor: function(trend) {
-    return Math.max(0, Math.min(1, 0.5 - trend * 0.05));
+  // Kategorisierung aus dem verfügbaren 24h-Drucktrend (Open-Meteo liefert keine 3h-Auflösung
+  // wie in der Recherche referenziert -- Engineering-Anpassung, siehe recherche_NEU_beissscore.md
+  // Teil 2B). 1010-1015hPa bei schwachem Trend = neutrale Pufferzone (Mittelwert high/low).
+  baroCategory: function(w) {
+    if (w.pressureTrend <= -4) return 'drop';
+    if (w.pressureTrend >= 4)  return 'rise';
+    if (w.pressure >= 1015)    return 'high';
+    if (w.pressure <= 1010)    return 'low';
+    return null;
+  },
+  // Normalisiert den art-spezifischen Baro-Faktor (Recherche-Range ~0.10-1.30) auf [0,1] für
+  // die gewichtete Summe -- 1.3 ist der Maximalwert im Datensatz, hält die Ordinalität.
+  baroFactorFor: function(p, w) {
+    var cat = ActivityEngine.baroCategory(w);
+    var raw = cat ? p.baro[cat] : (p.baro.high + p.baro.low) / 2;
+    return Math.max(0, Math.min(1, raw / 1.3));
+  },
+  // Generisches Licht-Modell aus licht{dawn,dusk,sun,clouds}. Tag: linear zwischen sun/clouds
+  // nach tatsächlicher Bewölkung interpoliert. Nacht: nocturnal-Arten (Wels/Aal/Quappe/Schleie,
+  // laut Recherche-Prosa explizit nachtaktiv) nutzen den dusk-Wert weiter; alle anderen
+  // (Sichtjäger) bekommen eine dokumentierte Dämpfung auf clouds*0.5 statt eines erfundenen
+  // Nachtwerts. 1.4 ist der Maximalwert im Datensatz (Aal dusk).
+  lichtFactor: function(fish, w) {
+    var p = FISH_PARAMS[fish];
+    var licht = p.licht;
+    var base;
+    if (ActivityEngine.isNearSunrise(w.sunrise, 60))      base = licht.dawn;
+    else if (ActivityEngine.isNearSunset(w.sunset, 60))   base = licht.dusk;
+    else if (ActivityEngine.isNightNow(w.sunrise, w.sunset)) {
+      base = p.nocturnal ? licht.dusk : licht.clouds * 0.5;
+    } else {
+      var cloudFrac = Math.max(0, Math.min(1, w.clouds / 100));
+      base = licht.sun + (licht.clouds - licht.sun) * cloudFrac;
+    }
+    return Math.max(0, Math.min(1, base / 1.4));
   },
   turbidity: function(w) {
     return Math.max(0, Math.min(1, w.wind / 30)) * 0.7 + Math.max(0, Math.min(1, w.clouds / 100)) * 0.3;
@@ -2227,52 +2662,27 @@ var ActivityEngine = {
     var phase = getMoonPhase();
     return Math.max(0, 1 - Math.abs(phase - 14.77) / 14.77);
   },
+  // solunarMode:'both' (bisher nur Hecht) bildet die klassische Solunar-Theorie ab: sowohl
+  // Vollmond ALS AUCH Neumond sind Aktivitätsspitzen (Distanz zum Halbmond zählt), nicht nur
+  // Vollmond wie im linearen Standardfall.
   moonFactor: function(params, w) {
     if (!ActivityEngine.isNightNow(w.sunrise, w.sunset)) return 1;
     var illum = ActivityEngine.moonIllumination();
+    if (params.solunarMode === 'both') illum = Math.max(illum, 1 - illum);
     if (params.lunarInverse) {
       return params.mSolunarMax - (params.mSolunarMax - 0.4) * illum;
     }
     return 1 + (params.mSolunarMax - 1) * illum;
   },
-  // Art-spezifische Lichtfunktionen (qualitativ zu unterschiedlich für ein generisches Modell)
-  fLicht: {
-    wels: function(w, isNight) {
-      var v = 0.25 + (isNight ? 0.55 : 0);
-      v += Math.max(0, Math.min(1, w.clouds / 100)) * 0.20;
-      return Math.max(0, Math.min(1, v));
-    },
-    aal: function(w, isNight) {
-      return isNight ? 0.8 : 0.3;
-    },
-    schleie: function(w, isNight, isDusk) {
-      var v = 0.5 + (isDusk ? 0.15 : 0);
-      v += Math.max(0, Math.min(1, w.clouds / 100)) * 0.15;
-      return Math.max(0, Math.min(1, v));
-    },
-    rapfen: function(w, isNight, isDusk) {
-      var v = isNight ? 0.2 : 0.6;
-      v += (isDusk ? 0.25 : 0);
-      v += Math.max(0, Math.min(1, w.clouds / 100)) * 0.15;
-      return Math.max(0, Math.min(1, v));
-    },
-    'döbel': function(w, isNight, isDusk) {
-      var v = isNight ? 0.35 : 0.55;
-      v += (isDusk ? 0.1 : 0);
-      return Math.max(0, Math.min(1, v));
-    }
-  },
-  scoreV3: function(fish, w) {
-    var p = FISH_PARAMS_V3[fish];
+  scoreGeneric: function(fish, w) {
+    var p = FISH_PARAMS[fish];
     if (!p) return null;
-    var isNight = ActivityEngine.isNightNow(w.sunrise, w.sunset);
-    var isDusk  = ActivityEngine.isDusk(w.sunrise, w.sunset, 60);
     var fTemp  = ActivityEngine.gaussianTemp(w.temp, p.topt, p.sigmaL, p.sigmaH);
-    var fBaro  = ActivityEngine.baroFactor(w.pressureTrend);
-    var fLicht = ActivityEngine.fLicht[fish](w, isNight, isDusk);
+    var fBaro  = ActivityEngine.baroFactorFor(p, w);
+    var fLicht = ActivityEngine.lichtFactor(fish, w);
     var turb   = ActivityEngine.turbidity(w);
     var fWind  = p.turbidity === 'positive' ? turb : p.turbidity === 'negative' ? (1 - turb) : 0.5;
-    var raw = p.wTemp * fTemp + p.wBaro * fBaro + p.wLicht * fLicht + p.wWind * fWind;
+    var raw = p.w.temp * fTemp + p.w.baro * fBaro + p.w.licht * fLicht + p.w.wind * fWind;
     var score = raw * 10 * ActivityEngine.moonFactor(p, w);
     if (p.coldFloor !== undefined && w.temp < p.coldFloor) score = Math.min(score, 1.5);
     return Math.max(0, Math.min(10, score));
@@ -2343,9 +2753,13 @@ var ActivityEngine = {
   // Physostome (offener Ductus pneumaticus) vs. physoklist — siehe Recherche Abschnitt 1:
   // bei fallendem Druck weichen physostome Arten ins Flachwasser/an Krautkanten aus
   // (präfrontale Nahrungssuche), physoklisten (Zander, Barsch) ziehen sich in die Tiefe zurück.
+  // Generisch über FISH_PARAMS[fish].baro.drop: Physoklisten (Wert <1, z.B. Zander/Barsch/
+  // Dorsch/Quappe) ziehen sich bei fallendem Druck in die Tiefe zurück; Physostome (Wert >=1)
+  // nutzen den präfrontalen Fressreiz im Flachwasser (Recherche Teil 2B).
   pressureDepthTip: function(fish, w) {
     if (w.pressureTrend >= -5) return '';
-    if (fish === 'zander' || fish === 'barsch') return 'Fallender Druck — tiefere Wasserschichten aufsuchen';
+    var p = FISH_PARAMS[fish];
+    if (p && p.baro.drop < 1.0) return 'Fallender Druck — tiefere Wasserschichten aufsuchen';
     return 'Front zieht auf — Flachwasser/Krautkanten';
   },
   getContext: function(fish, w) {
@@ -2389,8 +2803,8 @@ var ActivityEngine = {
       if (w.temp < 14) return 'Zu kühl';
       return ActivityEngine.pressureDepthTip(fish, w);
     }
-    if (FISH_PARAMS_V3[fish]) {
-      var p = FISH_PARAMS_V3[fish];
+    if (FISH_PARAMS[fish]) {
+      var p = FISH_PARAMS[fish];
       var isNight = ActivityEngine.isNightNow(w.sunrise, w.sunset);
       if (fish === 'wels') {
         if (w.temp < p.coldFloor) return 'Zu kalt für Wels (<10°C)';
@@ -2409,18 +2823,32 @@ var ActivityEngine = {
       if (fish === 'schleie') {
         if (w.temp > 20 && ActivityEngine.turbidity(w) > 0.4) return 'Warm & trüb — ideal';
       }
-      return ActivityEngine.pressureDepthTip(fish, w) || (fish === 'döbel' ? 'Ganztags aktiv (Generalist)' : '');
+      if (fish === 'döbel') {
+        return ActivityEngine.pressureDepthTip(fish, w) || 'Ganztags aktiv (Generalist)';
+      }
+      // Die 10 neu hinzugekommenen Arten (Äsche/Maräne/Quappe/Regenbogenforelle/Meerforelle/
+      // Dorsch/Hering/Hornhecht/Plattfisch/Weißfisch) haben noch keinen handgeschriebenen Text
+      // wie oben -- generischer, aus FISH_PARAMS abgeleiteter Kontext statt Stille.
+      return ActivityEngine.genericContext(fish, p, w);
     }
     return '';
   },
+  // Generischer Kontext-Text aus den Parametern: Temperaturnähe zum Optimum zuerst (stärkstes
+  // Signal), danach Dämmerung/Nacht, sonst der (jetzt für alle Arten korrekte) Baro-Tiefentipp.
+  genericContext: function(fish, p, w) {
+    var sigma = w.temp < p.topt ? p.sigmaL : p.sigmaH;
+    var diff = w.temp - p.topt;
+    if (Math.abs(diff) <= sigma * 0.4) return 'Nahe Temperaturoptimum (' + p.topt.toFixed(1) + '°C)';
+    if (diff < -sigma) return 'Deutlich zu kühl';
+    if (diff > sigma)  return 'Deutlich zu warm';
+    if (ActivityEngine.isNearSunrise(w.sunrise, 60) || ActivityEngine.isNearSunset(w.sunset, 60)) {
+      return '🌅 Dämmerung — Lichtoptimum';
+    }
+    if (p.nocturnal && ActivityEngine.isNightNow(w.sunrise, w.sunset)) return 'Nachtaktiv — jetzt gute Zeit';
+    return ActivityEngine.pressureDepthTip(fish, w) || 'Außerhalb Optimalbedingungen';
+  },
   scoreForFish: function(fish, w) {
-    if (fish === 'hecht')   return ActivityEngine.hecht(w);
-    if (fish === 'zander')  return ActivityEngine.zander(w);
-    if (fish === 'barsch')  return ActivityEngine.barsch(w);
-    if (fish === 'forelle') return ActivityEngine.forelle(w);
-    if (fish === 'karpfen') return ActivityEngine.karpfen(w);
-    if (FISH_PARAMS_V3[fish]) return ActivityEngine.scoreV3(fish, w);
-    return null;
+    return ActivityEngine.scoreGeneric(fish, w);
   },
 
   // Gibt bestes Zeitfenster zurück: { label, from, to, quality:'top'|'ok'|'low' }
@@ -2516,6 +2944,18 @@ var ActivityEngine = {
       return { label:'Ganztags aktiv', from: addMin(rise, 0), to: addMin(set, 0), quality:'ok' };
     }
 
+    // Generisches Fenster für die 10 neu hinzugekommenen Arten, aus FISH_PARAMS abgeleitet
+    // (nocturnal -> Dämmerung/Nacht, sonst Dämmerungs-Präferenz vs. Tag anhand licht.dawn).
+    var p = FISH_PARAMS[fish];
+    if (p) {
+      if (p.nocturnal) {
+        return { label:'Dämmerung bis Nacht', from: addMin(set, -30), to: addMin(rise, 0), quality:'top' };
+      }
+      if (p.licht.dawn >= p.licht.sun && p.licht.dawn >= p.licht.clouds) {
+        return { label:'Morgen-/Abenddämmerung', from: addMin(rise, -30), to: addMin(rise, 90), quality:'top' };
+      }
+      return { label:'Tagsüber', from: addMin(rise, 60), to: addMin(set, -60), quality:'ok' };
+    }
     return null;
   },
 
@@ -2671,7 +3111,7 @@ var ActivityEngine = {
       var light = ActivityEngine.getTrafficLight(score);
       var ctx   = ActivityEngine.getContext(f, w);
       var label = f.charAt(0).toUpperCase() + f.slice(1);
-      var lufttempHint = (f === 'karpfen' || f === 'forelle' || FISH_PARAMS_V3[f])
+      var lufttempHint = FISH_PARAMS[f]
         ? ' <span style="opacity:.55;font-size:.58rem">(Lufttemp.)</span>' : '';
       return '<div class="act-badge">' + light.emoji +
         ' ' + label + ': <strong>' + light.label + '</strong>' +
@@ -3162,14 +3602,12 @@ var SPOT_FISH_NAME_TO_KEY = {
 // lässt aber alle Gewässer-spezifischen Abschnitte (KAV, Pacht/Sperr, Schonzeiten-Tabelle,
 // zoomToWholeGewaesser) bewusst weg, da Spots keine echten Gewässer-Datensätze sind.
 //
-// WICHTIG: ActivityEngine hat aktuell NUR Biss-Modelle für die 10 ENGINE_FISH-Süßwasserarten
-// (hecht/zander/barsch/forelle/karpfen/wels/aal/schleie/rapfen/döbel). Für Meerforelle/Dorsch/
-// Hering/Hornhecht/Plattfisch/Makrele existiert noch KEIN Biss-Modell (kein fLicht[]-Eintrag,
-// kein FISH_PARAMS_V3-Eintrag) -- ActivityEngine.scoreForFish() würde dafür crashen. Diese
-// Arten werden daher bewusst NICHT in _activeFishScores aufgenommen, sondern als reiner Text-
-// Hinweis "Beiss-Score noch nicht verfügbar" angezeigt. Echte Werte brauchen zuerst eine
-// eigene Recherche (analog 07_Recherchen/recherche_beissindex.md) zu Temperatur-/Druck-/Licht-
-// Präferenzen der jeweiligen Art, dann neue FISH_PARAMS_V3/fLicht-Einträge.
+// WICHTIG (Stand v4.24.0): ActivityEngine deckt jetzt 20 der 21 FISH_DEF-Arten ab (siehe
+// FISH_PARAMS, Quelle 07_Recherchen/recherche_NEU_beissscore.md) -- inkl. Meerforelle/Dorsch/
+// Hering/Hornhecht/Plattfisch, die vorher komplett ungescort waren. Einzige verbleibende
+// Ausnahme ist 'makrele': weder alte noch neue Recherche liefert dafür Parameter, kein Wert
+// wird erfunden. Diese eine Art wird daher weiterhin NICHT in _activeFishScores aufgenommen,
+// sondern als reiner Text-Hinweis "Beiss-Score noch nicht verfügbar" angezeigt.
 function openSpotPanel(spot){
   _panelMinimized = false;
   if(listVisible) toggleList();
@@ -3204,7 +3642,7 @@ function openSpotPanel(spot){
     return !(k && ENGINE_FISH.indexOf(k)>-1);
   });
   if(unsupported.length){
-    warn += '<div class="warn-box" style="background:rgba(107,128,153,.08);border-color:rgba(107,128,153,.3);color:var(--d);font-size:.75rem;">🎣 Beiss-Score für '+escHtml(unsupported.join(', '))+' noch nicht verfügbar (Meeresarten-Bissmodell fehlt bisher).</div>';
+    warn += '<div class="warn-box" style="background:rgba(107,128,153,.08);border-color:rgba(107,128,153,.3);color:var(--d);font-size:.75rem;">🎣 Beiss-Score für '+escHtml(unsupported.join(', '))+' noch nicht verfügbar (keine physiologischen Parameter recherchiert).</div>';
   }
   document.getElementById('p-warn').innerHTML = warn;
 
@@ -3275,7 +3713,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, writeBatch, collection, addDoc, query, orderBy,
-  onSnapshot, deleteDoc, serverTimestamp
+  onSnapshot, deleteDoc, updateDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import {
   getStorage, ref, uploadBytes, getDownloadURL, deleteObject
@@ -3442,7 +3880,22 @@ function listenCatches(cb){
     var list = [];
     snap.forEach(function(d){ list.push(Object.assign({ id: d.id }, d.data())); });
     cb(list);
+  }, function(err){
+    // z.B. permission-denied, wenn sich der Nutzer abmeldet waehrend der Listener
+    // noch aktiv ist -- kein Absturz, das Panel wird ohnehin beim Abmelden geschlossen.
+    console.warn('Fangbuch-Listener beendet:', err.code);
   });
+}
+
+async function updateCatch(catchId, data){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  try {
+    await updateDoc(doc(db, 'users', uid, 'catches', catchId), Object.assign({ updatedAt: serverTimestamp() }, data));
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Aktualisieren.' };
+  }
 }
 
 async function deleteCatch(catchId, photoPath){
@@ -3483,7 +3936,7 @@ getRedirectResult(auth).catch(function(){ /* kein Redirect-Flow aktiv, ignoriere
 window.FreddyAuth = {
   onAuthChange, signUpEmail, signInEmail, signInGoogle, signOutUser,
   claimUsername, changeUsername, getUserProfile, getCurrentUser,
-  addCatch, listenCatches, deleteCatch, uploadCatchPhoto
+  addCatch, updateCatch, listenCatches, deleteCatch, uploadCatchPhoto
 };
 
 if (typeof window.onFreddyAuthReady === 'function') {

@@ -2,8 +2,8 @@
   "_meta": {
     "stand": "2026-07-02",
     "quelle": "07_Recherchen/Angelregeln Ostseeküste M-V 2026.md (Gemini DeepResearch), Teil 2",
-    "zweck": "Spot-Marker-Layer für MV-Küstengewässer (schema_phase2.md Abschnitt 0.4). Separat von gewaesser.json -- kein vollwertiger Gewässer-Datensatz, wird per bindPopup() statt openPanel() gerendert.",
-    "typ_werte": "'spot' = benannter Angel-Hotspot, 'hafen' = Hafen mit fischereirechtlicher Sonderregel"
+    "zweck": "Spot-Marker-Layer für MV-Küstengewässer (schema_phase2.md Abschnitt 0.4). Separat von gewaesser.json -- kein vollwertiger Gewässer-Datensatz, wird per bindPopup() statt openPanel() gerendert. Siehe auch mefo_hotspots.json (kuratierte Meerforellen-Reviere, redaktionell recherchiert -- eigene Datei/Layer, kein Crowd-Content).",
+    "typ_werte": "'spot' = benannter Angel-Hotspot, 'hafen' = Hafen mit fischereirechtlicher Sonderregel, 'meerforelle_community' = Crowd-Scrape alle-angeln.de (dünn, unkuratiert -- 4 Einträge am 02.07.2026 entfernt, da redundant zu neuen mefo_hotspots.json-Einträgen: Dranske, Lohme, Boltenhagen, Kägsdorf)"
   },
   "spots": [
     {
@@ -536,18 +536,6 @@
       "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-binz"
     },
     {
-      "name": "Ostsee (Boltenhagen)",
-      "typ": "meerforelle_community",
-      "lat": 53.98642,
-      "lon": 11.20592,
-      "zielfisch": [
-        "Meerforelle"
-      ],
-      "saison": "",
-      "hinweis": "Meerforelle, Hornhecht, Dorsch, Flunder, Scholle, und 7 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer.",
-      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-boltenhagen"
-    },
-    {
       "name": "Ostsee (Dierhagen)",
       "typ": "meerforelle_community",
       "lat": 54.2919,
@@ -558,18 +546,6 @@
       "saison": "",
       "hinweis": "Hornhecht, Meerforelle, Scholle, Flunder, Dorsch, und 1 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer.",
       "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-dierhagen"
-    },
-    {
-      "name": "Ostsee (Dranske)",
-      "typ": "meerforelle_community",
-      "lat": 54.63064,
-      "lon": 13.22966,
-      "zielfisch": [
-        "Meerforelle"
-      ],
-      "saison": "",
-      "hinweis": "Meerforelle, Hornhecht, Dorsch, Flunder, Scholle, und 10 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar.",
-      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-dranske"
     },
     {
       "name": "Ostsee (Elmenhorst-Lichtenhagen)",
@@ -618,18 +594,6 @@
       "saison": "",
       "hinweis": "Hornhecht, Meerforelle. Gast-/Tageskarte: Freies Gewässer.",
       "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-lobbe"
-    },
-    {
-      "name": "Ostsee (Lohme)",
-      "typ": "meerforelle_community",
-      "lat": 54.58296,
-      "lon": 13.61096,
-      "zielfisch": [
-        "Meerforelle"
-      ],
-      "saison": "",
-      "hinweis": "Meerforelle, Lachs, Dorsch, Hornhecht. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar.",
-      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-lohme"
     },
     {
       "name": "Ostsee (Markgrafenheide)",
@@ -870,18 +834,6 @@
       "saison": "",
       "hinweis": "Flunder, Meerforelle, Scholle, Dorsch, Hornhecht, und 4 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle.",
       "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-g%C3%B6hren"
-    },
-    {
-      "name": "Ostsee (Kägsdorf)",
-      "typ": "meerforelle_community",
-      "lat": 54.13765,
-      "lon": 11.67913,
-      "zielfisch": [
-        "Meerforelle"
-      ],
-      "saison": "",
-      "hinweis": "Meerforelle, Dorsch, Flunder, Scholle, Hornhecht, und 6 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle.",
-      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-k%C3%A4gsdorf"
     },
     {
       "name": "Ostsee (Usedom-Ückeritz)",
