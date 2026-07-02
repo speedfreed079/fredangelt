@@ -6,56 +6,894 @@
     "typ_werte": "'spot' = benannter Angel-Hotspot, 'hafen' = Hafen mit fischereirechtlicher Sonderregel"
   },
   "spots": [
-    { "name": "Rerik (Ostseestrand & Seebrücke)", "typ": "spot", "lat": 54.1000, "lon": 11.6500, "zielfisch": ["Meerforelle","Plattfisch","Hornhecht"], "saison": "Frühjahr/Herbst", "hinweis": "Strukturreicher Mischgrund (\"Leopardengrund\"). Seebrücke hat zeitliche Einschränkungen." },
-    { "name": "Boinsdorfer Werder (Salzhaff)", "typ": "spot", "lat": 54.0350, "lon": 11.7100, "zielfisch": ["Plattfisch","Hornhecht"], "saison": "Mai–September", "hinweis": "Weites Flachwassergebiet, ideal für Watangler. Achtung: saisonale NSG-Sperrung ab 15.09. (500m-Uferstreifen)." },
-    { "name": "Schnatermann (Rostocker Heide)", "typ": "spot", "lat": 54.1700, "lon": 12.1300, "zielfisch": ["Hering","Hornhecht","Barsch"], "saison": "Frühjahr", "hinweis": "Flachwasserplateau bricht steil zur Fahrrinne ab. Erstklassig zum Watangeln an der Kante." },
-    { "name": "Warnemünde Mittelmole", "typ": "hafen", "lat": 54.1810, "lon": 12.0850, "zielfisch": ["Barsch","Plattfisch","Wittling"], "saison": "Ganzjährig", "hinweis": "Tiefe Spundwand an der Fahrrinne, strömungsintensiv. Angelverbot auf allen aktiven Fähr-/Ro-Ro-Terminals." },
-    { "name": "Stadthafen Rostock", "typ": "hafen", "lat": 54.0870, "lon": 12.1330, "zielfisch": ["Hering","Zander","Barsch"], "saison": "März (Hering), Herbst (Zander)", "hinweis": "Urbane Kaianlage, starker Anglerdruck im Frühjahr. Hansestadt Rostock hat eigenes Fischereirecht für Unterwarnow/Breitling — eigene Angelerlaubnis nötig, normale Küstenkarte gilt hier nicht." },
-    { "name": "Wismar Alter Holzhafen (Westkai)", "typ": "hafen", "lat": 53.8930, "lon": 11.4600, "zielfisch": [], "saison": "", "hinweis": "Temporäre Verbote bei Frachtschiffbewegungen. Angeln direkt von Liegeplätzen der Berufsschifffahrt untersagt." },
-
-    { "name": "Recknitzmündung (Ribnitz-Damgarten)", "typ": "spot", "lat": 54.2470, "lon": 12.4380, "zielfisch": ["Hecht","Barsch","Weißfisch"], "saison": "Frühjahr/Herbst", "hinweis": "Übergangszone. Ab der Straßenbrücke Ribnitz (Paß-Gehöft) gilt Küstenrecht." },
-    { "name": "Koppelstrom (Born a. Darß)", "typ": "spot", "lat": 54.3800, "lon": 12.5700, "zielfisch": ["Hecht","Barsch"], "saison": "Herbst", "hinweis": "Engpass mit Krautfeldern. Befahrensverbot für Motorboote im 200m-Schilfgürtel." },
-    { "name": "Bock-Reede (Grabow)", "typ": "spot", "lat": 54.4200, "lon": 12.7500, "zielfisch": ["Hecht","Zander"], "saison": "September–November", "hinweis": "Tiefe Rinne an der Grenze zur Nationalpark-Schutzzone I. Nur vom Boot fischbar." },
-    { "name": "Prerow Hafen", "typ": "hafen", "lat": 54.4460, "lon": 12.5720, "zielfisch": [], "saison": "", "hinweis": "Absolutes Angelverbot vom 1. Mai bis 30. September." },
-    { "name": "Barhöft Hafen", "typ": "hafen", "lat": 54.4200, "lon": 12.9700, "zielfisch": [], "saison": "", "hinweis": "Liegeverbot an der südlichen Kaikante (Fischereivorbehalt). Angeln im Hafenbecken stark eingeschränkt, Befahren der angrenzenden Nationalpark-Kernzone verboten." },
-
-    { "name": "Südufer Kubitzer Bodden", "typ": "spot", "lat": 54.4700, "lon": 13.0000, "zielfisch": ["Hecht"], "saison": "Mai/Oktober", "hinweis": "Sehr weites Flachwassergebiet über Sandboden, ideal für Watangler." },
-    { "name": "Vieregge (Großer Jasmunder Bodden)", "typ": "spot", "lat": 54.5300, "lon": 13.4000, "zielfisch": ["Zander","Hecht","Barsch"], "saison": "Sommer/Herbst", "hinweis": "Steil abfallende Rinnen in Hafennähe. Nur vom Boot effektiv zu befischen." },
-    { "name": "Lietzow (Kleiner Jasmunder Bodden)", "typ": "spot", "lat": 54.5100, "lon": 13.4800, "zielfisch": ["Hecht","Barsch","Zander"], "saison": "Ganzjährig", "hinweis": "Krautreiches Flachwasser, sehr guter Hechtbestand im ufernahen Bereich." },
-    { "name": "Sassnitz Ostmole", "typ": "hafen", "lat": 54.5150, "lon": 13.6440, "zielfisch": [], "saison": "", "hinweis": "Angeln ausschließlich vom Leuchtturm bis zum 3. Wendehammer, 00:00–10:00 Uhr. Außerhalb dieser Zeiten striktes Angelverbot." },
-    { "name": "Wiek Marina", "typ": "hafen", "lat": 54.6200, "lon": 13.2900, "zielfisch": [], "saison": "", "hinweis": "Anerkannter Anlandeort und Winterlagerbereich. Angeln im Sportboothafen in der Hauptsaison untersagt. Ausgabeort für Fangtagebücher." },
-
-    { "name": "Altefähr (Flachwasser)", "typ": "spot", "lat": 54.3070, "lon": 13.1050, "zielfisch": ["Meerforelle","Hornhecht","Barsch"], "saison": "April–Juni", "hinweis": "Sandiges Plateau mit Steinen, exzellentes Revier für Watangler." },
-    { "name": "Rügendamm (Stralsund)", "typ": "spot", "lat": 54.3120, "lon": 13.1000, "zielfisch": ["Hering","Barsch"], "saison": "Frühjahr", "hinweis": "Achtung: Angeln direkt von den Brückenbauwerken des Rügendamms ist streng verboten!" },
-    { "name": "Stralsunder Hafen (Winterlager)", "typ": "hafen", "lat": 54.3150, "lon": 13.0930, "zielfisch": ["Hecht","Zander","Barsch"], "saison": "12.10.–10.03. (Winterlager)", "hinweis": "Winterlager-Sonderregelung: Angeln nur 10:00–18:00 Uhr, Nachtangeln verboten. Nur 1 Handangel mit Einzelhaken (max. 9mm Hakenbogen). Drop-Shot: Köder min. 10cm, Abstand Blei-Haken min. 50cm. Naturköder nur an feststehender Pose. Tageslimit: 1 Hecht, 2 Zander, 6 Barsche. Fangtagebuchpflicht. Boote müssen im Strelasund verankert sein." },
-
-    { "name": "Palmer Ort (Südrügen)", "typ": "spot", "lat": 54.2100, "lon": 13.5000, "zielfisch": ["Meerforelle","Hornhecht"], "saison": "Frühjahr/Herbst", "hinweis": "Weit ins Wasser ragende Sand- und Steinnase. Klassisches Watangelrevier." },
-    { "name": "Gahlkower Haken (Festland)", "typ": "spot", "lat": 54.1500, "lon": 13.4700, "zielfisch": ["Meerforelle"], "saison": "März–Mai", "hinweis": "Flacher Mischgrund mit großen Steinen, sehr beliebt bei Spinnfischern." },
-    { "name": "Lubmin (Strand & Seebrücke)", "typ": "spot", "lat": 54.1370, "lon": 13.6650, "zielfisch": ["Plattfisch","Hornhecht"], "saison": "Spätsommer/Herbst", "hinweis": "Sandbänke. Seebrückenangeln in der Hauptsaison nur nachts (21:00–07:00 Uhr) erlaubt." },
-    { "name": "Lauterbach (Kommunal-/Yachthafen)", "typ": "hafen", "lat": 54.2380, "lon": 13.5350, "zielfisch": [], "saison": "", "hinweis": "Ganzjähriges, absolutes Angelverbot im gesamten Hafen- und Yachthafenbereich." },
-    { "name": "Freest Fischereihafen", "typ": "hafen", "lat": 54.1600, "lon": 13.7650, "zielfisch": [], "saison": "", "hinweis": "Strenge Sicherheitsabstände zu Anlegern der Berufsfischerei. Verbindlicher Fisch-Anlandeort." },
-
-    { "name": "Lassaner Bucht (Achterwasser)", "typ": "spot", "lat": 53.9400, "lon": 13.7700, "zielfisch": ["Zander","Barsch"], "saison": "Sommer/Herbst", "hinweis": "Übergang zum Peenestrom, tiefere Rinnen bieten Schutz bei Ostwind." },
-    { "name": "Lieper Winkel", "typ": "spot", "lat": 53.9000, "lon": 13.9200, "zielfisch": ["Hecht","Zander"], "saison": "Oktober/November", "hinweis": "Abfallende Kanten unweit des Schilfgürtels, nur vom Boot befischbar." },
-    { "name": "Gnitz (Halbinsel)", "typ": "spot", "lat": 53.9500, "lon": 13.9600, "zielfisch": ["Barsch","Hecht"], "saison": "Sommer", "hinweis": "Steinigere Uferstrukturen im Norden des Achterwassers." },
-    { "name": "Krummin (Naturhafen)", "typ": "hafen", "lat": 53.9500, "lon": 13.7900, "zielfisch": [], "saison": "", "hinweis": "Ganzjähriges, vollständiges Angelverbot." },
-    { "name": "Seebrücke Koserow", "typ": "hafen", "lat": 54.0350, "lon": 13.9950, "zielfisch": ["Plattfisch","Hornhecht"], "saison": "Spätsommer/Herbst", "hinweis": "Angeln ausschließlich in den Nachtstunden von 20:00–08:00 Uhr gestattet." },
-
-    { "name": "Zecheriner Brücke (Peenestrom)", "typ": "spot", "lat": 53.9850, "lon": 13.7550, "zielfisch": ["Zander","Barsch","Hecht"], "saison": "Sommer/Herbst", "hinweis": "Brückenpfeiler erzeugen starke Strömungswirbel, exzellenter Einstand für Räuber." },
-    { "name": "Rankwitz (Fahrrinnenkante)", "typ": "spot", "lat": 53.9350, "lon": 13.8500, "zielfisch": ["Zander","Barsch"], "saison": "September–November", "hinweis": "Sehr steile Kanten direkt vor dem Hafenbecken. Nur vom Boot fischbar." },
-    { "name": "Peenemündung (Südteil)", "typ": "spot", "lat": 54.1200, "lon": 13.7700, "zielfisch": ["Hecht","Barsch"], "saison": "Herbst", "hinweis": "Übergang zum Greifswalder Bodden. Achtung: ganzjährige Angelverbote in NSG-Zonen (Peenemünder Haken–Struck) beachten!" },
-    { "name": "Wolgaster Hafen (Winterlager)", "typ": "hafen", "lat": 54.0530, "lon": 13.7750, "zielfisch": ["Hecht","Zander","Barsch"], "saison": "01.11.–31.03. (Winterlager)", "hinweis": "Winterlager-Sonderregelung (analog Stralsund): Angeln nur 10:00–18:00 Uhr. Einzelhaken-Pflicht, Drop-Shot-Regelung (min. 10cm Köder, min. 50cm Abstand zum Blei), Posenpflicht bei Naturködern. Tageslimit: 1 Hecht, 2 Zander, 6 Barsche. Fangtagebuchpflicht." },
-
-    { "name": "Ueckermündung", "typ": "spot", "lat": 53.7400, "lon": 14.0600, "zielfisch": ["Zander","Barsch","Brassen"], "saison": "Herbst/Winter", "hinweis": "Mündungsbereich mit Steinpackungen. Ab der Straßenbrücke gilt Küstenrecht." },
-    { "name": "Altwarp (Buhnen & Sandbänke)", "typ": "spot", "lat": 53.7350, "lon": 14.2900, "zielfisch": ["Barsch","Plattfisch"], "saison": "Sommer", "hinweis": "Strukturreicher Bereich im östlichsten Teil des deutschen Haffgebietes." },
-    { "name": "Kamminke (Hafenmole)", "typ": "spot", "lat": 53.9200, "lon": 14.1650, "zielfisch": ["Zander","Barsch"], "saison": "Sommer", "hinweis": "Einer der wenigen guten Uferplätze direkt an der Grenze zu Polen." },
-    { "name": "Kamp (Wasserwanderrastplatz)", "typ": "hafen", "lat": 53.7300, "lon": 14.0900, "zielfisch": [], "saison": "", "hinweis": "Ganzjähriges, vollständiges Angelverbot im gesamten Hafen- und Stegbereich." },
-    { "name": "Ueckermünde Hafen", "typ": "hafen", "lat": 53.7400, "lon": 14.0700, "zielfisch": [], "saison": "", "hinweis": "Temporäre Fischschonbezirke im Mündungsbereich der Uecker. Einschränkungen bezüglich Angeln im Fahrwasser der Berufsschifffahrt." },
-
-    { "name": "Kap Arkona (Rügen)", "typ": "spot", "lat": 54.6800, "lon": 13.4350, "zielfisch": ["Meerforelle","Lachs"], "saison": "Frühjahr/Spätherbst", "hinweis": "Extrem steiniges, exponiertes Riff. Sehr starke Strömung, anspruchsvolles Watangeln." },
-    { "name": "Glowe (Königsörn-Riff)", "typ": "spot", "lat": 54.5900, "lon": 13.4300, "zielfisch": ["Meerforelle","Lachs"], "saison": "Februar–Mai", "hinweis": "Sandige Bucht geht in steinige Riffe über. Sehr beliebtes Trolling-Revier. Lachs nur mit gültiger EU-Sonderregel (1 Satzfisch/Tag, Fettflosse geschnitten)." },
-    { "name": "Buhnenfelder Wustrow", "typ": "spot", "lat": 54.1750, "lon": 12.3700, "zielfisch": ["Plattfisch","Hornhecht"], "saison": "Herbst (Brandung), Mai", "hinweis": "Tiefe Rinnen zwischen den langen Holzbuhnen, erstklassig für Brandungsangler." },
-    { "name": "Seebrücke Heringsdorf (Usedom)", "typ": "hafen", "lat": 53.9550, "lon": 14.1550, "zielfisch": ["Plattfisch","Hornhecht"], "saison": "Spätsommer/Herbst", "hinweis": "Sandbänke. Angeln ganzjährig erst ab 20:00 Uhr bis zum Beginn des Schiffsverkehrs erlaubt." },
-    { "name": "Kühlungsborn Bootshafen", "typ": "hafen", "lat": 54.1450, "lon": 11.7700, "zielfisch": [], "saison": "", "hinweis": "01.08.–28.02.: vollständiges Angelverbot auf allen Molen und im gesamten Hafenbereich (Mündungsschutz Bollhäger Fließ). Seebrücke: Hauptsaison 19:00–07:00 Uhr, Nebensaison 16:00–07:00 Uhr." }
+    {
+      "name": "Rerik (Ostseestrand & Seebrücke)",
+      "typ": "spot",
+      "lat": 54.10677,
+      "lon": 11.61712,
+      "zielfisch": [
+        "Meerforelle",
+        "Plattfisch",
+        "Hornhecht"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Strukturreicher Mischgrund (\"Leopardengrund\"). Seebrücke hat zeitliche Einschränkungen."
+    },
+    {
+      "name": "Boinsdorfer Werder (Salzhaff)",
+      "typ": "spot",
+      "lat": 54.01741,
+      "lon": 11.56283,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht"
+      ],
+      "saison": "Mai–September",
+      "hinweis": "Weites Flachwassergebiet, ideal für Watangler. Achtung: saisonale NSG-Sperrung ab 15.09. (500m-Uferstreifen)."
+    },
+    {
+      "name": "Schnatermann (Rostocker Heide)",
+      "typ": "spot",
+      "lat": 54.17736,
+      "lon": 12.15284,
+      "zielfisch": [
+        "Hering",
+        "Hornhecht",
+        "Barsch"
+      ],
+      "saison": "Frühjahr",
+      "hinweis": "Flachwasserplateau bricht steil zur Fahrrinne ab. Erstklassig zum Watangeln an der Kante."
+    },
+    {
+      "name": "Warnemünde Mittelmole",
+      "typ": "hafen",
+      "lat": 54.18148,
+      "lon": 12.0886,
+      "zielfisch": [
+        "Barsch",
+        "Plattfisch",
+        "Wittling"
+      ],
+      "saison": "Ganzjährig",
+      "hinweis": "Tiefe Spundwand an der Fahrrinne, strömungsintensiv. Angelverbot auf allen aktiven Fähr-/Ro-Ro-Terminals."
+    },
+    {
+      "name": "Stadthafen Rostock",
+      "typ": "hafen",
+      "lat": 54.09336,
+      "lon": 12.1372,
+      "zielfisch": [
+        "Hering",
+        "Zander",
+        "Barsch"
+      ],
+      "saison": "März (Hering), Herbst (Zander)",
+      "hinweis": "Urbane Kaianlage, starker Anglerdruck im Frühjahr. Hansestadt Rostock hat eigenes Fischereirecht für Unterwarnow/Breitling — eigene Angelerlaubnis nötig, normale Küstenkarte gilt hier nicht."
+    },
+    {
+      "name": "Wismar Alter Holzhafen (Westkai)",
+      "typ": "hafen",
+      "lat": 53.89547,
+      "lon": 11.45674,
+      "zielfisch": [],
+      "saison": "",
+      "hinweis": "Temporäre Verbote bei Frachtschiffbewegungen. Angeln direkt von Liegeplätzen der Berufsschifffahrt untersagt."
+    },
+    {
+      "name": "Recknitzmündung (Ribnitz-Damgarten)",
+      "typ": "spot",
+      "lat": 54.25065,
+      "lon": 12.4792,
+      "zielfisch": [
+        "Hecht",
+        "Barsch",
+        "Weißfisch"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Übergangszone. Ab der Straßenbrücke Ribnitz (Paß-Gehöft) gilt Küstenrecht."
+    },
+    {
+      "name": "Koppelstrom (Born a. Darß)",
+      "typ": "spot",
+      "lat": 54.38954,
+      "lon": 12.54555,
+      "zielfisch": [
+        "Hecht",
+        "Barsch"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Engpass mit Krautfeldern. Befahrensverbot für Motorboote im 200m-Schilfgürtel."
+    },
+    {
+      "name": "Bock-Reede (Grabow)",
+      "typ": "spot",
+      "lat": 54.42,
+      "lon": 12.75,
+      "zielfisch": [
+        "Hecht",
+        "Zander"
+      ],
+      "saison": "September–November",
+      "hinweis": "Tiefe Rinne an der Grenze zur Nationalpark-Schutzzone I. Nur vom Boot fischbar."
+    },
+    {
+      "name": "Prerow Hafen",
+      "typ": "hafen",
+      "lat": 54.44526,
+      "lon": 12.58622,
+      "zielfisch": [],
+      "saison": "",
+      "hinweis": "Absolutes Angelverbot vom 1. Mai bis 30. September."
+    },
+    {
+      "name": "Barhöft Hafen",
+      "typ": "hafen",
+      "lat": 54.43372,
+      "lon": 13.03167,
+      "zielfisch": [],
+      "saison": "",
+      "hinweis": "Liegeverbot an der südlichen Kaikante (Fischereivorbehalt). Angeln im Hafenbecken stark eingeschränkt, Befahren der angrenzenden Nationalpark-Kernzone verboten."
+    },
+    {
+      "name": "Südufer Kubitzer Bodden",
+      "typ": "spot",
+      "lat": 54.39905,
+      "lon": 13.17555,
+      "zielfisch": [
+        "Hecht"
+      ],
+      "saison": "Mai/Oktober",
+      "hinweis": "Sehr weites Flachwassergebiet über Sandboden, ideal für Watangler."
+    },
+    {
+      "name": "Vieregge (Großer Jasmunder Bodden)",
+      "typ": "spot",
+      "lat": 54.56629,
+      "lon": 13.32817,
+      "zielfisch": [
+        "Zander",
+        "Hecht",
+        "Barsch"
+      ],
+      "saison": "Sommer/Herbst",
+      "hinweis": "Steil abfallende Rinnen in Hafennähe. Nur vom Boot effektiv zu befischen."
+    },
+    {
+      "name": "Lietzow (Kleiner Jasmunder Bodden)",
+      "typ": "spot",
+      "lat": 54.48339,
+      "lon": 13.5068,
+      "zielfisch": [
+        "Hecht",
+        "Barsch",
+        "Zander"
+      ],
+      "saison": "Ganzjährig",
+      "hinweis": "Krautreiches Flachwasser, sehr guter Hechtbestand im ufernahen Bereich."
+    },
+    {
+      "name": "Sassnitz Ostmole",
+      "typ": "hafen",
+      "lat": 54.50601,
+      "lon": 13.63734,
+      "zielfisch": [],
+      "saison": "",
+      "hinweis": "Angeln ausschließlich vom Leuchtturm bis zum 3. Wendehammer, 00:00–10:00 Uhr. Außerhalb dieser Zeiten striktes Angelverbot."
+    },
+    {
+      "name": "Wiek Marina",
+      "typ": "hafen",
+      "lat": 54.62119,
+      "lon": 13.28426,
+      "zielfisch": [],
+      "saison": "",
+      "hinweis": "Anerkannter Anlandeort und Winterlagerbereich. Angeln im Sportboothafen in der Hauptsaison untersagt. Ausgabeort für Fangtagebücher."
+    },
+    {
+      "name": "Altefähr (Flachwasser)",
+      "typ": "spot",
+      "lat": 54.33002,
+      "lon": 13.12619,
+      "zielfisch": [
+        "Meerforelle",
+        "Hornhecht",
+        "Barsch"
+      ],
+      "saison": "April–Juni",
+      "hinweis": "Sandiges Plateau mit Steinen, exzellentes Revier für Watangler."
+    },
+    {
+      "name": "Rügendamm (Stralsund)",
+      "typ": "spot",
+      "lat": 54.30684,
+      "lon": 13.10995,
+      "zielfisch": [
+        "Hering",
+        "Barsch"
+      ],
+      "saison": "Frühjahr",
+      "hinweis": "Achtung: Angeln direkt von den Brückenbauwerken des Rügendamms ist streng verboten!"
+    },
+    {
+      "name": "Stralsunder Hafen (Winterlager)",
+      "typ": "hafen",
+      "lat": 54.31728,
+      "lon": 13.09469,
+      "zielfisch": [
+        "Hecht",
+        "Zander",
+        "Barsch"
+      ],
+      "saison": "12.10.–10.03. (Winterlager)",
+      "hinweis": "Winterlager-Sonderregelung: Angeln nur 10:00–18:00 Uhr, Nachtangeln verboten. Nur 1 Handangel mit Einzelhaken (max. 9mm Hakenbogen). Drop-Shot: Köder min. 10cm, Abstand Blei-Haken min. 50cm. Naturköder nur an feststehender Pose. Tageslimit: 1 Hecht, 2 Zander, 6 Barsche. Fangtagebuchpflicht. Boote müssen im Strelasund verankert sein."
+    },
+    {
+      "name": "Palmer Ort (Südrügen)",
+      "typ": "spot",
+      "lat": 54.22082,
+      "lon": 13.39363,
+      "zielfisch": [
+        "Meerforelle",
+        "Hornhecht"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Weit ins Wasser ragende Sand- und Steinnase. Klassisches Watangelrevier."
+    },
+    {
+      "name": "Gahlkower Haken (Festland)",
+      "typ": "spot",
+      "lat": 54.12169,
+      "lon": 13.54942,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "März–Mai",
+      "hinweis": "Flacher Mischgrund mit großen Steinen, sehr beliebt bei Spinnfischern."
+    },
+    {
+      "name": "Lubmin (Strand & Seebrücke)",
+      "typ": "spot",
+      "lat": 54.1322,
+      "lon": 13.61379,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht"
+      ],
+      "saison": "Spätsommer/Herbst",
+      "hinweis": "Sandbänke. Seebrückenangeln in der Hauptsaison nur nachts (21:00–07:00 Uhr) erlaubt."
+    },
+    {
+      "name": "Lauterbach (Kommunal-/Yachthafen)",
+      "typ": "hafen",
+      "lat": 54.3436,
+      "lon": 13.50006,
+      "zielfisch": [],
+      "saison": "",
+      "hinweis": "Ganzjähriges, absolutes Angelverbot im gesamten Hafen- und Yachthafenbereich."
+    },
+    {
+      "name": "Freest Fischereihafen",
+      "typ": "hafen",
+      "lat": 54.13732,
+      "lon": 13.72963,
+      "zielfisch": [],
+      "saison": "",
+      "hinweis": "Strenge Sicherheitsabstände zu Anlegern der Berufsfischerei. Verbindlicher Fisch-Anlandeort."
+    },
+    {
+      "name": "Lassaner Bucht (Achterwasser)",
+      "typ": "spot",
+      "lat": 53.9562,
+      "lon": 13.86259,
+      "zielfisch": [
+        "Zander",
+        "Barsch"
+      ],
+      "saison": "Sommer/Herbst",
+      "hinweis": "Übergang zum Peenestrom, tiefere Rinnen bieten Schutz bei Ostwind."
+    },
+    {
+      "name": "Lieper Winkel",
+      "typ": "spot",
+      "lat": 53.95121,
+      "lon": 13.9386,
+      "zielfisch": [
+        "Hecht",
+        "Zander"
+      ],
+      "saison": "Oktober/November",
+      "hinweis": "Abfallende Kanten unweit des Schilfgürtels, nur vom Boot befischbar."
+    },
+    {
+      "name": "Gnitz (Halbinsel)",
+      "typ": "spot",
+      "lat": 54.02542,
+      "lon": 13.89069,
+      "zielfisch": [
+        "Barsch",
+        "Hecht"
+      ],
+      "saison": "Sommer",
+      "hinweis": "Steinigere Uferstrukturen im Norden des Achterwassers."
+    },
+    {
+      "name": "Krummin (Naturhafen)",
+      "typ": "hafen",
+      "lat": 54.04684,
+      "lon": 13.84803,
+      "zielfisch": [],
+      "saison": "",
+      "hinweis": "Ganzjähriges, vollständiges Angelverbot."
+    },
+    {
+      "name": "Seebrücke Koserow",
+      "typ": "hafen",
+      "lat": 54.05987,
+      "lon": 14.00007,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht"
+      ],
+      "saison": "Spätsommer/Herbst",
+      "hinweis": "Angeln ausschließlich in den Nachtstunden von 20:00–08:00 Uhr gestattet."
+    },
+    {
+      "name": "Zecheriner Brücke (Peenestrom)",
+      "typ": "spot",
+      "lat": 53.86575,
+      "lon": 13.82854,
+      "zielfisch": [
+        "Zander",
+        "Barsch",
+        "Hecht"
+      ],
+      "saison": "Sommer/Herbst",
+      "hinweis": "Brückenpfeiler erzeugen starke Strömungswirbel, exzellenter Einstand für Räuber."
+    },
+    {
+      "name": "Rankwitz (Fahrrinnenkante)",
+      "typ": "spot",
+      "lat": 53.94596,
+      "lon": 13.92582,
+      "zielfisch": [
+        "Zander",
+        "Barsch"
+      ],
+      "saison": "September–November",
+      "hinweis": "Sehr steile Kanten direkt vor dem Hafenbecken. Nur vom Boot fischbar."
+    },
+    {
+      "name": "Peenemündung (Südteil)",
+      "typ": "spot",
+      "lat": 54.13812,
+      "lon": 13.72016,
+      "zielfisch": [
+        "Hecht",
+        "Barsch"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Übergang zum Greifswalder Bodden. Achtung: ganzjährige Angelverbote in NSG-Zonen (Peenemünder Haken–Struck) beachten!"
+    },
+    {
+      "name": "Wolgaster Hafen (Winterlager)",
+      "typ": "hafen",
+      "lat": 54.0531,
+      "lon": 13.78456,
+      "zielfisch": [
+        "Hecht",
+        "Zander",
+        "Barsch"
+      ],
+      "saison": "01.11.–31.03. (Winterlager)",
+      "hinweis": "Winterlager-Sonderregelung (analog Stralsund): Angeln nur 10:00–18:00 Uhr. Einzelhaken-Pflicht, Drop-Shot-Regelung (min. 10cm Köder, min. 50cm Abstand zum Blei), Posenpflicht bei Naturködern. Tageslimit: 1 Hecht, 2 Zander, 6 Barsche. Fangtagebuchpflicht."
+    },
+    {
+      "name": "Ueckermündung",
+      "typ": "spot",
+      "lat": 53.73711,
+      "lon": 14.04589,
+      "zielfisch": [
+        "Zander",
+        "Barsch",
+        "Brassen"
+      ],
+      "saison": "Herbst/Winter",
+      "hinweis": "Mündungsbereich mit Steinpackungen. Ab der Straßenbrücke gilt Küstenrecht."
+    },
+    {
+      "name": "Altwarp (Buhnen & Sandbänke)",
+      "typ": "spot",
+      "lat": 53.74301,
+      "lon": 14.26303,
+      "zielfisch": [
+        "Barsch",
+        "Plattfisch"
+      ],
+      "saison": "Sommer",
+      "hinweis": "Strukturreicher Bereich im östlichsten Teil des deutschen Haffgebietes."
+    },
+    {
+      "name": "Kamminke (Hafenmole)",
+      "typ": "spot",
+      "lat": 53.86845,
+      "lon": 14.20655,
+      "zielfisch": [
+        "Zander",
+        "Barsch"
+      ],
+      "saison": "Sommer",
+      "hinweis": "Einer der wenigen guten Uferplätze direkt an der Grenze zu Polen."
+    },
+    {
+      "name": "Kamp (Wasserwanderrastplatz)",
+      "typ": "hafen",
+      "lat": 53.7384,
+      "lon": 14.11383,
+      "zielfisch": [],
+      "saison": "",
+      "hinweis": "Ganzjähriges, vollständiges Angelverbot im gesamten Hafen- und Stegbereich."
+    },
+    {
+      "name": "Ueckermünde Hafen",
+      "typ": "hafen",
+      "lat": 53.73653,
+      "lon": 14.05055,
+      "zielfisch": [],
+      "saison": "",
+      "hinweis": "Temporäre Fischschonbezirke im Mündungsbereich der Uecker. Einschränkungen bezüglich Angeln im Fahrwasser der Berufsschifffahrt."
+    },
+    {
+      "name": "Kap Arkona (Rügen)",
+      "typ": "spot",
+      "lat": 54.6794,
+      "lon": 13.43323,
+      "zielfisch": [
+        "Meerforelle",
+        "Lachs"
+      ],
+      "saison": "Frühjahr/Spätherbst",
+      "hinweis": "Extrem steiniges, exponiertes Riff. Sehr starke Strömung, anspruchsvolles Watangeln."
+    },
+    {
+      "name": "Glowe (Königsörn-Riff)",
+      "typ": "spot",
+      "lat": 54.56988,
+      "lon": 13.47127,
+      "zielfisch": [
+        "Meerforelle",
+        "Lachs"
+      ],
+      "saison": "Februar–Mai",
+      "hinweis": "Sandige Bucht geht in steinige Riffe über. Sehr beliebtes Trolling-Revier. Lachs nur mit gültiger EU-Sonderregel (1 Satzfisch/Tag, Fettflosse geschnitten)."
+    },
+    {
+      "name": "Buhnenfelder Wustrow",
+      "typ": "spot",
+      "lat": 54.34855,
+      "lon": 12.39473,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht"
+      ],
+      "saison": "Herbst (Brandung), Mai",
+      "hinweis": "Tiefe Rinnen zwischen den langen Holzbuhnen, erstklassig für Brandungsangler."
+    },
+    {
+      "name": "Seebrücke Heringsdorf (Usedom)",
+      "typ": "hafen",
+      "lat": 53.95611,
+      "lon": 14.1698,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht"
+      ],
+      "saison": "Spätsommer/Herbst",
+      "hinweis": "Sandbänke. Angeln ganzjährig erst ab 20:00 Uhr bis zum Beginn des Schiffsverkehrs erlaubt."
+    },
+    {
+      "name": "Kühlungsborn Bootshafen",
+      "typ": "hafen",
+      "lat": 54.15113,
+      "lon": 11.77038,
+      "zielfisch": [],
+      "saison": "",
+      "hinweis": "01.08.–28.02.: vollständiges Angelverbot auf allen Molen und im gesamten Hafenbereich (Mündungsschutz Bollhäger Fließ). Seebrücke: Hauptsaison 19:00–07:00 Uhr, Nebensaison 16:00–07:00 Uhr."
+    },
+    {
+      "name": "Ostsee (Ahrenshoop)",
+      "typ": "meerforelle_community",
+      "lat": 54.37895,
+      "lon": 12.41919,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Flunder, Hornhecht, Scholle, Dorsch, und 4 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-ahrenshoop"
+    },
+    {
+      "name": "Ostsee (Beckerwitz)",
+      "typ": "meerforelle_community",
+      "lat": 53.93162,
+      "lon": 11.33002,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Hornhecht, Meerforelle, Dorsch. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-beckerwitz"
+    },
+    {
+      "name": "Ostsee (Binz)",
+      "typ": "meerforelle_community",
+      "lat": 54.40103,
+      "lon": 13.60765,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Flunder, Dorsch, Meerforelle, Hering, Scholle, und 5 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-binz"
+    },
+    {
+      "name": "Ostsee (Boltenhagen)",
+      "typ": "meerforelle_community",
+      "lat": 53.98642,
+      "lon": 11.20592,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Hornhecht, Dorsch, Flunder, Scholle, und 7 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-boltenhagen"
+    },
+    {
+      "name": "Ostsee (Dierhagen)",
+      "typ": "meerforelle_community",
+      "lat": 54.2919,
+      "lon": 12.35191,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Hornhecht, Meerforelle, Scholle, Flunder, Dorsch, und 1 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-dierhagen"
+    },
+    {
+      "name": "Ostsee (Dranske)",
+      "typ": "meerforelle_community",
+      "lat": 54.63064,
+      "lon": 13.22966,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Hornhecht, Dorsch, Flunder, Scholle, und 10 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-dranske"
+    },
+    {
+      "name": "Ostsee (Elmenhorst-Lichtenhagen)",
+      "typ": "meerforelle_community",
+      "lat": 54.1509,
+      "lon": 11.99981,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Hornhecht, Dorsch, Flunder, Scholle, und 10 weitere Fischarten. Gast-/Tageskarte: Gastkarten verfügbar, Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-elmenhorst-lichtenhagen"
+    },
+    {
+      "name": "Ostsee (Heiligendamm)",
+      "typ": "meerforelle_community",
+      "lat": 54.14237,
+      "lon": 11.8422,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Flunder, Scholle, Meerforelle, Dorsch, Hornhecht, und 8 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-heiligendamm"
+    },
+    {
+      "name": "Ostsee (Hiddensee)",
+      "typ": "meerforelle_community",
+      "lat": 54.5316,
+      "lon": 13.09492,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Dorsch, Scholle, Hornhecht, Flunder, und 7 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-hiddensee"
+    },
+    {
+      "name": "Ostsee (Lobbe)",
+      "typ": "meerforelle_community",
+      "lat": 54.31857,
+      "lon": 13.7195,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Hornhecht, Meerforelle. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-lobbe"
+    },
+    {
+      "name": "Ostsee (Lohme)",
+      "typ": "meerforelle_community",
+      "lat": 54.58296,
+      "lon": 13.61096,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Lachs, Dorsch, Hornhecht. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-lohme"
+    },
+    {
+      "name": "Ostsee (Markgrafenheide)",
+      "typ": "meerforelle_community",
+      "lat": 54.19477,
+      "lon": 12.1479,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Flunder, Dorsch, Scholle, Hornhecht, Meerforelle, und 6 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-markgrafenheide"
+    },
+    {
+      "name": "Ostsee (Mukran)",
+      "typ": "meerforelle_community",
+      "lat": 54.49862,
+      "lon": 13.58886,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Flunder, Dorsch, Hornhecht, Scholle, und 1 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-mukran"
+    },
+    {
+      "name": "Ostsee (Poel-Schwarzer Busch)",
+      "typ": "meerforelle_community",
+      "lat": 54.0136,
+      "lon": 11.43249,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Hornhecht, Flunder, Dorsch, Meerforelle, Scholle, und 3 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-poel-schwarzer-busch"
+    },
+    {
+      "name": "Ostsee (Poel-Timmendorf)",
+      "typ": "meerforelle_community",
+      "lat": 53.98689,
+      "lon": 11.39802,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Hornhecht, Dorsch, Meerforelle, Schwarzmund-Grundel, Scholle, und 4 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-poel-timmendorf"
+    },
+    {
+      "name": "Ostsee (Prora)",
+      "typ": "meerforelle_community",
+      "lat": 54.43719,
+      "lon": 13.57668,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Dorsch, Flunder, Meerforelle, Flussbarsch, Hornhecht, und 5 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-prora"
+    },
+    {
+      "name": "Ostsee (Putgarten)",
+      "typ": "meerforelle_community",
+      "lat": 54.67286,
+      "lon": 13.41592,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Dorsch, Lachs, Flunder, Hornhecht, und 7 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-putgarten"
+    },
+    {
+      "name": "Ostsee (Schwarbe)",
+      "typ": "meerforelle_community",
+      "lat": 54.66983,
+      "lon": 13.35353,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Flunder, Meerforelle, Dorsch. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-schwarbe"
+    },
+    {
+      "name": "Ostsee (Sellin)",
+      "typ": "meerforelle_community",
+      "lat": 54.37706,
+      "lon": 13.69428,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Flunder, Hornhecht, Scholle, Hering, und 2 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-sellin"
+    },
+    {
+      "name": "Ostsee (Thiessow)",
+      "typ": "meerforelle_community",
+      "lat": 54.27842,
+      "lon": 13.71008,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Hornhecht, Flussbarsch, Meerforelle, Hecht, Sonstiges. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-thiessow"
+    },
+    {
+      "name": "Ostsee (Usedom-Heringsdorf)",
+      "typ": "meerforelle_community",
+      "lat": 53.96955,
+      "lon": 14.13577,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Flunder, Meerforelle, Schwarzmund-Grundel, Hornhecht, Hering, und 6 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-usedom-heringsdorf"
+    },
+    {
+      "name": "Ostsee (Usedom-Karlshagen)",
+      "typ": "meerforelle_community",
+      "lat": 54.12343,
+      "lon": 13.83791,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Hornhecht, Flunder, Meerforelle, Flussbarsch, Hering. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-usedom-karlshagen"
+    },
+    {
+      "name": "Ostsee (Usedom-Koserow)",
+      "typ": "meerforelle_community",
+      "lat": 54.05855,
+      "lon": 14.00005,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Flunder, Hornhecht. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-usedom-koserow"
+    },
+    {
+      "name": "Ostsee (Usedom-Zinnowitz)",
+      "typ": "meerforelle_community",
+      "lat": 54.08154,
+      "lon": 13.9131,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Hornhecht, Flunder, Meerforelle, Brachse, Flussbarsch. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-usedom-zinnowitz"
+    },
+    {
+      "name": "Ostsee (Warnkenhagen)",
+      "typ": "meerforelle_community",
+      "lat": 53.84054,
+      "lon": 12.45297,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Scholle, Hornhecht. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-warnkenhagen"
+    },
+    {
+      "name": "Ostsee (Wohlenberger Wiek)",
+      "typ": "meerforelle_community",
+      "lat": 53.95376,
+      "lon": 11.28287,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Hornhecht, Makrele, Meerforelle, Hering, Flunder, und 3 weitere Fischarten. Gast-/Tageskarte: Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-wohlenberger-wiek"
+    },
+    {
+      "name": "Ostsee (Zierow)",
+      "typ": "meerforelle_community",
+      "lat": 53.92641,
+      "lon": 11.37411,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Hornhecht, Meerforelle, Flunder, Makrele, Scholle. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-zierow"
+    },
+    {
+      "name": "Ostsee (Zingst)",
+      "typ": "meerforelle_community",
+      "lat": 54.43873,
+      "lon": 12.68214,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Flunder, Meerforelle, Hornhecht, Hering, Scholle, und 14 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle -- als Meerforelle-Hinweis zu verstehen, nicht als Rechtsquelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-zingst"
+    },
+    {
+      "name": "Ostsee (Börgerende)",
+      "typ": "meerforelle_community",
+      "lat": 54.14484,
+      "lon": 11.90575,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Flunder, Dorsch, Scholle, Meerforelle, Hornhecht, und 12 weitere Fischarten. Gast-/Tageskarte: Gastkarten verfügbar, Freies Gewässer. Crowd-Content, keine amtliche Quelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-b%C3%B6rgerende"
+    },
+    {
+      "name": "Ostsee (Graal-Müritz)",
+      "typ": "meerforelle_community",
+      "lat": 54.25527,
+      "lon": 12.25172,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Flunder, Scholle, Hornhecht, Dorsch, und 7 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-graal-m%C3%BCritz"
+    },
+    {
+      "name": "Ostsee (Göhren)",
+      "typ": "meerforelle_community",
+      "lat": 54.34066,
+      "lon": 13.74491,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Flunder, Meerforelle, Scholle, Dorsch, Hornhecht, und 4 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer, Gastkarten verfügbar. Crowd-Content, keine amtliche Quelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-g%C3%B6hren"
+    },
+    {
+      "name": "Ostsee (Kägsdorf)",
+      "typ": "meerforelle_community",
+      "lat": 54.13765,
+      "lon": 11.67913,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Dorsch, Flunder, Scholle, Hornhecht, und 6 weitere Fischarten. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-k%C3%A4gsdorf"
+    },
+    {
+      "name": "Ostsee (Usedom-Ückeritz)",
+      "typ": "meerforelle_community",
+      "lat": 54.00031,
+      "lon": 14.05819,
+      "zielfisch": [
+        "Meerforelle"
+      ],
+      "saison": "",
+      "hinweis": "Community-Fangmeldung (alle-angeln.de): Meerforelle, Hornhecht, Flunder. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle.",
+      "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-usedom-%C3%BCckeritz"
+    }
   ]
 }

@@ -228,10 +228,12 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
 .spot-marker{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.3);
              display:flex;align-items:center;justify-content:center;background:var(--kueste)}
 .spot-marker.type-hafen{background:var(--danger)}
+.spot-marker.type-meerforelle_community{background:var(--sal)}
 .spot-marker-inner{font-size:11px;line-height:1}
 .spot-popup{max-width:220px;font-size:.82rem;line-height:1.4}
 .spot-popup strong{display:block;margin-bottom:2px}
 .spot-popup .spot-fisch,.spot-popup .spot-saison{color:var(--d);margin-top:2px}
+.spot-popup .spot-community{color:var(--sal);margin-top:2px;font-size:.75rem}
 .spot-popup .spot-hinweis{margin-top:4px}
 #spotsBtn.active{border-color:var(--kueste);color:var(--kueste);background:rgba(209,120,42,.12)}
 /* Fließgewässer Polyline */
@@ -686,7 +688,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.23.0";
+const APP_VERSION = "4.23.2";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -2921,7 +2923,7 @@ function loadCSV(){
 // Eigenständige Datenquelle, kein Bezug zu gewaesser.json/activeFilters/inProfileScope
 // -- bewusst NICHT ins Chip-Filter-System eingehängt (eigener Toggle-Button stattdessen).
 function makeSpotIcon(spot){
-  var e = spot.typ==='hafen' ? '⚓' : '🐟';
+  var e = spot.typ==='hafen' ? '⚓' : spot.typ==='meerforelle_community' ? '🌊' : '🐟';
   return L.divIcon({className:'',
     html:'<div class="spot-marker type-'+spot.typ+'"><div class="spot-marker-inner">'+e+'</div></div>',
     iconSize:[22,22], iconAnchor:[11,22], popupAnchor:[0,-22]});
@@ -2929,7 +2931,8 @@ function makeSpotIcon(spot){
 function renderSpotPopup(spot){
   var fischHtml = (spot.zielfisch&&spot.zielfisch.length) ? '<div class="spot-fisch">🎯 '+escHtml(spot.zielfisch.join(', '))+'</div>' : '';
   var saisonHtml = spot.saison ? '<div class="spot-saison">📅 '+escHtml(spot.saison)+'</div>' : '';
-  return '<div class="spot-popup"><strong>'+escHtml(spot.name)+'</strong>'+fischHtml+saisonHtml+
+  var communityHtml = spot.typ==='meerforelle_community' ? '<div class="spot-community">👥 Community-Hinweis (alle-angeln.de), keine amtliche Quelle</div>' : '';
+  return '<div class="spot-popup"><strong>'+escHtml(spot.name)+'</strong>'+fischHtml+saisonHtml+communityHtml+
          '<div class="spot-hinweis">'+escHtml(spot.hinweis)+'</div></div>';
 }
 function loadKuestenSpots(){
