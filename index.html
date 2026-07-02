@@ -865,7 +865,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.27.0";
+const APP_VERSION = "4.27.1";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -919,7 +919,7 @@ FISH_DEF.forEach(function(f){ if(f.png) FISH_PNG_MAP[f.key] = f.png; });
 var FISH_ICON_FILTER = {
   hecht:             'sepia(1) hue-rotate(100deg) saturate(3.5) brightness(2.2)',  // Schilfgrün
   zander:            'sepia(1) hue-rotate(48deg)  saturate(3.5) brightness(2.6)',  // Sandoliv/Gold
-  barsch:            'sepia(1) hue-rotate(82deg)  saturate(3.0) brightness(2.0)',  // Moosgrün
+  barsch:            'sepia(1) hue-rotate(150deg) saturate(3.2) brightness(2.0)',  // Petrolgrün (03.07. abgesetzt von Hecht/Zander, war zu ähnlich)
   wels:              'sepia(1) hue-rotate(15deg)  saturate(1.5) brightness(2.0)',  // Dunkelbraun
   aal:               'sepia(0.8)                               brightness(1.8)',   // Anthrazit
   karpfen:           'sepia(1) hue-rotate(18deg)  saturate(3.0) brightness(2.4)',  // Bronze/Ocker
@@ -933,13 +933,21 @@ var FISH_ICON_FILTER = {
   weissfisch:        'sepia(1) hue-rotate(205deg) saturate(2.0) brightness(1.8)',  // Silbergrau
   regenbogenforelle: 'sepia(1) hue-rotate(350deg) saturate(4.0) brightness(2.5)',  // Lachsrosa (Salmonid, extrapoliert)
   meerforelle:       'sepia(1) hue-rotate(310deg) saturate(4.0) brightness(2.4)',  // Graurosa (Salmonid, extrapoliert)
+  // Neue PNG-Icons vom 02.07.2026 (Meeresarten + Barbe) hatten noch keinen Filter-
+  // Eintrag -- liefen deshalb ungefärbt/zu dunkel im Dark-Theme. 03.07. ergänzt.
+  hering:            'sepia(1) hue-rotate(170deg) saturate(3.0) brightness(2.3)',  // Silbertürkis
+  plattfisch:        'sepia(1) hue-rotate(185deg) saturate(1.6) brightness(2.0)',  // Sandbraun, bewusst blass/matt
+  dorsch:            'sepia(1) hue-rotate(222deg) saturate(3.0) brightness(2.1)',  // Stahlblau-Grau
+  hornhecht:         'sepia(1) hue-rotate(240deg) saturate(3.2) brightness(2.2)',  // Kobaltblau
+  makrele:           'sepia(1) hue-rotate(260deg) saturate(3.5) brightness(2.2)',  // Blauviolett
+  barbe:             'sepia(1) hue-rotate(357deg) saturate(3.5) brightness(2.4)',  // Bronzegold
 };
 
 // CSS-Filter für Outdoor-Theme (heller Hintergrund → dunklere, sattere Werte)
 var FISH_ICON_FILTER_OUTDOOR = {
   hecht:              'sepia(1) hue-rotate(100deg) saturate(4.0) brightness(0.85)',
   zander:             'sepia(1) hue-rotate(48deg)  saturate(4.0) brightness(0.80)',
-  barsch:             'sepia(1) hue-rotate(82deg)  saturate(3.5) brightness(0.80)',
+  barsch:             'sepia(1) hue-rotate(150deg) saturate(3.6) brightness(0.78)',
   wels:               'sepia(1) hue-rotate(15deg)  saturate(2.0) brightness(0.75)',
   aal:                'sepia(0.9)                               brightness(0.60)',
   karpfen:            'sepia(1) hue-rotate(18deg)  saturate(3.5) brightness(0.80)',
@@ -953,6 +961,12 @@ var FISH_ICON_FILTER_OUTDOOR = {
   weissfisch:         'sepia(1) hue-rotate(205deg) saturate(2.5) brightness(0.75)',
   regenbogenforelle:  'sepia(1) hue-rotate(350deg) saturate(4.5) brightness(0.80)',
   meerforelle:        'sepia(1) hue-rotate(310deg) saturate(4.0) brightness(0.78)',
+  hering:             'sepia(1) hue-rotate(170deg) saturate(3.4) brightness(0.80)',
+  plattfisch:         'sepia(1) hue-rotate(185deg) saturate(1.8) brightness(0.72)',
+  dorsch:             'sepia(1) hue-rotate(222deg) saturate(3.4) brightness(0.78)',
+  hornhecht:          'sepia(1) hue-rotate(240deg) saturate(3.6) brightness(0.80)',
+  makrele:            'sepia(1) hue-rotate(260deg) saturate(4.0) brightness(0.80)',
+  barbe:              'sepia(1) hue-rotate(357deg) saturate(4.0) brightness(0.82)',
 };
 
 function fishIconHtml(key, cssClass) {
@@ -1126,6 +1140,7 @@ function _fbStartListening(){
 
 function openFangbuchPanel(){
   if(!_fbRequireAuth()) return;
+  document.getElementById('authPopover').classList.remove('show'); // sonst deckt das Konto-Popover das Panel ab
   _fbState.view = 'list';
   _fbStartListening();
   _fbRenderList();
@@ -1135,6 +1150,7 @@ function openFangbuchPanel(){
 
 function openAddCatchForm(row){
   if(!_fbRequireAuth()) return;
+  document.getElementById('authPopover').classList.remove('show'); // sonst deckt das Konto-Popover das Panel ab
   _fbState.view = 'form';
   _fbState.gewaesserNr = (row && row.Gewässer_Nr) || '';
   _fbState.gewaesserName = (row && row.Gewässername) || 'Unbekanntes Gewässer';
@@ -1265,11 +1281,11 @@ function _fbRenderForm(){
     +    '<input class="f-input" type="datetime-local" id="fb-when" value="'+_fbNowLocal()+'">'
     +  '</div>'
     +  '<div class="two-col">'
-    +    '<div class="field"><span class="f-label">Gewicht</span>'
-    +      '<div class="unit-wrap"><input class="f-input" id="fb-kg" type="number" inputmode="decimal" min="0" step="0.1" placeholder="z.B. 4.2"><span class="unit">kg</span></div>'
-    +    '</div>'
     +    '<div class="field"><span class="f-label">Länge</span>'
     +      '<div class="unit-wrap"><input class="f-input" id="fb-cm" type="number" inputmode="numeric" min="0" step="1" placeholder="z.B. 89"><span class="unit">cm</span></div>'
+    +    '</div>'
+    +    '<div class="field"><span class="f-label">Gewicht</span>'
+    +      '<div class="unit-wrap"><input class="f-input" id="fb-kg" type="number" inputmode="decimal" min="0" step="0.1" placeholder="z.B. 4.2"><span class="unit">kg</span></div>'
     +    '</div>'
     +  '</div>'
     +  '<div class="field">'
