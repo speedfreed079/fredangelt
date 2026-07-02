@@ -734,18 +734,18 @@ body.outdoor .warn-box strong{color:var(--warn)}
       <div class="auth-tab on" id="authTabLogin">Anmelden</div>
       <div class="auth-tab" id="authTabRegister">Registrieren</div>
     </div>
-    <div class="auth-view on" id="authFormLogin">
+    <form class="auth-view on" id="authFormLogin" autocomplete="off" onsubmit="handleAuthLogin(); return false;">
       <input type="email" class="auth-input" id="authLoginEmail" placeholder="E-Mail" autocomplete="username">
       <input type="password" class="auth-input" id="authLoginPw" placeholder="Passwort" autocomplete="current-password">
-      <button class="btn-primary" onclick="handleAuthLogin()">Anmelden</button>
-    </div>
-    <div class="auth-view" id="authFormRegister">
+      <button class="btn-primary" type="submit">Anmelden</button>
+    </form>
+    <form class="auth-view" id="authFormRegister" autocomplete="off" onsubmit="handleAuthRegister(); return false;">
       <div style="font-size:.68rem;color:var(--d);text-align:center;margin-bottom:2px">🔒 Registrierung aktuell nur auf Einladung (geschlossene Testphase)</div>
       <input type="email" class="auth-input" id="authRegEmail" placeholder="E-Mail" autocomplete="username">
       <input type="password" class="auth-input" id="authRegPw" placeholder="Passwort (min. 6 Zeichen)" autocomplete="new-password">
       <input type="text" class="auth-input" id="authRegUsername" placeholder="Benutzername (3-20 Zeichen)" autocomplete="off">
-      <button class="btn-primary" onclick="handleAuthRegister()">Registrieren</button>
-    </div>
+      <button class="btn-primary" type="submit">Registrieren</button>
+    </form>
     <button class="btn-secondary" onclick="handleAuthGoogle()">Mit Google anmelden</button>
     <div class="warn-box" id="authError" style="display:none;margin-top:2px"></div>
   </div>
@@ -865,7 +865,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.27.1";
+const APP_VERSION = "4.27.2";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -3596,8 +3596,7 @@ function makeSpotIcon(spot){
 function renderSpotPopup(spot){
   var fischHtml = (spot.zielfisch&&spot.zielfisch.length) ? '<div class="spot-fisch">🎯 '+escHtml(spot.zielfisch.join(', '))+'</div>' : '';
   var saisonHtml = spot.saison ? '<div class="spot-saison">📅 '+escHtml(spot.saison)+'</div>' : '';
-  var communityHtml = spot.typ==='meerforelle_community' ? '<div class="spot-community">👥 Community-Hinweis (alle-angeln.de), keine amtliche Quelle</div>' : '';
-  return '<div class="spot-popup"><strong>'+escHtml(spot.name)+'</strong>'+fischHtml+saisonHtml+communityHtml+
+  return '<div class="spot-popup"><strong>'+escHtml(spot.name)+'</strong>'+fischHtml+saisonHtml+
          '<div class="spot-hinweis">'+escHtml(spot.hinweis)+'</div></div>';
 }
 function loadKuestenSpots(){
@@ -3655,9 +3654,6 @@ function openSpotPanel(spot){
     '<span class="meta-pill mp-still">📅 '+escHtml(spot.saison)+'</span>' : '';
 
   var warn = '';
-  if(spot.typ==='meerforelle_community'){
-    warn += '<div class="warn-box" style="background:rgba(108,99,192,.08);border-color:rgba(108,99,192,.35);color:#c4bff5;">👥 <strong>Community-Hinweis</strong> (alle-angeln.de) — keine amtliche Quelle.</div>';
-  }
   if(spot.hinweis){
     warn += '<div class="warn-box" style="background:rgba(192,159,42,.08);border-color:rgba(192,159,42,.35);color:#e8d28a;">📌 '+escHtml(spot.hinweis)+'</div>';
   }
