@@ -864,7 +864,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.25.0";
+const APP_VERSION = "4.26.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -885,13 +885,15 @@ const FISH_DEF = [
   {key:'weissfisch',        label:'Weißfisch',         png:'assets/icons/icon_weissfisch_dark.png'},
   {key:'regenbogenforelle', label:'Regenbogenforelle', png:'assets/icons/icon_regenbogenforelle_dark.png'},
   {key:'meerforelle',       label:'Meerforelle',       png:'assets/icons/icon_meerforelle_dark.png'},
-  // Küsten-Meeresfischarten (02.07.2026, siehe schema_phase2.md 0.4) — noch kein
-  // PNG-Icon-Asset vorhanden, nutzen bewusst den Emoji-Fallback (icon-Feld statt png).
-  {key:'dorsch',            label:'Dorsch',            icon:'🐟'},
-  {key:'hering',            label:'Hering',            icon:'🐟'},
-  {key:'hornhecht',         label:'Hornhecht',         icon:'🐟'},
-  {key:'plattfisch',        label:'Plattfisch',        icon:'🐡'},
-  {key:'makrele',           label:'Makrele',           icon:'🐟'},
+  // Küsten-Meeresfischarten (02.07.2026, siehe schema_phase2.md 0.4) — PNG-Icons
+  // per nano-banana-pro erstellt und am 02.07.2026 eingebunden (iconsV2-Batch).
+  {key:'dorsch',            label:'Dorsch',            png:'assets/icons/icon_dorsch_dark.png'},
+  {key:'hering',            label:'Hering',            png:'assets/icons/icon_hering_dark.png'},
+  {key:'hornhecht',         label:'Hornhecht',         png:'assets/icons/icon_hornhecht_dark.png'},
+  {key:'plattfisch',        label:'Plattfisch',        png:'assets/icons/icon_plattfisch_dark.png'},
+  {key:'makrele',           label:'Makrele',           png:'assets/icons/icon_makrele_dark.png'},
+  // Friedfischart — bislang ohne Icon (siehe recherche_fischicons_bedarf_audit.md), jetzt PNG.
+  {key:'barbe',             label:'Barbe',             png:'assets/icons/icon_barbe_dark.png'},
 ];
 
 // Fischarten mit Beißindex-Score in der ActivityEngine (Zentrale Quelle — siehe ActivityEngine v3)
