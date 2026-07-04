@@ -863,7 +863,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.29.0";
+const APP_VERSION = "4.29.1";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1603,7 +1603,24 @@ function initMap() {
   // damit beim Verschieben nicht sofort an den Rändern geclippt wird.
   depthRenderer = L.canvas({padding:2});
   depthLayerGroup = L.layerGroup().addTo(map);
-  spotsLayerGroup = L.layerGroup(); // NICHT addTo(map) -- standardmäßig aus, per Toggle-Button einblendbar
+  // War bis 04.07.2026 ein einfaches L.layerGroup() ohne Clustering -- dadurch blieben
+  // die ~70+ Küsten-Spots (Häfen/Hotspots/Community, aus kuesten_spots.json/mefo_hotspots.json)
+  // beim Rauszoomen als Einzelmarker sichtbar, während die eigentlichen Gewässer-Marker
+  // (clusterGroup) sauber zusammenfassten -- fiel erst auf, als die Küsten-Spot-Ebene mit
+  // der Ostsee-Mehrfachauswahl standardmäßig an ging. Jetzt dieselbe Cluster-Optik wie
+  // clusterGroup, eigene Gruppe (getrennt von den Gewässer-Markern, da eigener Datentyp).
+  spotsLayerGroup = L.markerClusterGroup({
+    maxClusterRadius:50,spiderfyOnMaxZoom:true,
+    showCoverageOnHover:false,zoomToBoundsOnClick:true,
+    iconCreateFunction:function(cluster){
+      var c=cluster.getChildCount();
+      return L.divIcon({
+        html:'<div><span>'+c+'</span></div>',
+        className:'marker-cluster marker-cluster-'+(c<10?'small':c<100?'medium':'large'),
+        iconSize:L.point(40,40)
+      });
+    }
+  }); // NICHT addTo(map) -- Sichtbarkeit folgt applySpotsLayerVisibility()
   map.on('zoomend', updateDepthLabelVisibility);
   map.on('moveend', function(){
     if(!depthLayerGroup) return;
