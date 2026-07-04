@@ -262,6 +262,7 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
              display:flex;align-items:center;justify-content:center;background:var(--kueste)}
 .spot-marker.type-hafen{background:var(--danger)}
 .spot-marker.type-meerforelle_community{background:var(--sal)}
+.spot-marker.type-meerforelle_hotspot{background:var(--sal)}
 .spot-marker-inner{font-size:11px;line-height:1}
 .spot-popup{max-width:220px;font-size:.82rem;line-height:1.4}
 .spot-popup strong{display:block;margin-bottom:2px}
@@ -865,7 +866,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.27.4";
+const APP_VERSION = "4.28.2";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -3377,16 +3378,68 @@ function getRefCoords() {
 var suggestionIndex=-1;
 var _ortSearchTimer = null;
 
+// Ersetzt Umlaute/ß durch ASCII-Äquivalente, damit z.B. "muegelsee" (ohne
+// Umlaut-Taste eingetippt) trotzdem "Müggelsee" trifft.
+function normalizeSearch(str){
+  return (str||'').toLowerCase()
+    .replace(/ß/g,'ss').replace(/ü/g,'ue').replace(/ä/g,'ae').replace(/ö/g,'oe');
+}
+
+// Klassische Levenshtein-Distanz (iterative Zwei-Zeilen-DP) — Basis für den
+// Tippfehler-Fallback, wenn die Substring-Suche nichts oder wenig findet.
+function levenshteinDistance(a, b){
+  if (a === b) return 0;
+  var al = a.length, bl = b.length;
+  if (al === 0) return bl;
+  if (bl === 0) return al;
+  var prev = new Array(bl + 1), curr = new Array(bl + 1);
+  for (var j = 0; j <= bl; j++) prev[j] = j;
+  for (var i = 1; i <= al; i++) {
+    curr[0] = i;
+    for (var j = 1; j <= bl; j++) {
+      var cost = a.charAt(i-1) === b.charAt(j-1) ? 0 : 1;
+      curr[j] = Math.min(curr[j-1] + 1, prev[j] + 1, prev[j-1] + cost);
+    }
+    var tmp = prev; prev = curr; curr = tmp;
+  }
+  return prev[bl];
+}
+
 function showSuggestions(val){
   var box=document.getElementById('searchSuggestions');
   if(!val||val.length<2){box.style.display='none';return;}
 
-  // Gewässer-Treffer (lokal, sofort)
+  var search = normalizeSearch(val);
+
+  // Gewässer-Treffer (lokal, sofort) — normalisierter Substring-Vergleich
   var matches=allData.filter(function(r){
-    var gn=(r.Gewässername||'').toLowerCase().replace(/^(die|der|das)\s+/,'');
-    var search=val.toLowerCase();
-    return gn.includes(search)||(r.Gewässername||'').toLowerCase().includes(search)||(r.Gewässer_Nr||'').toLowerCase().includes(search);
+    var gn=normalizeSearch((r.Gewässername||'').replace(/^(die|der|das)\s+/i,''));
+    var full=normalizeSearch(r.Gewässername||'');
+    var nr=(r.Gewässer_Nr||'').toLowerCase();
+    return gn.includes(search)||full.includes(search)||nr.includes(search);
   }).slice(0,6);
+
+  // Tippfehler-Fallback: nur wenn die Substring-Suche wenig/nichts findet und
+  // der Suchbegriff lang genug ist (vermeidet Fehltreffer bei Kurzbegriffen).
+  // Schwelle wächst mit der Wortlänge, damit lange Namen mehr Toleranz haben.
+  if (matches.length < 6 && val.length >= 4) {
+    var threshold = search.length <= 5 ? 1 : (search.length <= 9 ? 2 : 3);
+    var already = {};
+    matches.forEach(function(r){ already[r.Gewässer_Nr] = true; });
+    var fuzzy = [];
+    allData.forEach(function(r){
+      if (already[r.Gewässer_Nr]) return;
+      var words = normalizeSearch(r.Gewässername||'').split(/[\s\-\/]+/).filter(Boolean);
+      var minDist = Infinity;
+      words.forEach(function(w){
+        var d = levenshteinDistance(search, w);
+        if (d < minDist) minDist = d;
+      });
+      if (minDist <= threshold) fuzzy.push({row:r, dist:minDist});
+    });
+    fuzzy.sort(function(a,b){return a.dist-b.dist;});
+    fuzzy.slice(0, 6 - matches.length).forEach(function(f){ matches.push(f.row); });
+  }
 
   var html = matches.map(function(r){
     return '<div class="suggestion-item" data-nr="'+escHtml(r.Gewässer_Nr)+'" data-type="gewaesser">'+
@@ -3588,7 +3641,7 @@ function loadCSV(){
 // Eigenständige Datenquelle, kein Bezug zu gewaesser.json/activeFilters/inProfileScope
 // -- bewusst NICHT ins Chip-Filter-System eingehängt (eigener Toggle-Button stattdessen).
 function makeSpotIcon(spot){
-  var e = spot.typ==='hafen' ? '⚓' : spot.typ==='meerforelle_community' ? '🌊' : '🐟';
+  var e = spot.typ==='hafen' ? '⚓' : spot.typ==='meerforelle_community' ? '🌊' : spot.typ==='meerforelle_hotspot' ? '🎯' : '🐟';
   return L.divIcon({className:'',
     html:'<div class="spot-marker type-'+spot.typ+'"><div class="spot-marker-inner">'+e+'</div></div>',
     iconSize:[22,22], iconAnchor:[11,22], popupAnchor:[0,-22]});
@@ -3610,6 +3663,20 @@ function loadKuestenSpots(){
       });
     })
     .catch(function(e){ console.error('kuesten_spots.json konnte nicht geladen werden:',e); });
+}
+// Kuratierte Meerforellen-Hotspots (07_Recherchen/Meerforellenangeln in Mecklenburg-Vorpommern.md) --
+// eigene Datei/Layer, ergänzt die dünnen meerforelle_community-Crowd-Spots aus kuesten_spots.json.
+function loadMefoHotspots(){
+  fetchWithTimeout('data/mefo_hotspots.json',15000)
+    .then(function(resp){ if(!resp.ok)throw new Error('HTTP '+resp.status); return resp.json(); })
+    .then(function(data){
+      (data.spots||[]).forEach(function(spot){
+        var m=L.marker([spot.lat,spot.lon],{icon:makeSpotIcon(spot)});
+        m.on('click',function(e){L.DomEvent.stopPropagation(e);openSpotPanel(spot);});
+        spotsLayerGroup.addLayer(m);
+      });
+    })
+    .catch(function(e){ console.error('mefo_hotspots.json konnte nicht geladen werden:',e); });
 }
 
 // Deutsche Zielfisch-Anzeigenamen (aus kuesten_spots.json) -> FISH_DEF-Key. null/fehlend =
@@ -3643,7 +3710,7 @@ function openSpotPanel(spot){
   _depthSelectedRow = null;
   updatePanelDepthLegend(null);
 
-  var typLabel = spot.typ==='hafen' ? 'Hafen' : spot.typ==='meerforelle_community' ? 'Community-Spot' : 'Spot';
+  var typLabel = spot.typ==='hafen' ? 'Hafen' : spot.typ==='meerforelle_community' ? 'Community-Spot' : spot.typ==='meerforelle_hotspot' ? 'Meerforellen-Hotspot' : 'Spot';
   document.getElementById('p-nr').textContent = typLabel;
   document.getElementById('p-name').textContent = spot.name;
 
@@ -3718,6 +3785,7 @@ function toggleSpotsLayer(){
 initMap();
 loadCSV();
 loadKuestenSpots();
+loadMefoHotspots();
 // GPS-Tracking automatisch starten (watchPosition — dauerhaft)
 startGpsTracking();
 </script>

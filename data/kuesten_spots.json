@@ -1,6 +1,7 @@
 {
   "_meta": {
-    "stand": "2026-07-02",
+    "stand": "2026-07-03",
+    "korrektur_03_07_2026": "'Ostsee (Warnkenhagen)' war auf das gleichnamige Binnen-Warnkenhagen (Mecklenburgische Schweiz, Lkr. Rostock, ~53.8405/12.4530, ~40km landeinwärts) fehlgeocodet -- Namenskollision, es gibt 3 Orte 'Warnkenhagen' in MV. Korrigiert auf das küstennahe Warnkenhagen bei Kalkhorst/Klützer Winkel (54.00038/11.08687), nahe dem mefo_hotspots.json-Eintrag 'Brooker Wald / Kalkhorst'.",
     "quelle": "07_Recherchen/Angelregeln Ostseeküste M-V 2026.md (Gemini DeepResearch), Teil 2",
     "zweck": "Spot-Marker-Layer für MV-Küstengewässer (schema_phase2.md Abschnitt 0.4). Separat von gewaesser.json -- kein vollwertiger Gewässer-Datensatz, wird per bindPopup() statt openPanel() gerendert. Siehe auch mefo_hotspots.json (kuratierte Meerforellen-Reviere, redaktionell recherchiert -- eigene Datei/Layer, kein Crowd-Content).",
     "typ_werte": "'spot' = benannter Angel-Hotspot, 'hafen' = Hafen mit fischereirechtlicher Sonderregel, 'meerforelle_community' = Crowd-Scrape alle-angeln.de (dünn, unkuratiert -- 4 Einträge am 02.07.2026 entfernt, da redundant zu neuen mefo_hotspots.json-Einträgen: Dranske, Lohme, Boltenhagen, Kägsdorf)"
@@ -754,8 +755,8 @@
     {
       "name": "Ostsee (Warnkenhagen)",
       "typ": "meerforelle_community",
-      "lat": 53.84054,
-      "lon": 12.45297,
+      "lat": 54.00038,
+      "lon": 11.08687,
       "zielfisch": [
         "Meerforelle"
       ],
