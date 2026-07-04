@@ -249,7 +249,6 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
 .gw-marker.type-sal{background:var(--sal)}
 .gw-marker.type-pacht{background:var(--pacht)}
 .gw-marker.type-sperr{background:var(--danger)}
-.gw-marker.type-kueste{background:var(--kueste)}
 .gw-marker.profile-dim{opacity:.32;filter:grayscale(60%)}
 .gw-marker-inner{transform:rotate(45deg);font-size:11px;line-height:1}
 .gw-marker .zk-badge{position:absolute;top:-4px;right:-4px;font-size:9px;
@@ -269,7 +268,6 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
 .spot-popup .spot-fisch,.spot-popup .spot-saison{color:var(--d);margin-top:2px}
 .spot-popup .spot-community{color:var(--sal);margin-top:2px;font-size:.75rem}
 .spot-popup .spot-hinweis{margin-top:4px}
-#spotsBtn.active{border-color:var(--kueste);color:var(--kueste);background:rgba(209,120,42,.12)}
 /* Fließgewässer Polyline */
 .fliess-line{stroke:#4fc3f7;stroke-width:2.5;stroke-opacity:.55;stroke-dasharray:6,4;fill:none}
 /* Dark-Basemap leicht aufhellen damit Gewässer sichtbar bleiben */
@@ -705,7 +703,6 @@ body.outdoor .warn-box strong{color:var(--warn)}
     </div>
     <div class="header-right">
       <button class="icon-btn" id="profileBtn" onclick="toggleProfilePopover()" title="Meine Angelkarte">🪪</button>
-      <button class="icon-btn" id="spotsBtn" onclick="toggleSpotsLayer()" title="Küsten-Spots (Hotspots &amp; Häfen)">⚓</button>
       <button class="icon-btn active" id="gpsBtn" onclick="zoomToGps()" title="Zum Standort zoomen">📍</button>
       <button class="icon-btn" id="listToggleBtn" onclick="toggleList()" title="Listenansicht">☰</button>
       <button class="icon-btn" id="howtoBtn" onclick="window.open('howto.html','_blank')" title="Hilfe / Howto">❓</button>
@@ -723,10 +720,10 @@ body.outdoor .warn-box strong{color:var(--warn)}
 </header>
 
 <div id="profilePopover">
-  <div class="profile-opt" data-profile="both"><span class="pc-check"></span>Beide Karten (Standard)</div>
-  <div class="profile-opt" data-profile="berlin"><span class="pc-check"></span>Nur Berlin (DAV)</div>
-  <div class="profile-opt" data-profile="brandenburg"><span class="pc-check"></span>Nur Brandenburg (LAVB)</div>
-  <div class="profile-opt" data-profile="mv"><span class="pc-check"></span>Nur MV (LAV MV)</div>
+  <div class="profile-opt" data-verband="dav_berlin"><span class="pc-check"></span>Berlin (DAV)</div>
+  <div class="profile-opt" data-verband="lavb"><span class="pc-check"></span>Brandenburg (LAVB)</div>
+  <div class="profile-opt" data-verband="lav_mv"><span class="pc-check"></span>MV-Binnen (LAV MV)</div>
+  <div class="profile-opt" data-verband="kueste_mv"><span class="pc-check"></span>Ostsee-Küstengewässer MV</div>
 </div>
 
 <div id="authPopover">
@@ -866,7 +863,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.28.2";
+const APP_VERSION = "4.29.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -990,32 +987,62 @@ let spotsLayerGroup=null; // Küsten-Spot-Marker (schema_phase2.md 0.4), standar
 let depthRenderer=null; // Eigener Canvas-Renderer (s.u. — robuster als SVG bei Zoom/Pan)
 let _depthDataPromise=null; // Cache: Promise auf tiefenlinien_pilot.json (einmalig laden)
 // ── Profil (Verband-Zugehörigkeit) ───────────────────────────────────────────
-// Neues Modell (siehe projektlog.md "🗺️ Bundesland-Erweiterung"): cardProfile ist
-// kein einzelner String mehr, sondern {verbände:[...], gf_marken:[...]}. verbände
-// = Verbände, für die der Nutzer eine reguläre Jahreskarte besitzt (z.B. 'lavb',
-// 'dav_berlin'). gf_marken = Bundesländer, in denen der Nutzer über eine
-// Gemeinsamer-Gewässerfonds-Marke gastfischt — strukturell vorhanden, aber noch
-// ohne Filterwirkung (Kreuzzugriffslogik LAVB→MV via GF-Marke folgt in einem
-// späteren Schritt, siehe projektlog.md).
-var PROFILE_PRESETS={
-  both:        {verbände:['lavb','dav_berlin'], gf_marken:[]},
-  berlin:      {verbände:['dav_berlin'],         gf_marken:[]},
-  brandenburg: {verbände:['lavb'],               gf_marken:[]},
-  mv:          {verbände:['lav_mv'],             gf_marken:[]}
-};
+// Modell (siehe projektlog.md "🗺️ Bundesland-Erweiterung" + "Ostsee als Bundesland"):
+// cardProfile = {verbände:[...], gf_marken:[...]}. verbände = Verbände, für die der
+// Nutzer eine reguläre Jahreskarte besitzt (z.B. 'lavb', 'dav_berlin', 'lav_mv',
+// 'kueste_mv') -- echte, unabhängige Mehrfachauswahl, kein Einzel-Preset mehr
+// (bis 04.07.2026 gab es nur die 4 festen Presets both/berlin/brandenburg/mv,
+// die sich gegenseitig ausschlossen; z.B. Brandenburg+MV gleichzeitig ging nicht).
+// gf_marken = Bundesländer, in denen der Nutzer über eine Gemeinsamer-Gewässerfonds-
+// Marke gastfischt — strukturell vorhanden, aber noch ohne Filterwirkung
+// (Kreuzzugriffslogik LAVB→MV via GF-Marke folgt in einem späteren Schritt).
+var PROFILE_OPTIONS=[
+  {verband:'dav_berlin', label:'Berlin (DAV)'},
+  {verband:'lavb',       label:'Brandenburg (LAVB)'},
+  {verband:'lav_mv',     label:'MV-Binnen (LAV MV)'},
+  {verband:'kueste_mv',  label:'Ostsee-Küstengewässer MV'}
+];
+// Entspricht dem, was vor der Mehrfachauswahl-Umstellung sichtbar war (Berlin+
+// Brandenburg als "Beide Karten"-Standard, Küste war immer an unabhängig vom
+// Profil) -- wichtig für die Migrationsregel unten, damit niemand nach dem Update
+// plötzlich Gewässer verliert, die vorher (ungefragt) sichtbar waren.
+var DEFAULT_VERBAENDE=['dav_berlin','lavb','kueste_mv'];
 function loadCardProfile(){
   var raw=localStorage.getItem('cardProfile');
-  if(raw==='both'||raw==='berlin'||raw==='brandenburg'){
-    // Migration: altes String-Format -> neues Objekt-Modell, Auswahl bleibt erhalten
-    var migrated=PROFILE_PRESETS[raw];
+  // Migration ältester Legacy-Werte (reiner String, vor dem {verbände:[...]}-Objektmodell).
+  // 'mv' gab es als Legacy-String nie -- nur both/berlin/brandenburg existierten.
+  var LEGACY_STRING_MAP={
+    both:['dav_berlin','lavb','kueste_mv'],
+    berlin:['dav_berlin'],
+    brandenburg:['lavb']
+  };
+  if(LEGACY_STRING_MAP[raw]){
+    var migrated={verbände:LEGACY_STRING_MAP[raw].slice(), gf_marken:[]};
     localStorage.setItem('cardProfile',JSON.stringify(migrated));
     return migrated;
   }
   try{
     var parsed=raw?JSON.parse(raw):null;
-    if(parsed&&Array.isArray(parsed.verbände))return parsed;
+    if(parsed&&Array.isArray(parsed.verbände)){
+      // Altes Preset-Objekt {verbände:['lavb','dav_berlin']} (der frühere "both"-
+      // Standard) bekommt beim ersten Laden 'kueste_mv' automatisch dazu, weil
+      // Küste vorher IMMER sichtbar war (Hardcode-Bypass in inProfileScope, jetzt
+      // entfernt) -- ohne diese Migration würden Bestandsnutzer die Küste beim
+      // Umstieg plötzlich verlieren. Bewusst verengte alte Profile (nur Berlin,
+      // nur Brandenburg, nur MV) bekommen 'kueste_mv' NICHT automatisch dazu --
+      // der Nutzer hat sich damals aktiv eingeschränkt, Küste ist eine neue,
+      // eigene Opt-in-Entscheidung, kein automatischer Zusatz.
+      var v=parsed.verbände;
+      var isOldBothPreset=v.length===2&&v.indexOf('lavb')!==-1&&v.indexOf('dav_berlin')!==-1&&v.indexOf('kueste_mv')===-1;
+      if(isOldBothPreset){
+        parsed.verbände=['dav_berlin','lavb','kueste_mv'];
+        localStorage.setItem('cardProfile',JSON.stringify(parsed));
+      }
+      if(!parsed.gf_marken)parsed.gf_marken=[];
+      return parsed;
+    }
   }catch(e){}
-  return PROFILE_PRESETS.both;
+  return {verbände:DEFAULT_VERBAENDE.slice(), gf_marken:[]};
 }
 let cardProfile=loadCardProfile();
 
@@ -1028,7 +1055,8 @@ function getRowVerband(row){
 // Gemeinsame Bereichs-Ermittlung für Schonzeit-Anzeigen (renderSchonzeitPanel +
 // ActivityEngine.getSchonzeitHint im Beiss-Score) -- 'kueste'/'mv' MÜSSEN vor dem Bereich===
 // 'Berlin'-Fallback geprüft werden, sonst fallen MV-Gewässer fälschlich auf Brandenburg-Werte
-// zurück (Bug bis 02.07.2026, siehe projektlog.md "Schonzeiten für MV").
+// zurück (Bug bis 02.07.2026, siehe projektlog.md "Schonzeiten für MV"). Unabhängig
+// von der Profil-Mehrfachauswahl -- regelt Fachlogik (Schonzeiten), nicht Sichtbarkeit.
 function panelBereichFor(row){
   if(!row) return 'brandenburg';
   if(getRowVerband(row)==='kueste_mv' || row.Bereich==='kueste') return 'kueste';
@@ -1039,43 +1067,37 @@ function inProfileScope(row){
   // 'privat' (Pacht-/Sperrgewässer, siehe schema_phase2.md 0.2) hat keinen LAVB/DAV-Bezug
   // und braucht daher unabhängig vom gewählten Profil eine eigene Karte -- immer im Scope.
   if(getRowVerband(row)==='privat')return true;
-  // 'kueste_mv' (Küstengewässer M-V, schema_phase2.md 0.4) läuft über eine eigene
-  // staatliche Erlaubnis, unabhängig vom Vereins-/GF-System -- ebenfalls immer im Scope.
-  if(getRowVerband(row)==='kueste_mv')return true;
+  // 'kueste_mv' läuft seit der Mehrfachauswahl-Umstellung (04.07.2026) wie jeder
+  // andere Verband über die normale Checkbox-Auswahl -- kein Hardcode-Bypass mehr.
   return cardProfile.verbände.indexOf(getRowVerband(row))!==-1;
 }
-function matchProfilePreset(profile){
-  for(var key in PROFILE_PRESETS){
-    var preset=PROFILE_PRESETS[key];
-    if(preset.verbände.length===profile.verbände.length&&
-       preset.verbände.every(function(v){return profile.verbände.indexOf(v)!==-1;})&&
-       (profile.gf_marken||[]).length===0){
-      return key;
-    }
-  }
-  return null;
-}
 function syncProfileUI(){
-  var active=matchProfilePreset(cardProfile);
-  document.getElementById('profileBtn').classList.toggle('active',active!=='both');
+  var isDefault=cardProfile.verbände.length===DEFAULT_VERBAENDE.length&&
+    DEFAULT_VERBAENDE.every(function(v){return cardProfile.verbände.indexOf(v)!==-1;});
+  document.getElementById('profileBtn').classList.toggle('active',!isDefault);
   document.querySelectorAll('.profile-opt').forEach(function(el){
-    var sel=el.getAttribute('data-profile')===active;
+    var sel=cardProfile.verbände.indexOf(el.getAttribute('data-verband'))!==-1;
     el.classList.toggle('sel',sel);
     el.querySelector('.pc-check').textContent=sel?'✓':'';
   });
 }
-function setCardProfile(presetKey){
-  cardProfile=PROFILE_PRESETS[presetKey];
+function toggleProfileVerband(verband){
+  var idx=cardProfile.verbände.indexOf(verband);
+  if(idx===-1)cardProfile.verbände.push(verband);
+  else cardProfile.verbände.splice(idx,1);
   localStorage.setItem('cardProfile',JSON.stringify(cardProfile));
   syncProfileUI();
-  document.getElementById('profilePopover').classList.remove('show');
   renderMarkers();
+  applySpotsLayerVisibility();
+  // Bewusst KEIN Schließen der Popover hier -- Mehrfachauswahl braucht mehrere
+  // Klicks nacheinander, anders als das frühere Radio-Verhalten (setCardProfile
+  // schloss die Popover nach jedem Klick, weil ein Klick = eine fertige Auswahl war).
 }
 function toggleProfilePopover(){
   document.getElementById('profilePopover').classList.toggle('show');
 }
 document.querySelectorAll('.profile-opt').forEach(function(el){
-  el.addEventListener('click',function(){setCardProfile(el.getAttribute('data-profile'));});
+  el.addEventListener('click',function(){toggleProfileVerband(el.getAttribute('data-verband'));});
 });
 document.addEventListener('click',function(e){
   var pop=document.getElementById('profilePopover'),btn=document.getElementById('profileBtn');
@@ -1791,7 +1813,9 @@ async function getDrivingInfo(toLat,toLon) {
 function markerType(row){
   if(row.gewässer_typ==='Sperrgewässer')return'sperr';
   if(row.gewässer_typ==='Pachtgewässer')return'pacht';
-  if(row.gewässer_typ==='Küstengewässer')return'kueste';
+  // Küstengewässer bekommen bewusst KEINEN eigenen Marker-Typ mehr -- sie fallen
+  // durch dieselbe Logik wie Binnengewässer (Meerforelle ist selbst ein Salmonide,
+  // daher reicht der bestehende ist_salmonide-Check unten).
   var nr=row.Gewässer_Nr||'';
   if(nr.startsWith('Salmo-')||row.ist_salmonide==='ja')return'sal';
   if(nr.match(/^V[CFP]/))return'vvg';
@@ -1799,7 +1823,7 @@ function markerType(row){
 }
 function makeIcon(row){
   var t=markerType(row);
-  var e=t==='sal'?'🌊':t==='pacht'?'💰':t==='sperr'?'🚫':t==='kueste'?'⚓':'🎣';
+  var e=t==='sal'?'🌊':t==='pacht'?'💰':t==='sperr'?'🚫':'🎣';
   var zk=row.zusatzkarte_pflicht==='ja'?'<span class="zk-badge">💳</span>':'';
   var dim=inProfileScope(row)?'':' profile-dim';
   var farbe=/^#[0-9a-f]{6}$/i.test(row.betreiber_farbe||'')?row.betreiber_farbe:'';
@@ -3771,18 +3795,18 @@ function openSpotPanel(spot){
   updateDepthLayer();
   map.flyTo([spot.lat, spot.lon], 14, {duration:.6});
 }
-function toggleSpotsLayer(){
-  var btn=document.getElementById('spotsBtn');
-  if(map.hasLayer(spotsLayerGroup)){
-    map.removeLayer(spotsLayerGroup);
-    if(btn) btn.classList.remove('active');
-  } else {
-    map.addLayer(spotsLayerGroup);
-    if(btn) btn.classList.add('active');
-  }
+// Ersetzt das frühere manuelle ⚓-Toggle -- die Sichtbarkeit des Küsten-Spot-Layers
+// (Häfen/Hotspots aus kuesten_spots.json) folgt jetzt direkt der 'kueste_mv'-Checkbox
+// im Profil-Popover statt einem eigenen Header-Button (04.07.2026, "Ostsee als Bundesland").
+function applySpotsLayerVisibility(){
+  if(!spotsLayerGroup) return; // initMap() noch nicht gelaufen
+  var shouldShow=cardProfile.verbände.indexOf('kueste_mv')!==-1;
+  if(shouldShow&&!map.hasLayer(spotsLayerGroup)) map.addLayer(spotsLayerGroup);
+  else if(!shouldShow&&map.hasLayer(spotsLayerGroup)) map.removeLayer(spotsLayerGroup);
 }
 
 initMap();
+applySpotsLayerVisibility(); // initialer Sync mit cardProfile (ersetzt "Layer startet immer aus")
 loadCSV();
 loadKuestenSpots();
 loadMefoHotspots();
