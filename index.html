@@ -11,7 +11,7 @@
 :root {
   --bg:#0b1117; --surface:#131b24; --surface2:#1a2535; --border:#243044;
   --t:#dde6f0; --d:#6b8099; --accent:#3d9970; --warn:#c0892a; --danger:#c03a2b;
-  --sal:#6c63c0; --pacht:#2a9fc0; --kueste:#d1782a; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono','Fira Mono',monospace;
+  --sal:#6c63c0; --pacht:#2a9fc0; --kueste:#d1782a; --mefo:#2f9e8a; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono','Fira Mono',monospace;
   --panel-w:380px; --safe-bottom:env(safe-area-inset-bottom,0px);
   /* Bundesland-Ringe um Gewässer-Marker/Cluster (nicht zu verwechseln mit --kueste,
      der Füllfarbe der Küsten-Spot-Marker) -- siehe makeIcon()/bundeslandKey() */
@@ -32,6 +32,7 @@ body.outdoor {
   --sal:      #4a3a8a;
   --pacht:    #1a7a9a;
   --kueste:   #b8621a;
+  --mefo:     #1f7a68;
   --bl-berlin:#dd9a2e; --bl-brandenburg:#3f8f5c; --bl-mv:#7a5cc9; --bl-kueste:#1f9fc4;
 }
 
@@ -269,9 +270,8 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
    klar von den normalen Gewässer-Markern (.gw-marker) unterscheidbar */
 .spot-marker{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.3);
              display:flex;align-items:center;justify-content:center;background:var(--kueste)}
-.spot-marker.type-hafen{background:var(--danger)}
-.spot-marker.type-meerforelle_community{background:var(--sal)}
-.spot-marker.type-meerforelle_hotspot{background:var(--sal)}
+.spot-marker.type-meerforelle_community{background:var(--mefo)}
+.spot-marker.type-meerforelle_hotspot{background:var(--mefo)}
 .spot-marker-inner{font-size:11px;line-height:1}
 .spot-popup{max-width:220px;font-size:.82rem;line-height:1.4}
 .spot-popup strong{display:block;margin-bottom:2px}
@@ -880,7 +880,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.30.0";
+const APP_VERSION = "4.31.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1871,9 +1871,10 @@ async function getDrivingInfo(toLat,toLon) {
 function markerType(row){
   if(row.gewässer_typ==='Sperrgewässer')return'sperr';
   if(row.gewässer_typ==='Pachtgewässer')return'pacht';
-  // Küstengewässer bekommen bewusst KEINEN eigenen Marker-Typ mehr -- sie fallen
-  // durch dieselbe Logik wie Binnengewässer (Meerforelle ist selbst ein Salmonide,
-  // daher reicht der bestehende ist_salmonide-Check unten).
+  // Alle Küstengewässer-Regionen bekommen denselben Marker, unabhängig vom Meerforelle-Flag --
+  // die Meerforelle-Unterscheidung passiert nur noch auf der Spot-Ebene (makeSpotIcon()),
+  // nicht mehr auf Regions-Ebene (Frederik-Entscheidung 05.07.2026).
+  if(row.gewässer_typ==='Küstengewässer')return'vb';
   var nr=row.Gewässer_Nr||'';
   if(nr.startsWith('Salmo-')||row.ist_salmonide==='ja')return'sal';
   if(nr.match(/^V[CFP]/))return'vvg';
@@ -3372,6 +3373,8 @@ function toggleList() {
 function ampelIcon(row) {
   if (row.gewässer_typ === 'Sperrgewässer') return '&#x1F6AB;';
   if (row.gewässer_typ === 'Pachtgewässer') return '&#x1F4B0;';
+  // Konsistent mit markerType(): Küstengewässer-Regionen einheitlich, keine Meerforelle-Sonderfarbe.
+  if (row.gewässer_typ === 'Küstengewässer') return '&#x1F7E2;';
   var nr = row.Gewässer_Nr || '';
   if (nr.startsWith('Salmo-') || row.ist_salmonide === 'ja') return '&#x1F535;';
   if (nr.match(/^V[CFP]/)) return '&#x1F7E1;';
@@ -3727,7 +3730,9 @@ function loadCSV(){
 // Eigenständige Datenquelle, kein Bezug zu gewaesser.json/activeFilters/inProfileScope
 // -- bewusst NICHT ins Chip-Filter-System eingehängt (eigener Toggle-Button stattdessen).
 function makeSpotIcon(spot){
-  var e = spot.typ==='hafen' ? '⚓' : spot.typ==='meerforelle_community' ? '🌊' : spot.typ==='meerforelle_hotspot' ? '🎯' : '🐟';
+  // Hafen und generische Spots (Strand/Seebrücke/Mole) bekommen bewusst denselben Marker --
+  // nur explizite Meerforelle-Spots sehen anders aus (Frederik-Entscheidung 05.07.2026).
+  var e = spot.typ==='meerforelle_community' ? '🌊' : spot.typ==='meerforelle_hotspot' ? '🎯' : '🐟';
   return L.divIcon({className:'',
     html:'<div class="spot-marker type-'+spot.typ+'"><div class="spot-marker-inner">'+e+'</div></div>',
     iconSize:[22,22], iconAnchor:[11,22], popupAnchor:[0,-22]});

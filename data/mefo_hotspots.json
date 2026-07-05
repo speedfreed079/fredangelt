@@ -9,19 +9,25 @@
     {
       "name": "Dranske (Westküste, Rügen)",
       "typ": "meerforelle_hotspot",
-      "lat": 54.62325,
-      "lon": 13.22405,
-      "zielfisch": ["Meerforelle"],
+      "lat": 54.623181558968895,
+      "lon": 13.223966360092165,
+      "zielfisch": [
+        "Meerforelle"
+      ],
       "saison": "Frühjahr/Herbst, besonders bei auflandigem Wind",
-      "hinweis": "Einstieg ca. 200m nördlich des Parkplatzes Bug (54.62323, 13.22296), danach kilometerlanger Streckenverlauf Richtung Kreptitz. Mosaik aus Sand, Algen und Steinen (\"Leopardengrund\"). Bei auflandigem Wind aus West bis Nordwest sehr produktiv.",
+      "hinweis": "kilometerlanger Streckenverlauf Richtung Kreptitz. Mosaik aus Sand, Algen und Steinen (\"Leopardengrund\"). Bei auflandigem Wind aus West bis Nordwest sehr produktiv.",
       "quelle": "07_Recherchen/Meerforellenangeln in Mecklenburg-Vorpommern.md"
     },
     {
       "name": "Kreptitzer Strand & Mövenort (Rügen)",
       "typ": "meerforelle_hotspot",
-      "lat": 54.66407,
-      "lon": 13.26792,
-      "zielfisch": ["Meerforelle", "Dorsch", "Plattfisch"],
+      "lat": 54.66164499580373,
+      "lon": 13.257751464843752,
+      "zielfisch": [
+        "Meerforelle",
+        "Dorsch",
+        "Plattfisch"
+      ],
       "saison": "Frühjahr/Herbst",
       "hinweis": "Zugang über eine Stahltreppe vom Parkplatz Kreptitzer Heide. Strecke zieht sich ca. 2km südöstlich bis zur Landspitze Mövenort. Exzellenter Leopardengrund mit Mischhabitat aus Dorsch, Plattfisch und Meerforelle.",
       "quelle": "07_Recherchen/Meerforellenangeln in Mecklenburg-Vorpommern.md"
@@ -29,9 +35,11 @@
     {
       "name": "Lohme & Nardevitz (Rügen)",
       "typ": "meerforelle_hotspot",
-      "lat": 54.58296,
-      "lon": 13.61096,
-      "zielfisch": ["Meerforelle"],
+      "lat": 54.58514491284288,
+      "lon": 13.613004684448244,
+      "zielfisch": [
+        "Meerforelle"
+      ],
       "saison": "Sommer (Tiefwasser) und Winter",
       "hinweis": "Koordinate ist der Hafen Lohme (angenähert). Von dort aus nördlich halten — südlich/rechtsseitig beginnen oft Naturschutzzonen. Die Tiefenlinien verlaufen hier sehr nah am Ufer, ideal für tiefere Sommer- und Winterfischerei. Waten ist kaum möglich, es wird stationär von großen Steinen aus gefischt.",
       "quelle": "07_Recherchen/Meerforellenangeln in Mecklenburg-Vorpommern.md"
@@ -39,29 +47,23 @@
     {
       "name": "Steilküste Nienhagen",
       "typ": "meerforelle_hotspot",
-      "lat": 54.15772,
-      "lon": 11.94318,
-      "zielfisch": ["Meerforelle"],
+      "lat": 54.162886242162116,
+      "lon": 11.93939208984375,
+      "zielfisch": [
+        "Meerforelle"
+      ],
       "saison": "Ganzjährig",
       "hinweis": "Strand unterhalb des Kliffs im Gespensterwald, stark von Findlingen und Tang geprägt, Wurfrichtung seewärts über strukturreichen Mischgrund. ⚠️ Das künstliche Riff 1,5km vor der Küste ist Fischereischutzgebiet — Angeln dort verboten! Der \"Spillover-Effekt\" (Kleinfisch-Nachwuchs, der vom Riff zur Nahrungssuche ans Ufer zieht) macht aber den Strand selbst zu einem der verlässlichsten Meerforellen-Reviere in MV.",
       "quelle": "07_Recherchen/Meerforellenangeln in Mecklenburg-Vorpommern.md"
     },
     {
-      "name": "Meschendorfer Strand",
-      "typ": "meerforelle_hotspot",
-      "lat": 54.11456,
-      "lon": 11.6421,
-      "zielfisch": ["Meerforelle", "Plattfisch"],
-      "saison": "Frühjahr/Herbst",
-      "hinweis": "Von der Teufelsschlucht (zwischen Rerik und Kühlungsborn) Richtung Meschendorf. Markantes Rinnenprofil: erste Rinne bei 40–60m, dann Sandbank, zweite Rinne bei 80–120m. Häufiger Fehler: zu schnell durch die erste Rinne waten, um die zweite Sandbank zu erreichen — dabei werden die im knietiefen Wasser jagenden Fische oft vergrämt.",
-      "quelle": "07_Recherchen/Meerforellenangeln in Mecklenburg-Vorpommern.md"
-    },
-    {
       "name": "Rerik / Kägsdorf",
       "typ": "meerforelle_hotspot",
-      "lat": 54.14271,
-      "lon": 11.66487,
-      "zielfisch": ["Meerforelle"],
+      "lat": 54.12935431259698,
+      "lon": 11.64224624633789,
+      "zielfisch": [
+        "Meerforelle"
+      ],
       "saison": "Frühjahr/Herbst",
       "hinweis": "Kilometerlange Naturstrände mit ausgeprägtem Leopardengrund. Starke Strömungsdynamik durch die Gezeitenwirkung aus dem nahen Salzhaff. ⚠️ Mündungsbereich des Salzhaffs saisonal gesperrt (ab 15.09., 500m-Uferstreifen).",
       "quelle": "07_Recherchen/Meerforellenangeln in Mecklenburg-Vorpommern.md"
@@ -69,19 +71,23 @@
     {
       "name": "Boltenhagen / Redewisch",
       "typ": "meerforelle_hotspot",
-      "lat": 53.99732,
-      "lon": 11.19482,
-      "zielfisch": ["Meerforelle"],
+      "lat": 54.01316555586851,
+      "lon": 11.184339523315431,
+      "zielfisch": [
+        "Meerforelle"
+      ],
       "saison": "Frühjahr/Herbst",
-      "hinweis": "Einstieg ca. 2km nördlich bei 54.01318, 11.18418. Ausgedehnte, ständig abbrechende Steilküste aus Lehm und Kreide — die entstehenden Trübungskanten (\"mud lines\") senken die Vorsicht der Meerforelle, die dann auch tagsüber aggressiv im Flachwasser jagt. Bei Trübung schockfarbene, UV-aktive Köder einsetzen.",
+      "hinweis": "Einstieg ca. 2km nördlich von Redewisch Ausgedehnte, ständig abbrechende Steilküste aus Lehm und Kreide — die entstehenden Trübungskanten (\"mud lines\") senken die Vorsicht der Meerforelle, die dann auch tagsüber aggressiv im Flachwasser jagt. ",
       "quelle": "07_Recherchen/Meerforellenangeln in Mecklenburg-Vorpommern.md"
     },
     {
       "name": "Brooker Wald / Kalkhorst",
       "typ": "meerforelle_hotspot",
-      "lat": 54.00235,
-      "lon": 11.04379,
-      "zielfisch": ["Meerforelle"],
+      "lat": 54.00608155606052,
+      "lon": 11.040830612182617,
+      "zielfisch": [
+        "Meerforelle"
+      ],
       "saison": "Frühjahr/Herbst",
       "hinweis": "Eine der naturbelassensten Strecken im Klützer Winkel, kaum Befischungsdruck. Der Strand fällt zügig ab und ist durchsetzt mit Seegraswiesen und großen Felsformationen. ⚠️ Im Herbst wegen einmündender Bäche auf Schongebiete prüfen.",
       "quelle": "07_Recherchen/Meerforellenangeln in Mecklenburg-Vorpommern.md"
@@ -89,9 +95,11 @@
     {
       "name": "Unterwarnow (Rostock)",
       "typ": "meerforelle_hotspot",
-      "lat": 54.145,
-      "lon": 12.125,
-      "zielfisch": ["Meerforelle"],
+      "lat": 54.129656070194315,
+      "lon": 12.094917297363283,
+      "zielfisch": [
+        "Meerforelle"
+      ],
       "saison": "Mitte Dezember bis April",
       "hinweis": "Koordinate ist ein Richtwert — die Quelle nennt keinen exakten Punkt, gemeint ist der gesamte Uferbereich der Unterwarnow zwischen Rostock und Warnemünde. Fungiert im Winter und zeitigen Frühjahr als Sammelbecken: die geringere Salinität im Brackwasser reduziert den osmoregulatorischen Stress bei niedrigen Temperaturen. Tiefe Fahrrinnen wechseln sich mit 2m-Plateaus ab. Auch im urbanen Umfeld hocherfolgreich (Tageskarte ca. 5€).",
       "quelle": "07_Recherchen/Meerforellenangeln in Mecklenburg-Vorpommern.md"
