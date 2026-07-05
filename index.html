@@ -296,13 +296,10 @@ body:not(.outdoor) #map .leaflet-tile-pane {
 .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{
   background:rgba(61,153,112,.25)!important;color:var(--accent)!important;
   font-family:var(--mono)!important;font-weight:700!important}
-/* Bundesland-Ring auch am Cluster-Bündel -- jede Bündel-Gruppe enthält ausschließlich
-   Marker eines Bundeslands (siehe clusterGroups in initMap), daher reicht eine feste
-   Klasse pro Gruppe statt einer Pro-Marker-Berechnung */
-.marker-cluster-small.bl-berlin,.marker-cluster-medium.bl-berlin,.marker-cluster-large.bl-berlin{box-shadow:0 0 0 2px var(--bl-berlin)}
-.marker-cluster-small.bl-brandenburg,.marker-cluster-medium.bl-brandenburg,.marker-cluster-large.bl-brandenburg{box-shadow:0 0 0 2px var(--bl-brandenburg)}
-.marker-cluster-small.bl-mv,.marker-cluster-medium.bl-mv,.marker-cluster-large.bl-mv{box-shadow:0 0 0 2px var(--bl-mv)}
-.marker-cluster-small.bl-kueste,.marker-cluster-medium.bl-kueste,.marker-cluster-large.bl-kueste{box-shadow:0 0 0 2px var(--bl-kueste)}
+/* Bundesland-Ring bewusst NICHT mehr am Cluster-Bündel (05.07.2026 zurückgebaut) -- ein
+   Bündel kann seit der Rückkehr zu einer gemeinsamen clusterGroup mehrere Bundesländer
+   mischen, ein fester Ring pro Bündel wäre irreführend. Ring bleibt am Einzelmarker,
+   siehe .gw-marker.bl-* oben. */
 
 /* Panel */
 #panel{position:fixed;top:0;right:0;width:var(--panel-w);height:100dvh;
@@ -880,7 +877,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.31.0";
+const APP_VERSION = "4.31.2";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -993,7 +990,7 @@ function fishIconHtml(key, cssClass) {
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let allData=[], markerMap={}, clusterGroups=null, gpsMarker=null, gpsCircle=null, gpsWatchId=null;
+let allData=[], markerMap={}, clusterGroup=null, gpsMarker=null, gpsCircle=null, gpsWatchId=null;
 let activeFilters=new Set(), searchTerm='', map;
 let userLat=null, userLon=null;
 let currentLayer='strasse';
@@ -1610,31 +1607,27 @@ function initMap() {
   map = L.map('map',{center:[52.52,13.40],zoom:8,zoomControl:false});
   LAYERS.strasse.addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
-  // Vier getrennte Bündel-Gruppen statt einer gemeinsamen -- Leaflet.markercluster
-  // bündelt nur INNERHALB einer Gruppe, nie gruppenübergreifend. So werden z.B. ein
-  // Berliner und ein Brandenburger See an derselben Landesgrenze nie ins selbe Bündel
-  // gezogen (05.07.2026, Wunsch: Bundesländer optisch trennen).
-  function makeClusterOptions(blClass){
-    return {
-      maxClusterRadius:50,spiderfyOnMaxZoom:true,
-      showCoverageOnHover:false,zoomToBoundsOnClick:true,
-      iconCreateFunction:function(cluster){
-        var c=cluster.getChildCount();
-        return L.divIcon({
-          html:'<div><span>'+c+'</span></div>',
-          className:'marker-cluster marker-cluster-'+(c<10?'small':c<100?'medium':'large')+' '+blClass,
-          iconSize:L.point(40,40)
-        });
-      }
-    };
-  }
-  clusterGroups = {
-    berlin:      L.markerClusterGroup(makeClusterOptions('bl-berlin')),
-    brandenburg: L.markerClusterGroup(makeClusterOptions('bl-brandenburg')),
-    mv:          L.markerClusterGroup(makeClusterOptions('bl-mv')),
-    kueste:      L.markerClusterGroup(makeClusterOptions('bl-kueste'))
-  };
-  Object.keys(clusterGroups).forEach(function(k){map.addLayer(clusterGroups[k]);});
+  // Eine gemeinsame Bündel-Gruppe (05.07.2026 wieder zurückgebaut von 4 getrennten
+  // Bundesland-Gruppen): die Trennung sollte Bundesländer optisch klarer machen, aber
+  // Leaflet.markercluster bündelt nie gruppenübergreifend -- dadurch blieben Marker an
+  // Landesgrenzen (u.a. Groß Glienicker See, der als zwei ~50m auseinanderliegende
+  // Einträge für Berlin/Brandenburg existiert) und ganze Küstenregionen inmitten dichter
+  // MV-Binnengewässer immer unclustered stehen, gerade bei weitem Zoom sichtbar störend.
+  // Der Bundesland-Ring bleibt an JEDEM Einzelmarker (siehe makeIcon()), Cluster-Bündel
+  // zeigen bewusst keinen Ring mehr, da ein Bündel ohnehin mehrere Bundesländer mischen kann.
+  clusterGroup = L.markerClusterGroup({
+    maxClusterRadius:50,spiderfyOnMaxZoom:true,
+    showCoverageOnHover:false,zoomToBoundsOnClick:true,
+    iconCreateFunction:function(cluster){
+      var c=cluster.getChildCount();
+      return L.divIcon({
+        html:'<div><span>'+c+'</span></div>',
+        className:'marker-cluster marker-cluster-'+(c<10?'small':c<100?'medium':'large'),
+        iconSize:L.point(40,40)
+      });
+    }
+  });
+  map.addLayer(clusterGroup);
   polylineGroup = L.layerGroup().addTo(map);
   // Canvas statt Standard-SVG: SVG-Pfade einzelner Seen können bei vielen/großen
   // Tiefenlinien-Polygonen nach schnellem Zoomen/Verschieben unsichtbar bleiben
@@ -1895,7 +1888,7 @@ function makeIcon(row){
 
 // ── Render markers ────────────────────────────────────────────────────────────
 function renderMarkers(){
-  Object.keys(clusterGroups).forEach(function(k){clusterGroups[k].clearLayers();});markerMap={};
+  clusterGroup.clearLayers();markerMap={};
   if(polylineGroup) polylineGroup.clearLayers();
   var filtered=allData.filter(function(row){
     var lat=parseFloat(row.lat),lon=parseFloat(row.lon);
@@ -1944,7 +1937,7 @@ function renderMarkers(){
     var lat=parseFloat(row.lat),lon=parseFloat(row.lon);
     var m=L.marker([lat,lon],{icon:makeIcon(row)});
     m.on('click',function(e){L.DomEvent.stopPropagation(e);openPanel(row);});
-    clusterGroups[bundeslandKey(row)].addLayer(m);
+    clusterGroup.addLayer(m);
     markerMap[row.Gewässer_Nr]=m;
     // Echte Polyline(s) wenn vorhanden (OSM-/gewnet25-Geometrie) — ein Gewässer
     // kann aus mehreren getrennten Segmenten bestehen (z.B. B 10-201: Spree
@@ -1984,7 +1977,7 @@ function renderMarkers(){
           zIndexOffset:-100
         });
         sm.on('click',function(ev){L.DomEvent.stopPropagation(ev);openPanel(row);});
-        clusterGroups[bundeslandKey(row)].addLayer(sm);
+        clusterGroup.addLayer(sm);
       });
     }
   });
