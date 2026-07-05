@@ -13,6 +13,9 @@
   --t:#dde6f0; --d:#6b8099; --accent:#3d9970; --warn:#c0892a; --danger:#c03a2b;
   --sal:#6c63c0; --pacht:#2a9fc0; --kueste:#d1782a; --sans:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono','Fira Mono',monospace;
   --panel-w:380px; --safe-bottom:env(safe-area-inset-bottom,0px);
+  /* Bundesland-Ringe um Gewässer-Marker/Cluster (nicht zu verwechseln mit --kueste,
+     der Füllfarbe der Küsten-Spot-Marker) -- siehe makeIcon()/bundeslandKey() */
+  --bl-berlin:#f2b154; --bl-brandenburg:#5cb37e; --bl-mv:#a189e6; --bl-kueste:#4cc8ea;
 }
 
 /* === OUTDOOR-THEME (Papier/Sepia) ======================== */
@@ -29,6 +32,7 @@ body.outdoor {
   --sal:      #4a3a8a;
   --pacht:    #1a7a9a;
   --kueste:   #b8621a;
+  --bl-berlin:#dd9a2e; --bl-brandenburg:#3f8f5c; --bl-mv:#7a5cc9; --bl-kueste:#1f9fc4;
 }
 
 /* Karte-Overlay im Outdoor-Modus aufhellen */
@@ -250,6 +254,12 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
 .gw-marker.type-pacht{background:var(--pacht)}
 .gw-marker.type-sperr{background:var(--danger)}
 .gw-marker.profile-dim{opacity:.32;filter:grayscale(60%)}
+/* Bundesland-Ring -- dünner Außenring zusätzlich zur bestehenden Betreiber-/Typ-Füllung,
+   damit beide Farbebenen unabhängig lesbar bleiben (Vorschau siehe Design-Chat 05.07.2026) */
+.gw-marker.bl-berlin{box-shadow:0 0 0 1.6px var(--bl-berlin)}
+.gw-marker.bl-brandenburg{box-shadow:0 0 0 1.6px var(--bl-brandenburg)}
+.gw-marker.bl-mv{box-shadow:0 0 0 1.6px var(--bl-mv)}
+.gw-marker.bl-kueste{box-shadow:0 0 0 1.6px var(--bl-kueste)}
 .gw-marker-inner{transform:rotate(45deg);font-size:11px;line-height:1}
 .gw-marker .zk-badge{position:absolute;top:-4px;right:-4px;font-size:9px;
                      background:#c0892a;border-radius:50%;width:13px;height:13px;
@@ -286,6 +296,13 @@ body:not(.outdoor) #map .leaflet-tile-pane {
 .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{
   background:rgba(61,153,112,.25)!important;color:var(--accent)!important;
   font-family:var(--mono)!important;font-weight:700!important}
+/* Bundesland-Ring auch am Cluster-Bündel -- jede Bündel-Gruppe enthält ausschließlich
+   Marker eines Bundeslands (siehe clusterGroups in initMap), daher reicht eine feste
+   Klasse pro Gruppe statt einer Pro-Marker-Berechnung */
+.marker-cluster-small.bl-berlin,.marker-cluster-medium.bl-berlin,.marker-cluster-large.bl-berlin{box-shadow:0 0 0 2px var(--bl-berlin)}
+.marker-cluster-small.bl-brandenburg,.marker-cluster-medium.bl-brandenburg,.marker-cluster-large.bl-brandenburg{box-shadow:0 0 0 2px var(--bl-brandenburg)}
+.marker-cluster-small.bl-mv,.marker-cluster-medium.bl-mv,.marker-cluster-large.bl-mv{box-shadow:0 0 0 2px var(--bl-mv)}
+.marker-cluster-small.bl-kueste,.marker-cluster-medium.bl-kueste,.marker-cluster-large.bl-kueste{box-shadow:0 0 0 2px var(--bl-kueste)}
 
 /* Panel */
 #panel{position:fixed;top:0;right:0;width:var(--panel-w);height:100dvh;
@@ -863,7 +880,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.29.3";
+const APP_VERSION = "4.30.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -976,7 +993,7 @@ function fishIconHtml(key, cssClass) {
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let allData=[], markerMap={}, clusterGroup, gpsMarker=null, gpsCircle=null, gpsWatchId=null;
+let allData=[], markerMap={}, clusterGroups=null, gpsMarker=null, gpsCircle=null, gpsWatchId=null;
 let activeFilters=new Set(), searchTerm='', map;
 let userLat=null, userLon=null;
 let currentLayer='strasse';
@@ -1051,6 +1068,18 @@ let cardProfile=loadCardProfile();
 // Bereich-Fallback (bis 01.07.2026 nötig, siehe schema_phase2.md) entfällt damit.
 function getRowVerband(row){
   return row.verband;
+}
+// Bundesland-Kategorie für Marker-Ring + getrennte Cluster-Gruppen (05.07.2026).
+// Bewusst NICHT panelBereichFor() wiederverwendet: dessen Berlin-Erkennung hängt an
+// row.Bereich==='Berlin' (nur bei "normalen" LAVB/DAV-Einträgen zuverlässig gesetzt),
+// während row.bundesland ('be'/'bb'/'mv') für JEDE Zeile inkl. privat/Pacht/Sperr
+// gesetzt ist und daher robuster ist.
+function bundeslandKey(row){
+  if(!row) return 'brandenburg';
+  if(getRowVerband(row)==='kueste_mv' || row.Bereich==='kueste') return 'kueste';
+  if(row.bundesland==='mv') return 'mv';
+  if(row.bundesland==='be') return 'berlin';
+  return 'brandenburg';
 }
 // Gemeinsame Bereichs-Ermittlung für Schonzeit-Anzeigen (renderSchonzeitPanel +
 // ActivityEngine.getSchonzeitHint im Beiss-Score) -- 'kueste'/'mv' MÜSSEN vor dem Bereich===
@@ -1581,19 +1610,31 @@ function initMap() {
   map = L.map('map',{center:[52.52,13.40],zoom:8,zoomControl:false});
   LAYERS.strasse.addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
-  clusterGroup = L.markerClusterGroup({
-    maxClusterRadius:50,spiderfyOnMaxZoom:true,
-    showCoverageOnHover:false,zoomToBoundsOnClick:true,
-    iconCreateFunction:function(cluster){
-      var c=cluster.getChildCount();
-      return L.divIcon({
-        html:'<div><span>'+c+'</span></div>',
-        className:'marker-cluster marker-cluster-'+(c<10?'small':c<100?'medium':'large'),
-        iconSize:L.point(40,40)
-      });
-    }
-  });
-  map.addLayer(clusterGroup);
+  // Vier getrennte Bündel-Gruppen statt einer gemeinsamen -- Leaflet.markercluster
+  // bündelt nur INNERHALB einer Gruppe, nie gruppenübergreifend. So werden z.B. ein
+  // Berliner und ein Brandenburger See an derselben Landesgrenze nie ins selbe Bündel
+  // gezogen (05.07.2026, Wunsch: Bundesländer optisch trennen).
+  function makeClusterOptions(blClass){
+    return {
+      maxClusterRadius:50,spiderfyOnMaxZoom:true,
+      showCoverageOnHover:false,zoomToBoundsOnClick:true,
+      iconCreateFunction:function(cluster){
+        var c=cluster.getChildCount();
+        return L.divIcon({
+          html:'<div><span>'+c+'</span></div>',
+          className:'marker-cluster marker-cluster-'+(c<10?'small':c<100?'medium':'large')+' '+blClass,
+          iconSize:L.point(40,40)
+        });
+      }
+    };
+  }
+  clusterGroups = {
+    berlin:      L.markerClusterGroup(makeClusterOptions('bl-berlin')),
+    brandenburg: L.markerClusterGroup(makeClusterOptions('bl-brandenburg')),
+    mv:          L.markerClusterGroup(makeClusterOptions('bl-mv')),
+    kueste:      L.markerClusterGroup(makeClusterOptions('bl-kueste'))
+  };
+  Object.keys(clusterGroups).forEach(function(k){map.addLayer(clusterGroups[k]);});
   polylineGroup = L.layerGroup().addTo(map);
   // Canvas statt Standard-SVG: SVG-Pfade einzelner Seen können bei vielen/großen
   // Tiefenlinien-Polygonen nach schnellem Zoomen/Verschieben unsichtbar bleiben
@@ -1845,14 +1886,15 @@ function makeIcon(row){
   var dim=inProfileScope(row)?'':' profile-dim';
   var farbe=/^#[0-9a-f]{6}$/i.test(row.betreiber_farbe||'')?row.betreiber_farbe:'';
   var style='position:relative'+(farbe?';background:'+farbe:'');
+  var blClass='bl-'+bundeslandKey(row);
   return L.divIcon({className:'',
-    html:'<div class="gw-marker type-'+t+dim+'" style="'+style+'"><div class="gw-marker-inner">'+e+'</div>'+zk+'</div>',
+    html:'<div class="gw-marker type-'+t+dim+' '+blClass+'" style="'+style+'"><div class="gw-marker-inner">'+e+'</div>'+zk+'</div>',
     iconSize:[28,28],iconAnchor:[14,28],popupAnchor:[0,-28]});
 }
 
 // ── Render markers ────────────────────────────────────────────────────────────
 function renderMarkers(){
-  clusterGroup.clearLayers();markerMap={};
+  Object.keys(clusterGroups).forEach(function(k){clusterGroups[k].clearLayers();});markerMap={};
   if(polylineGroup) polylineGroup.clearLayers();
   var filtered=allData.filter(function(row){
     var lat=parseFloat(row.lat),lon=parseFloat(row.lon);
@@ -1901,7 +1943,7 @@ function renderMarkers(){
     var lat=parseFloat(row.lat),lon=parseFloat(row.lon);
     var m=L.marker([lat,lon],{icon:makeIcon(row)});
     m.on('click',function(e){L.DomEvent.stopPropagation(e);openPanel(row);});
-    clusterGroup.addLayer(m);
+    clusterGroups[bundeslandKey(row)].addLayer(m);
     markerMap[row.Gewässer_Nr]=m;
     // Echte Polyline(s) wenn vorhanden (OSM-/gewnet25-Geometrie) — ein Gewässer
     // kann aus mehreren getrennten Segmenten bestehen (z.B. B 10-201: Spree
@@ -1941,7 +1983,7 @@ function renderMarkers(){
           zIndexOffset:-100
         });
         sm.on('click',function(ev){L.DomEvent.stopPropagation(ev);openPanel(row);});
-        clusterGroup.addLayer(sm);
+        clusterGroups[bundeslandKey(row)].addLayer(sm);
       });
     }
   });
