@@ -737,6 +737,121 @@ body.outdoor .warn-box strong{color:var(--warn)}
 .depth-label{display:none!important;background:rgba(255,255,255,.82)!important;border:none!important;color:#0b3d5c!important;font-family:var(--mono);font-size:.65rem!important;font-weight:700;padding:1px 5px!important;border-radius:3px!important;white-space:nowrap;box-shadow:none!important;pointer-events:none!important;}
 .depth-label.dl-vis{display:block!important;}
 .depth-label::before{display:none!important;}
+
+/* ===================================================================
+   FANGBUCH — Notizheft-Look (gebrauchtes Angel-Notizheft, Claude-Design
+   07.07.2026). Nur additive Overrides, scoped auf #fangbuchPanel -- Rest
+   der App (Auth-Formulare, Gewässer-Info-Panel etc.) bleibt unberührt.
+   Schrift lokal eingebettet (assets/fonts/) statt Google-Fonts-CDN --
+   vermeidet externe Nachladung/IP-Übertragung an Google (DSGVO) und eine
+   zusätzliche Netzwerkabhängigkeit für eine Outdoor-App.
+   =================================================================== */
+@font-face{
+  font-family:'Caveat'; font-style:normal; font-weight:600; font-display:swap;
+  src:url('assets/fonts/caveat-latin-600-700.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Caveat'; font-style:normal; font-weight:700; font-display:swap;
+  src:url('assets/fonts/caveat-latin-600-700.woff2') format('woff2');
+}
+:root{
+  --fb-paper:#161e27;   --fb-paper2:#1b2530;  --fb-line:rgba(255,255,255,.045);
+  --fb-ink:#e7d6a6;     --fb-stitch:rgba(255,255,255,.12);
+  --fb-fold:#2c3946;    --fb-fold-dark:#0c1218; --fb-fold-hi:rgba(255,255,255,.16);
+  --fb-fold-shadow:rgba(0,0,0,.5);
+}
+body.outdoor{
+  --fb-paper:#f4ecd8;   --fb-paper2:#efe3c8;  --fb-line:rgba(70,48,16,.12);
+  --fb-ink:#3c2a10;     --fb-stitch:rgba(70,48,16,.25);
+  --fb-fold:#e3d3aa;    --fb-fold-dark:#c2ac80; --fb-fold-hi:rgba(255,255,255,.55);
+  --fb-fold-shadow:rgba(60,40,10,.35);
+}
+
+#fangbuchPanel{
+  background-color:var(--fb-paper);
+  background-image:repeating-linear-gradient(180deg, transparent 0 27px, var(--fb-line) 27px 28px);
+  position:relative;
+  box-shadow:inset 0 0 34px rgba(0,0,0,.18);
+}
+/* Eselsohr oben rechts -- Ecke ist umgeknickt, man sieht die Rückseite des
+   Papiers samt Knickschatten auf der Seite und angehobener Kante */
+#fangbuchPanel::after{
+  content:'';position:absolute;top:0;right:0;width:46px;height:46px;z-index:3;pointer-events:none;
+  clip-path:polygon(100% 4%, 9% 0%, 100% 96%);
+  background:
+    linear-gradient(127deg, var(--fb-fold-hi) 0%, transparent 22%),
+    linear-gradient(312deg, var(--fb-fold) 0%, var(--fb-fold) 58%, var(--fb-fold-dark) 100%);
+  filter:drop-shadow(-3px 3px 3px var(--fb-fold-shadow));
+  transform:rotate(-1.2deg);
+}
+
+/* Spiralbindungs-Löcher hinter dem Griff */
+.fb-grip{
+  position:relative;
+  background-image:repeating-linear-gradient(90deg, var(--fb-stitch) 0 3px, transparent 3px 17px);
+  background-position:10px 4px;background-size:100% 3px;background-repeat:repeat-x;
+}
+.fb-grip span{position:relative;background:var(--d);opacity:.55}
+
+#fangbuchPanel .sheet-head{border-bottom:1px dashed var(--border)}
+#fangbuchPanel .sheet-title{
+  font-family:'Caveat','Segoe Script',var(--sans);font-weight:700;font-size:1.62rem;
+  color:var(--fb-ink);letter-spacing:.3px;display:inline-block;transform:rotate(-1deg);
+}
+#fangbuchPanel .fb-empty-h{
+  font-family:'Caveat','Segoe Script',var(--sans);font-weight:700;font-size:1.75rem;color:var(--fb-ink);
+}
+#fangbuchPanel .sheet-body{background:transparent}
+#fangbuchPanel .catch-card{background:var(--fb-paper2)}
+#fangbuchPanel .catch-name{
+  font-family:'Caveat','Segoe Script',var(--sans);font-weight:700;font-size:1.2rem;
+  color:var(--fb-ink);letter-spacing:.2px;
+}
+#fangbuchPanel .sheet-foot{background:var(--fb-paper);border-top:1px dashed var(--border)}
+
+/* Felder: "auf der Linie schreiben" statt Kachel-Look, bleibt aber gut lesbar/antippbar */
+#fangbuchPanel .field .f-label{
+  color:var(--fb-ink);opacity:.72;
+}
+#fangbuchPanel .f-input,#fangbuchPanel .f-area{
+  background:rgba(0,0,0,.02);border:none;border-bottom:1.6px dashed var(--border);
+  border-radius:2px 2px 0 0;padding:9px 4px 8px;
+}
+body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{background:rgba(255,255,255,.22)}
+#fangbuchPanel .f-input:focus,#fangbuchPanel .f-area:focus{
+  border-bottom-style:solid;border-bottom-color:var(--accent);
+}
+#fangbuchPanel .unit-wrap .f-input{padding-right:42px}
+#fangbuchPanel .fb-fish-badge{background:var(--fb-paper2)}
+
+/* Gewässer-Suchfeld + Dropdown */
+#fangbuchPanel .water-dropdown{
+  background:var(--fb-paper2);border:1px solid var(--border);border-radius:3px;
+  box-shadow:0 6px 16px rgba(0,0,0,.28);transform:rotate(-.3deg);overflow:visible;
+}
+#fangbuchPanel .wd-item{border-bottom-style:dashed}
+#fangbuchPanel .wd-custom{font-style:italic}
+
+/* Fangort-Buttons: wie handgestempelte Marken */
+#fangbuchPanel .fangort-row .btn-secondary{
+  font-family:var(--mono);text-transform:uppercase;letter-spacing:.5px;
+  border-style:dashed;border-width:1.6px;border-radius:7px;transition:transform .12s,border-color .14s;
+}
+#fangbuchPanel .fangort-row .btn-secondary:nth-child(1){transform:rotate(-1.4deg)}
+#fangbuchPanel .fangort-row .btn-secondary:nth-child(2){transform:rotate(1.1deg)}
+#fangbuchPanel .fangort-row .btn-secondary:active{transform:scale(.95) rotate(0deg)}
+#fangbuchPanel .fangort-status{font-style:italic}
+
+/* Eigene Fischart: Randnotiz mit Bleistift-Anmutung */
+#fangbuchPanel #fb-fish-custom-wrap .f-label::before{content:'✎ '}
+#fangbuchPanel #fb-fish-custom{font-style:italic}
+
+/* Warnhinweis: wie ein aufgestempelter Hinweiszettel im Heft */
+#fangbuchPanel .warn-box{
+  background:var(--fb-paper2);border:1.6px dashed var(--warn);border-radius:5px;
+  transform:rotate(-.6deg);box-shadow:0 2px 6px rgba(0,0,0,.18);
+}
+#fangbuchPanel .warn-box strong{text-transform:uppercase;letter-spacing:.3px}
 </style>
 </head>
 <body>
@@ -918,7 +1033,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.35.1";
+const APP_VERSION = "4.36.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
