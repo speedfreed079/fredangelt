@@ -15,7 +15,7 @@
   --panel-w:380px; --safe-bottom:env(safe-area-inset-bottom,0px);
   /* Bundesland-Ringe um Gewässer-Marker/Cluster (nicht zu verwechseln mit --kueste,
      der Füllfarbe der Küsten-Spot-Marker) -- siehe makeIcon()/bundeslandKey() */
-  --bl-berlin:#f2b154; --bl-brandenburg:#5cb37e; --bl-mv:#a189e6; --bl-kueste:#4cc8ea;
+  --bl-berlin:#f2b154; --bl-brandenburg:#5cb37e; --bl-mv:#a189e6; --bl-kueste:#4cc8ea; --bl-st:#e0637a;
 }
 
 /* === OUTDOOR-THEME (Papier/Sepia) ======================== */
@@ -33,7 +33,7 @@ body.outdoor {
   --pacht:    #1a7a9a;
   --kueste:   #b8621a;
   --mefo:     #1f7a68;
-  --bl-berlin:#dd9a2e; --bl-brandenburg:#3f8f5c; --bl-mv:#7a5cc9; --bl-kueste:#1f9fc4;
+  --bl-berlin:#dd9a2e; --bl-brandenburg:#3f8f5c; --bl-mv:#7a5cc9; --bl-kueste:#1f9fc4; --bl-st:#b8425a;
 }
 
 /* Karte-Overlay im Outdoor-Modus aufhellen */
@@ -156,6 +156,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 .profile-opt:hover{background:var(--surface2)}
 .profile-opt.sel{color:#4fc3f7;font-weight:600}
 .profile-opt .pc-check{width:14px;flex-shrink:0;font-size:.75rem}
+.profile-divider{font-size:.66rem;color:var(--d);text-transform:uppercase;letter-spacing:.03em;
+  padding:8px 10px 2px;margin-top:2px;border-top:1px solid var(--border)}
 
 /* Auth-Popover (Login/Register/Konto) */
 #authPopover{position:fixed;top:54px;right:12px;background:var(--surface);border:1px solid var(--border);
@@ -261,6 +263,7 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
 .gw-marker.bl-brandenburg{box-shadow:0 0 0 1.6px var(--bl-brandenburg)}
 .gw-marker.bl-mv{box-shadow:0 0 0 1.6px var(--bl-mv)}
 .gw-marker.bl-kueste{box-shadow:0 0 0 1.6px var(--bl-kueste)}
+.gw-marker.bl-st{box-shadow:0 0 0 1.6px var(--bl-st)}
 .gw-marker-inner{transform:rotate(45deg);font-size:11px;line-height:1}
 .gw-marker .zk-badge{position:absolute;top:-4px;right:-4px;font-size:9px;
                      background:#c0892a;border-radius:50%;width:13px;height:13px;
@@ -741,6 +744,10 @@ body.outdoor .warn-box strong{color:var(--warn)}
   <div class="profile-opt" data-verband="lavb"><span class="pc-check"></span>Brandenburg (LAVB)</div>
   <div class="profile-opt" data-verband="lav_mv"><span class="pc-check"></span>MV-Binnen (LAV MV)</div>
   <div class="profile-opt" data-verband="kueste_mv"><span class="pc-check"></span>Ostsee-Küstengewässer MV</div>
+  <div class="profile-opt" data-verband="lav_st"><span class="pc-check"></span>Sachsen-Anhalt (LAV ST)</div>
+  <div class="profile-divider">Gewässerfonds-Marke (GF)</div>
+  <div class="profile-opt profile-opt-gf" data-gf-marke="mv"><span class="pc-check"></span>MV (GF-Marke)</div>
+  <div class="profile-opt profile-opt-gf" data-gf-marke="st"><span class="pc-check"></span>Sachsen-Anhalt (GF-Marke)</div>
 </div>
 
 <div id="authPopover">
@@ -880,7 +887,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.33.0";
+const APP_VERSION = "4.34.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1038,7 +1045,17 @@ var PROFILE_OPTIONS=[
   {verband:'dav_berlin', label:'Berlin (DAV)'},
   {verband:'lavb',       label:'Brandenburg (LAVB)'},
   {verband:'lav_mv',     label:'MV-Binnen (LAV MV)'},
-  {verband:'kueste_mv',  label:'Ostsee-Küstengewässer MV'}
+  {verband:'kueste_mv',  label:'Ostsee-Küstengewässer MV'},
+  {verband:'lav_st',     label:'Sachsen-Anhalt (LAV ST)'}
+];
+// GF_MARKEN_OPTIONS = Bundesländer, die zusätzlich (unabhängig von einer eigenen
+// verbände-Mitgliedschaft) über eine Gemeinsamer-Gewässerfonds-Marke erreichbar
+// sind -- nur Bundesländer mit bereits vorhandenen Gewässerdaten gelistet (SN/TH
+// folgen automatisch, sobald deren Daten integriert sind). Matched gegen
+// row.bundesland, nicht gegen row.verband (siehe inProfileScope()).
+var GF_MARKEN_OPTIONS=[
+  {bundesland:'mv', label:'MV (GF-Marke)'},
+  {bundesland:'st', label:'Sachsen-Anhalt (GF-Marke)'}
 ];
 // Entspricht dem, was vor der Mehrfachauswahl-Umstellung sichtbar war (Berlin+
 // Brandenburg als "Beide Karten"-Standard, Küste war immer an unabhängig vom
@@ -1100,6 +1117,7 @@ function bundeslandKey(row){
   if(getRowVerband(row)==='kueste_mv' || row.Bereich==='kueste') return 'kueste';
   if(row.bundesland==='mv') return 'mv';
   if(row.bundesland==='be') return 'berlin';
+  if(row.bundesland==='st') return 'st';
   return 'brandenburg';
 }
 // Gemeinsame Bereichs-Ermittlung für Schonzeit-Anzeigen (renderSchonzeitPanel +
@@ -1111,6 +1129,7 @@ function panelBereichFor(row){
   if(!row) return 'brandenburg';
   if(getRowVerband(row)==='kueste_mv' || row.Bereich==='kueste') return 'kueste';
   if(row.bundesland==='mv') return 'mv';
+  if(row.bundesland==='st') return 'st';
   return row.Bereich==='Berlin' ? 'Berlin' : 'brandenburg';
 }
 function inProfileScope(row){
@@ -1119,14 +1138,27 @@ function inProfileScope(row){
   if(getRowVerband(row)==='privat')return true;
   // 'kueste_mv' läuft seit der Mehrfachauswahl-Umstellung (04.07.2026) wie jeder
   // andere Verband über die normale Checkbox-Auswahl -- kein Hardcode-Bypass mehr.
-  return cardProfile.verbände.indexOf(getRowVerband(row))!==-1;
+  if(cardProfile.verbände.indexOf(getRowVerband(row))!==-1)return true;
+  // gf_marken (06.07.2026, ST-Rollout): zusätzlicher Zugang über eine Gemeinsamer-
+  // Gewässerfonds-Marke, unabhängig von einer eigenen verbände-Mitgliedschaft --
+  // z.B. ein LAVB-Mitglied mit GF-Marke ST sieht ST-Gewässer, ohne 'lav_st' in
+  // verbände anzukreuzen. Matched über row.bundesland, das für JEDE Zeile gesetzt
+  // ist (siehe bundeslandKey()-Kommentar oben).
+  if(row.bundesland && cardProfile.gf_marken.indexOf(row.bundesland)!==-1)return true;
+  return false;
 }
 function syncProfileUI(){
   var isDefault=cardProfile.verbände.length===DEFAULT_VERBAENDE.length&&
-    DEFAULT_VERBAENDE.every(function(v){return cardProfile.verbände.indexOf(v)!==-1;});
+    DEFAULT_VERBAENDE.every(function(v){return cardProfile.verbände.indexOf(v)!==-1;})&&
+    cardProfile.gf_marken.length===0;
   document.getElementById('profileBtn').classList.toggle('active',!isDefault);
-  document.querySelectorAll('.profile-opt').forEach(function(el){
+  document.querySelectorAll('.profile-opt[data-verband]').forEach(function(el){
     var sel=cardProfile.verbände.indexOf(el.getAttribute('data-verband'))!==-1;
+    el.classList.toggle('sel',sel);
+    el.querySelector('.pc-check').textContent=sel?'✓':'';
+  });
+  document.querySelectorAll('.profile-opt-gf').forEach(function(el){
+    var sel=cardProfile.gf_marken.indexOf(el.getAttribute('data-gf-marke'))!==-1;
     el.classList.toggle('sel',sel);
     el.querySelector('.pc-check').textContent=sel?'✓':'';
   });
@@ -1143,11 +1175,23 @@ function toggleProfileVerband(verband){
   // Klicks nacheinander, anders als das frühere Radio-Verhalten (setCardProfile
   // schloss die Popover nach jedem Klick, weil ein Klick = eine fertige Auswahl war).
 }
+function toggleProfileGfMarke(bundesland){
+  var idx=cardProfile.gf_marken.indexOf(bundesland);
+  if(idx===-1)cardProfile.gf_marken.push(bundesland);
+  else cardProfile.gf_marken.splice(idx,1);
+  localStorage.setItem('cardProfile',JSON.stringify(cardProfile));
+  syncProfileUI();
+  renderMarkers();
+  applySpotsLayerVisibility();
+}
 function toggleProfilePopover(){
   document.getElementById('profilePopover').classList.toggle('show');
 }
-document.querySelectorAll('.profile-opt').forEach(function(el){
+document.querySelectorAll('.profile-opt[data-verband]').forEach(function(el){
   el.addEventListener('click',function(){toggleProfileVerband(el.getAttribute('data-verband'));});
+});
+document.querySelectorAll('.profile-opt-gf').forEach(function(el){
+  el.addEventListener('click',function(){toggleProfileGfMarke(el.getAttribute('data-gf-marke'));});
 });
 document.addEventListener('click',function(e){
   var pop=document.getElementById('profilePopover'),btn=document.getElementById('profileBtn');
@@ -2509,7 +2553,8 @@ function renderSchonzeitPanel(row){
   // Binnengewässer (Bereich=Ortsname, z.B. 'Neuhaus') fälschlich auf Brandenburg-Werte zurück,
   // siehe projektlog.md 02.07.2026 "Schonzeiten für MV" + LALLF-Mindestmaßtabelle.
   var isMvBinnen = !isKueste && row && row.bundesland==='mv';
-  var bereich = isKueste ? 'mv_kueste' : isMvBinnen ? 'mv' : (row && row.Bereich==='Berlin' ? 'berlin' : 'brandenburg');
+  var isSt = !isKueste && !isMvBinnen && row && row.bundesland==='st';
+  var bereich = isKueste ? 'mv_kueste' : isMvBinnen ? 'mv' : isSt ? 'st' : (row && row.Bereich==='Berlin' ? 'berlin' : 'brandenburg');
   var brackZander = isKueste && ZANDER_40CM_KUESTE_IDS.indexOf(row.Gewässer_Nr)!==-1;
   function landFor(key, entry){
     if(key==='zander' && brackZander) return entry.mv_kueste_brack || entry[bereich];
@@ -2522,14 +2567,14 @@ function renderSchonzeitPanel(row){
     if(!entry) return;
     rowsHtml+=schonzeitRowHtml(entry.label, landFor(f.key, entry), f.png||null);
   });
-  var order = isKueste ? SCHONZEIT_ORDER_KUESTE : isMvBinnen ? SCHONZEIT_ORDER_MV_BINNEN : SCHONZEIT_ORDER;
+  var order = isKueste ? SCHONZEIT_ORDER_KUESTE : isMvBinnen ? SCHONZEIT_ORDER_MV_BINNEN : isSt ? SCHONZEIT_ORDER_ST : SCHONZEIT_ORDER;
   var allRowsHtml='';
   order.forEach(function(key){
     var entry=SCHONZEIT_DATA[key];
     var land=landFor(key, entry);
     allRowsHtml+='<tr><td>'+escHtml(entry.label)+'</td><td>'+schonzeitText(land)+'</td><td>'+mindestmassText(land)+'</td></tr>';
   });
-  var landLabel = isKueste ? 'Küstengewässer M-V, KüFVO' : isMvBinnen ? 'Binnengewässer M-V, LALLF' : (bereich==='berlin' ? 'Berlin, LFischO' : 'Brandenburg, BbgFischO');
+  var landLabel = isKueste ? 'Küstengewässer M-V, KüFVO' : isMvBinnen ? 'Binnengewässer M-V, LALLF' : isSt ? 'Sachsen-Anhalt, LAV-ST-Fischartenliste' : (bereich==='berlin' ? 'Berlin, LFischO' : 'Brandenburg, BbgFischO');
   var html = rowsHtml ? '<div class="schonzeit-list">'+rowsHtml+'</div>'
                        : '<div class="schonzeit-empty">Keine erfassten Zielfischarten mit gesetzlicher Sonderregel an diesem Gewässer.</div>';
   html += '<details class="schonzeit-details"><summary>Gesetzliche Übersicht — alle '+order.length+' Arten ('+landLabel+')</summary>'+
@@ -2683,20 +2728,24 @@ const SCHONZEIT_DATA = {
   hecht:   { label:'Hecht',        brandenburg:{start:'01-02',end:'31-03',mindestmass:45,  hinweis:'Regionale Schonzeiten in Hegeplänen und Spreewald-Gewässern (15.01.–30.04.) beachten.'},
                                     berlin:     {start:'01-01',end:'30-04',mindestmass:45,  hinweis:'Absolutes Spinnangel- und Raubfischköderverbot im gesamten Berliner Stadtgebiet 01.01.–30.04.'},
                                     mv:         {start:'01-03',end:'30-04',mindestmass:45,  hinweis:'Binnengewässer M-V (LALLF-Mindestmaßtabelle). Fischereirechtsinhaber können eigene, strengere Schonzeiten festlegen (siehe Erlaubnisschein).'},
-                                    mv_kueste:  {start:'01-03',end:'30-04',mindestmass:50,  hinweis:'Kombiniertes Tageslimit mit Zander/Salmoniden: max. 3 Stück gesamt/Tag.'} },
+                                    mv_kueste:  {start:'01-03',end:'30-04',mindestmass:50,  hinweis:'Kombiniertes Tageslimit mit Zander/Salmoniden: max. 3 Stück gesamt/Tag.'},
+                                    st:         {start:'15-02',end:'30-04',mindestmass:50,  hinweis:'LAV-ST-Fischartenliste (angelatlas-lsa.de).'} },
   zander:  { label:'Zander',       brandenburg:{start:'01-04',end:'31-05',mindestmass:45,  hinweis:'Regionale Schonzeiten in Hegeplänen und Spreewald-Gewässern (15.01.–31.05.) beachten.'},
                                     berlin:     {start:'01-01',end:'31-05',mindestmass:45,  hinweis:'Tägliches Entnahmelimit von max. 3 Zandern/Aalen insgesamt beachten.'},
                                     mv:         {start:'23-04',end:'22-05',mindestmass:45,  hinweis:'Binnengewässer M-V (LALLF-Mindestmaßtabelle).'},
                                     mv_kueste:  {start:'23-04',end:'22-05',mindestmass:45,  hinweis:'Kombiniertes Tageslimit mit Hecht/Salmoniden: max. 3 Stück gesamt/Tag. In Boddenkette Fischland-Darß-Zingst, Peenestrom, Stettiner Haff gilt 40cm.'},
-                                    mv_kueste_brack:{start:'23-04',end:'22-05',mindestmass:40,hinweis:'Brackwasser-Ausnahme (Boddenkette Fischland-Darß-Zingst, Peenestrom, Stettiner Haff). Kombiniertes Tageslimit mit Hecht/Salmoniden: max. 3 Stück gesamt/Tag.'} },
+                                    mv_kueste_brack:{start:'23-04',end:'22-05',mindestmass:40,hinweis:'Brackwasser-Ausnahme (Boddenkette Fischland-Darß-Zingst, Peenestrom, Stettiner Haff). Kombiniertes Tageslimit mit Hecht/Salmoniden: max. 3 Stück gesamt/Tag.'},
+                                    st:         {start:'15-02',end:'31-05',mindestmass:50,  hinweis:'LAV-ST-Fischartenliste (angelatlas-lsa.de).'} },
   barsch:  { label:'Flussbarsch',  brandenburg:{start:null,   end:null,   mindestmass:null, hinweis:'Keine gesetzliche Schonzeit und kein Mindestmaß.'},
                                     berlin:     {start:null,   end:null,   mindestmass:null, hinweis:'Während der Raubfischschonzeit (01.01.–30.04.) nur mit Naturködern an Friedfischmontagen.'},
                                     mv:         {start:null,   end:null,   mindestmass:17,   hinweis:'Binnengewässer M-V: anders als BB/Berlin gilt hier ein Mindestmaß (LALLF-Mindestmaßtabelle), keine Schonzeit.'},
-                                    mv_kueste:  {start:null,   end:null,   mindestmass:20,   hinweis:'In ausgewiesenen Winterlagern/Häfen (z.B. Stralsund, Wolgast) temporäres Limit von max. 6 Barschen.'} },
+                                    mv_kueste:  {start:null,   end:null,   mindestmass:20,   hinweis:'In ausgewiesenen Winterlagern/Häfen (z.B. Stralsund, Wolgast) temporäres Limit von max. 6 Barschen.'},
+                                    st:         {start:null,   end:null,   mindestmass:null, hinweis:'LAV-ST-Fischartenliste: keine Schonzeit, kein Mindestmaß.'} },
   aal:     { label:'Aal',          brandenburg:{start:null,   end:null,   mindestmass:50,   hinweis:'Tägliches Entnahmelimit: 3 Stück in offenen, 5 Stück in geschlossenen Gewässern.'},
                                     berlin:     {start:null,   end:null,   mindestmass:50,   hinweis:'Tägliches Entnahmelimit von max. 3 Aalen/Zandern insgesamt beachten.'},
                                     mv:         {start:'01-12',end:'28-02',mindestmass:50,   hinweis:'Binnengewässer M-V hat (anders als BB/Berlin) eine echte Schonzeit (LALLF-Mindestmaßtabelle) zusätzlich zum Mindestmaß.'},
-                                    mv_kueste:  {start:'01-01',end:'31-12',mindestmass:50,   hinweis:'EU-weites Verbot der Freizeitfischerei auf Aal in Küstengewässern (2026). Bag-Limit 0 Stück, auch Beifänge zurücksetzen.'} },
+                                    mv_kueste:  {start:'01-01',end:'31-12',mindestmass:50,   hinweis:'EU-weites Verbot der Freizeitfischerei auf Aal in Küstengewässern (2026). Bag-Limit 0 Stück, auch Beifänge zurücksetzen.'},
+                                    st:         {start:null,   end:null,   mindestmass:50,   hinweis:'LAV-ST-Fischartenliste: kein Schonzeit-Datum hinterlegt, Mindestmaß 50cm.'} },
   dorsch:  { label:'Dorsch',       mv_kueste:  {start:'01-01',end:'31-12',mindestmass:35,   hinweis:'EU-Verordnung 2025/2454: striktes Entnahmeverbot für Freizeitangler in ICES-Gebieten 22-24 (2026). Bag-Limit 0 Stück, Beifänge sofort zurücksetzen.'} },
   hering:  { label:'Hering',       mv_kueste:  {start:null,   end:null,   mindestmass:null, hinweis:'Keine Mindestmaße oder Schonzeiten für Freizeitangler.'} },
   hornhecht:{ label:'Hornhecht',   mv_kueste:  {start:null,   end:null,   mindestmass:null, hinweis:'Keine Einschränkungen bekannt.'} },
@@ -2704,40 +2753,53 @@ const SCHONZEIT_DATA = {
   makrele: { label:'Makrele',      mv_kueste:  {start:null,   end:null,   mindestmass:null, hinweis:'Keine Einschränkungen bekannt.'} },
   karpfen: { label:'Karpfen',      brandenburg:{start:null,   end:null,   mindestmass:35,   hinweis:'In Spreewald-Sondergewässern für Schuppenkarpfen erhöhtes Mindestmaß von 40 cm.'},
                                     berlin:     {start:null,   end:null,   mindestmass:35,   hinweis:'Anfüttern auf max. 500 g Nassgewicht pro Angler/Kalendertag begrenzt.'},
-                                    mv:         {start:null,   end:null,   mindestmass:40,   hinweis:'Binnengewässer M-V: höheres Mindestmaß als BB/Berlin (LALLF-Mindestmaßtabelle), keine Schonzeit.'} },
+                                    mv:         {start:null,   end:null,   mindestmass:40,   hinweis:'Binnengewässer M-V: höheres Mindestmaß als BB/Berlin (LALLF-Mindestmaßtabelle), keine Schonzeit.'},
+                                    st:         {start:null,   end:null,   mindestmass:35,   hinweis:'LAV-ST-Fischartenliste: Spiegel-/Schuppenkarpfen 35cm, Graskarpfen ohne gesondertes Mindestmaß gelistet.'} },
   schleie: { label:'Schleie',      brandenburg:{start:null,   end:null,   mindestmass:25,   hinweis:'Gesetzliches Mindestmaß ganzjährig gültig.'},
                                     berlin:     {start:null,   end:null,   mindestmass:25,   hinweis:'Gesetzliches Mindestmaß ganzjährig gültig.'},
-                                    mv:         {start:null,   end:null,   mindestmass:25,   hinweis:'Binnengewässer M-V (LALLF-Mindestmaßtabelle), identisch zu BB/Berlin.'} },
+                                    mv:         {start:null,   end:null,   mindestmass:25,   hinweis:'Binnengewässer M-V (LALLF-Mindestmaßtabelle), identisch zu BB/Berlin.'},
+                                    st:         {start:null,   end:null,   mindestmass:25,   hinweis:'LAV-ST-Fischartenliste: keine Schonzeit.'} },
   wels:    { label:'Wels',         brandenburg:{start:null,   end:null,   mindestmass:null, hinweis:'Schonzeit/Mindestmaß seit 01.01.2010 ersatzlos aufgehoben.'},
                                     berlin:     {start:null,   end:null,   mindestmass:75,   hinweis:'Kein Brandenburg-Mindestmaß, aber 75 cm in Berlin.'},
-                                    mv:         {start:'01-05',end:'30-06',mindestmass:70,   hinweis:'Binnengewässer M-V hat (anders als BB) sowohl Mindestmaß als auch Schonzeit (LALLF-Mindestmaßtabelle).'} },
+                                    mv:         {start:'01-05',end:'30-06',mindestmass:70,   hinweis:'Binnengewässer M-V hat (anders als BB) sowohl Mindestmaß als auch Schonzeit (LALLF-Mindestmaßtabelle).'},
+                                    st:         {start:null,   end:null,   mindestmass:null, hinweis:'LAV-ST-Fischartenliste: keine Schonzeit, kein Mindestmaß.'} },
   forelle: { label:'Bachforelle',  brandenburg:{start:'16-10',end:'15-04',mindestmass:30,   hinweis:'Salmonidengewässer: Schonhakenpflicht gemäß LAVB-Gewässerordnung.'},
                                     berlin:     {start:'01-10',end:'30-04',mindestmass:30,   hinweis:'Ältere Angaben mit 25 cm sind veraltet, aktuell gelten 30 cm.'},
-                                    mv:         {start:'01-10',end:'31-03',mindestmass:30,   hinweis:'Binnengewässer M-V (LALLF-Mindestmaßtabelle) — abweichende Schonzeit-Enddaten zu BB/Berlin beachten.'} },
+                                    mv:         {start:'01-10',end:'31-03',mindestmass:30,   hinweis:'Binnengewässer M-V (LALLF-Mindestmaßtabelle) — abweichende Schonzeit-Enddaten zu BB/Berlin beachten.'},
+                                    st:         {start:'15-09',end:'31-03',mindestmass:25,   hinweis:'LAV-ST-Fischartenliste — abweichendes Mindestmaß (25cm statt 30cm) und Schonzeit-Start zu BB/Berlin/MV.'} },
   aesche:  { label:'Äsche',        brandenburg:{start:'01-12',end:'31-05',mindestmass:30,   hinweis:'Ganzjährig geschützte Gewässerbereiche und Salmonidenstrecken beachten.'},
                                     berlin:     {start:'01-12',end:'31-05',mindestmass:30,   hinweis:'Fangverbote in ausgewiesenen Schonbereichen möglich.'},
-                                    mv:         {start:null,   end:null,   mindestmass:30,   hinweis:'Binnengewässer M-V: anders als BB/Berlin keine Schonzeit (LALLF-Mindestmaßtabelle), nur Mindestmaß.'} },
+                                    mv:         {start:null,   end:null,   mindestmass:30,   hinweis:'Binnengewässer M-V: anders als BB/Berlin keine Schonzeit (LALLF-Mindestmaßtabelle), nur Mindestmaß.'},
+                                    st:         {start:'01-12',end:'15-05',mindestmass:30,   hinweis:'LAV-ST-Fischartenliste — abweichendes Schonzeit-Ende (15.05. statt 31.05.) zu BB/Berlin.'} },
   rapfen:  { label:'Rapfen',       brandenburg:{start:'01-04',end:'30-06',mindestmass:40,   hinweis:'Schonzeit während der Frühjahrslaichphase.'},
                                     berlin:     {start:'01-04',end:'30-06',mindestmass:40,   hinweis:'Deckt sich mit den brandenburgischen Vorgaben.'},
-                                    mv:         {start:null,   end:null,   mindestmass:35,   hinweis:'Binnengewässer M-V: anders als BB/Berlin keine Schonzeit, niedrigeres Mindestmaß (LALLF-Mindestmaßtabelle).'} },
+                                    mv:         {start:null,   end:null,   mindestmass:35,   hinweis:'Binnengewässer M-V: anders als BB/Berlin keine Schonzeit, niedrigeres Mindestmaß (LALLF-Mindestmaßtabelle).'},
+                                    st:         {start:null,   end:null,   mindestmass:40,   hinweis:'LAV-ST-Fischartenliste: kein Schonzeit-Datum hinterlegt, Mindestmaß wie BB/Berlin.'} },
   'döbel': { label:'Döbel',        brandenburg:{start:null,   end:null,   mindestmass:30,   hinweis:'Keine Schonzeit, Mindestmaß 30 cm einzuhalten.'},
-                                    berlin:     {start:null,   end:null,   mindestmass:30,   hinweis:'Keine Schonzeit, Mindestmaß 30 cm einzuhalten.'} },
+                                    berlin:     {start:null,   end:null,   mindestmass:30,   hinweis:'Keine Schonzeit, Mindestmaß 30 cm einzuhalten.'},
+                                    st:         {start:null,   end:null,   mindestmass:null, hinweis:'LAV-ST-Fischartenliste: kein Mindestmaß hinterlegt (abweichend von BB/Berlin).'} },
   quappe:  { label:'Quappe',       brandenburg:{start:null,   end:null,   mindestmass:30,   hinweis:'Lokale Schutzbestimmungen der Vereine während der Winterlaichzeit möglich.'},
                                     berlin:     {start:null,   end:null,   mindestmass:30,   hinweis:'Keine gesetzliche Schonzeit, Mindestmaß 30 cm einzuhalten.'},
-                                    mv:         {start:'01-01',end:'15-02',mindestmass:30,   hinweis:'Binnengewässer M-V hat (anders als BB/Berlin) eine echte Winterlaich-Schonzeit (LALLF-Mindestmaßtabelle).'} },
-  maraene: { label:'Maräne',       mv:         {start:'01-10',end:'31-12',mindestmass:30,   hinweis:'Binnengewässer M-V (Großmaräne, LALLF-Mindestmaßtabelle). Für BB/Berlin nicht separat recherchiert.'} },
+                                    mv:         {start:'01-01',end:'15-02',mindestmass:30,   hinweis:'Binnengewässer M-V hat (anders als BB/Berlin) eine echte Winterlaich-Schonzeit (LALLF-Mindestmaßtabelle).'},
+                                    st:         {start:null,   end:null,   mindestmass:30,   hinweis:'LAV-ST-Fischartenliste: keine Schonzeit hinterlegt.'} },
+  maraene: { label:'Maräne',       mv:         {start:'01-10',end:'31-12',mindestmass:30,   hinweis:'Binnengewässer M-V (Großmaräne, LALLF-Mindestmaßtabelle). Für BB/Berlin nicht separat recherchiert.'},
+                                   st:         {start:null,   end:null,   mindestmass:30,   hinweis:'LAV-ST-Fischartenliste: Großmaräne 30cm (Kleine Maräne separat mit 12cm gelistet, hier nicht abgebildet).'} },
   // Kein eigenes fisch_*-Flag im Gewässer-Datensatz vorhanden — nur in der Gesetzesübersicht sichtbar:
   meerforelle:{ label:'Meerforelle', brandenburg:{start:'01-01',end:'31-12',mindestmass:null,hinweis:'Wilde Meerforellen ganzjährig geschont. Satzfische: 16.10.–15.04., 60 cm Mindestmaß.'},
                                                    berlin:     {start:'01-01',end:'31-12',mindestmass:null,hinweis:'Ganzjährig geschützt, gezieltes Angeln/Entnahme verboten.'},
                                                    mv:         {start:'01-09',end:'31-03',mindestmass:45,  hinweis:'Binnengewässer M-V (LALLF-Mindestmaßtabelle) — andere Schonzeit-Daten als an der Küste (dort 15.09.–14.12.).'},
-                                                   mv_kueste:  {start:'15-09',end:'14-12',mindestmass:45,  hinweis:'Keine Wild-/Satzfisch-Differenzierung wie beim Lachs. Kombiniertes Tageslimit mit Hecht/Zander/Salmoniden: max. 3 Stück gesamt/Tag.'} },
+                                                   mv_kueste:  {start:'15-09',end:'14-12',mindestmass:45,  hinweis:'Keine Wild-/Satzfisch-Differenzierung wie beim Lachs. Kombiniertes Tageslimit mit Hecht/Zander/Salmoniden: max. 3 Stück gesamt/Tag.'},
+                                                   st:         {start:'01-01',end:'31-12',mindestmass:null,hinweis:'LAV-ST-Fischartenliste: ganzjährig geschont, kein Mindestmaß hinterlegt.'} },
   barbe:      { label:'Barbe',       brandenburg:{start:'01-05',end:'31-07',mindestmass:40,  hinweis:'Schonzeit während der Hauptlaichzeit im Sommer.'},
                                                    berlin:     {start:'01-01',end:'31-12',mindestmass:null,hinweis:'In Berlin ganzjährig geschützt — abweichend von Brandenburg.'},
-                                                   mv:         {start:'01-01',end:'31-12',mindestmass:null,hinweis:'Binnengewässer M-V: ganzjährig geschützt (LALLF-Mindestmaßtabelle), wie Berlin.'} },
+                                                   mv:         {start:'01-01',end:'31-12',mindestmass:null,hinweis:'Binnengewässer M-V: ganzjährig geschützt (LALLF-Mindestmaßtabelle), wie Berlin.'},
+                                                   st:         {start:'01-04',end:'30-06',mindestmass:45,  hinweis:'LAV-ST-Fischartenliste — abweichende Schonzeit und höheres Mindestmaß zu BB/Berlin/MV.'} },
   alande:     { label:'Aland',       brandenburg:{start:null,   end:null,   mindestmass:30,  hinweis:'Keine Schonzeit, Mindestmaß 30 cm gilt ganzjährig.'},
                                                    berlin:     {start:null,   end:null,   mindestmass:30,  hinweis:'Keine Schonzeit, Mindestmaß 30 cm einzuhalten.'},
-                                                   mv:         {start:null,   end:null,   mindestmass:25,  hinweis:'Binnengewässer M-V: niedrigeres Mindestmaß als BB/Berlin (LALLF-Mindestmaßtabelle).'} },
-  hasel:      { label:'Hasel',       noFlag:true, mv:         {start:'01-03',end:'31-05',mindestmass:null,hinweis:'Binnengewässer M-V (LALLF-Mindestmaßtabelle). Für BB/Berlin nicht separat recherchiert.'} }
+                                                   mv:         {start:null,   end:null,   mindestmass:25,  hinweis:'Binnengewässer M-V: niedrigeres Mindestmaß als BB/Berlin (LALLF-Mindestmaßtabelle).'},
+                                                   st:         {start:null,   end:null,   mindestmass:null,hinweis:'LAV-ST-Fischartenliste: kein Mindestmaß hinterlegt (abweichend von BB/Berlin/MV).'} },
+  hasel:      { label:'Hasel',       noFlag:true, mv:         {start:'01-03',end:'31-05',mindestmass:null,hinweis:'Binnengewässer M-V (LALLF-Mindestmaßtabelle). Für BB/Berlin nicht separat recherchiert.'},
+                                                   st:         {start:null,   end:null,   mindestmass:null,hinweis:'LAV-ST-Fischartenliste: keine Schonzeit, kein Mindestmaß.'} }
 };
 // Anzeigereihenfolge für die allgemeine Gesetzesübersicht (alle 15 recherchierten Arten)
 const SCHONZEIT_ORDER = ['hecht','zander','barsch','aal','karpfen','schleie','wels','forelle',
@@ -2754,6 +2816,13 @@ const SCHONZEIT_ORDER_KUESTE = ['dorsch','aal','meerforelle','hecht','zander','p
 const SCHONZEIT_ORDER_MV_BINNEN = ['hecht','zander','barsch','aal','karpfen','schleie','wels',
                                     'forelle','aesche','maraene','quappe','rapfen','meerforelle',
                                     'barbe','alande','hasel'];
+// Eigene Reihenfolge für Sachsen-Anhalt (bundesland==='st') -- Quelle: LAV-ST-Fischartenliste
+// (v_fisch-WFS, angelatlas-lsa.de, siehe project_st_wfs_datasource-Memory). Döbel zusätzlich zu
+// SCHONZEIT_ORDER_MV_BINNEN enthalten, da die ST-Fischliste (anders als LALLF für MV) einen
+// eigenen Döbel-Eintrag führt.
+const SCHONZEIT_ORDER_ST = ['hecht','zander','barsch','aal','karpfen','schleie','wels',
+                             'forelle','aesche','maraene','quappe','rapfen','meerforelle',
+                             'barbe','alande','döbel','hasel'];
 
 // ActivityEngine
 var ActivityEngine = {
@@ -2910,7 +2979,7 @@ var ActivityEngine = {
   getSchonzeitHint: function(fish, bereich) {
     var entry = SCHONZEIT_DATA[fish];
     if (!entry) return null;
-    var land = bereich === 'Berlin' ? entry.berlin : bereich === 'kueste' ? entry.mv_kueste : bereich === 'mv' ? entry.mv : entry.brandenburg;
+    var land = bereich === 'Berlin' ? entry.berlin : bereich === 'kueste' ? entry.mv_kueste : bereich === 'mv' ? entry.mv : bereich === 'st' ? entry.st : entry.brandenburg;
     if (!land) return null;
     var status = ActivityEngine.schonzeitStatus(land.start, land.end, 14);
     if (!status) return null;
