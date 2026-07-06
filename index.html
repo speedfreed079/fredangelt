@@ -381,12 +381,27 @@ body.outdoor .metric{background:rgba(45,110,69,.14)}
 .field{display:flex;flex-direction:column;gap:6px}
 .f-label{font-size:.64rem;font-family:var(--mono);font-weight:600;color:var(--d);
   text-transform:uppercase;letter-spacing:.7px}
-.water-chip{display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:10px;
-  background:var(--surface2);border:1px solid var(--border)}
-.water-chip .w-ico{font-size:1.15rem}
-.water-chip .w-name{font-size:.9rem;font-weight:600;color:var(--t)}
-.water-chip .w-tag{margin-left:auto;font-size:.6rem;font-family:var(--mono);color:var(--d);
-  text-transform:uppercase;letter-spacing:.6px}
+/* Gewässer-Suchfeld + Fangort (07.07.2026, funktional -- Feinschliff folgt via Claude Design) */
+.water-field{position:relative}
+.water-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:50;
+  background:var(--surface2);border:1px solid var(--border);border-radius:9px;
+  max-height:220px;overflow-y:auto}
+.water-dropdown.show{display:block}
+.water-dropdown .wd-item{padding:9px 12px;font-size:.85rem;color:var(--t);cursor:pointer;
+  border-bottom:1px solid var(--border)}
+.water-dropdown .wd-item:last-child{border-bottom:none}
+.water-dropdown .wd-item:hover{background:var(--surface)}
+.water-dropdown .wd-item.wd-custom{color:var(--accent);font-weight:600}
+.water-dropdown .wd-empty{padding:9px 12px;font-size:.78rem;color:var(--d)}
+.fangort-row{display:flex;gap:8px;margin-top:8px}
+.fangort-row .btn-secondary{flex:1;font-size:.74rem;padding:9px 6px;width:auto}
+.fangort-status{font-size:.74rem;color:var(--d);font-family:var(--mono);margin-top:6px;min-height:1em}
+.fangort-status.ok{color:var(--accent)}
+.fb-pick-banner{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:50%;
+  transform:translateX(-50%);z-index:5000;background:var(--surface);border:1px solid var(--accent);
+  border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;
+  box-shadow:0 4px 18px rgba(0,0,0,.35);font-size:.82rem;color:var(--t);max-width:92vw}
+.fb-pick-banner .btn-secondary,.fb-pick-banner .btn-primary{flex-shrink:0;width:auto;padding:7px 11px;font-size:.76rem}
 .fb-fish-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
 @media(max-width:400px){.fb-fish-grid{grid-template-columns:repeat(3,1fr)}}
 .fb-fish-badge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
@@ -903,7 +918,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.35.0";
+const APP_VERSION = "4.35.1";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1258,8 +1273,14 @@ function setAuthLoggedInUI(isLoggedIn, username){
 
 // ── Fangbuch-Panel (Claude-Design-Handoff 02.07.2026) ───────────────────────
 var _fbState = { view:'list', gewaesserNr:'', gewaesserName:'', catches:[], selFish:null, photoFile:null,
-                  editId:null, existingPhotoURL:null, existingPhotoPath:null, photoRemoved:false };
+                  editId:null, existingPhotoURL:null, existingPhotoPath:null, photoRemoved:false,
+                  customGewaesserName:null, customFischart:null, fangort:null };
 var _fbUnsubscribe = null;
+// Fangort-per-Kartenklick (siehe _fbStartPickLocation) -- eigene Modul-Variablen statt
+// _fbState, weil sie den Panel-Sichtbarkeitszustand waehrend des Klick-Modus mitsteuern,
+// nicht den eigentlichen Formular-Inhalt.
+var _fbPicking = false;
+var _fbPickMarker = null;
 
 function _fbRequireAuth(){
   var user = window.FreddyAuth && window.FreddyAuth.getCurrentUser();
@@ -1293,10 +1314,14 @@ function openAddCatchForm(row){
   document.getElementById('authPopover').classList.remove('show'); // sonst deckt das Konto-Popover das Panel ab
   _fbState.view = 'form';
   _fbState.gewaesserNr = (row && row.Gewässer_Nr) || '';
-  _fbState.gewaesserName = (row && row.Gewässername) || 'Unbekanntes Gewässer';
+  _fbState.gewaesserName = (row && row.Gewässername) || '';
+  _fbState.customGewaesserName = null;
   _fbState.selFish = null;
+  _fbState.customFischart = null;
+  _fbState.fangort = null;
   _fbState.photoFile = null;
   _fbState.editId = null;
+  _fbState.editSource = null;
   _fbState.existingPhotoURL = null;
   _fbState.existingPhotoPath = null;
   _fbState.photoRemoved = false;
@@ -1313,8 +1338,11 @@ function _fbOpenEditForm(catchId){
   _fbState.view = 'form';
   _fbState.editId = c.id;
   _fbState.gewaesserNr = c.gewaesserNr || '';
-  _fbState.gewaesserName = c.gewaesserName || 'Unbekanntes Gewässer';
-  _fbState.selFish = c.speciesKey || null;
+  _fbState.gewaesserName = c.gewaesserName || '';
+  _fbState.customGewaesserName = c.customGewaesserName || null;
+  _fbState.selFish = c.customFischart ? '__custom__' : (c.speciesKey || null);
+  _fbState.customFischart = c.customFischart || null;
+  _fbState.fangort = c.fangort || null;
   _fbState.photoFile = null;
   _fbState.existingPhotoURL = c.photoURL || null;
   _fbState.existingPhotoPath = c.photoPath || null;
@@ -1377,13 +1405,15 @@ function _fbRenderList(){
       if(c.weightKg) metrics += '<span class="metric">'+_fbEsc(c.weightKg)+' kg</span>';
       if(c.lengthCm) metrics += '<span class="metric">'+_fbEsc(c.lengthCm)+' cm</span>';
       var icoClass = c.photoURL ? 'catch-ico photo-ico' : 'catch-ico';
-      var icoContent = c.photoURL ? '<img src="'+_fbEsc(c.photoURL)+'" alt="Fang-Foto">' : _fbCatchIconHtml(c.speciesKey);
+      var icoContent = c.photoURL ? '<img src="'+_fbEsc(c.photoURL)+'" alt="Fang-Foto">' : (c.customFischart ? '<span>🐟</span>' : _fbCatchIconHtml(c.speciesKey));
+      var fishLabel = c.customFischart || _fbFishLabel(c.speciesKey);
+      var waterLabel = c.customGewaesserName || c.gewaesserName;
       return '<div class="catch-card" data-id="'+c.id+'">'
            +   '<div class="'+icoClass+'">'+icoContent+'</div>'
            +   '<div class="catch-main">'
-           +     '<div class="catch-name">'+_fbEsc(_fbFishLabel(c.speciesKey))+'</div>'
+           +     '<div class="catch-name">'+_fbEsc(fishLabel)+'</div>'
            +     (metrics ? '<div class="catch-metrics">'+metrics+'</div>' : '')
-           +     '<div class="catch-sub">🎣 '+_fbEsc(c.gewaesserName)+' <span class="dot">•</span> '+_fbFormatDate(c.caughtAt)+'</div>'
+           +     '<div class="catch-sub">'+(c.fangort?'📍 ':'🎣 ')+_fbEsc(waterLabel)+' <span class="dot">•</span> '+_fbFormatDate(c.caughtAt)+'</div>'
            +   '</div>'
            +   '<div class="catch-del" data-del="'+c.id+'" title="Fang löschen">🗑</div>'
            + '</div>';
@@ -1502,6 +1532,176 @@ function _fbToLocalInputValue(ts){
   return d.toISOString().slice(0,16);
 }
 
+// ── Gewässer-Suche/Custom-Eintrag im Fangbuch-Formular (07.07.2026) ─────────
+function _fbWaterSearch(query){
+  var q = (query||'').trim().toLowerCase();
+  if(!q) return [];
+  var out = [];
+  for(var i=0;i<allData.length && out.length<8;i++){
+    var r = allData[i];
+    var name = r.Gewässername||'';
+    if(name.toLowerCase().indexOf(q)!==-1) out.push(r);
+  }
+  return out;
+}
+function _fbShowWaterDropdown(query){
+  var dd = document.getElementById('fb-water-dropdown');
+  if(!dd) return;
+  var q = (query||'').trim();
+  var matches = _fbWaterSearch(q);
+  var html = matches.map(function(r){
+    return '<div class="wd-item" data-nr="'+_fbEsc(r.Gewässer_Nr)+'" data-name="'+_fbEsc(r.Gewässername)+'">'+_fbEsc(r.Gewässername)+'</div>';
+  }).join('');
+  if(!matches.length && q){
+    html += '<div class="wd-empty">Kein Treffer für „'+_fbEsc(q)+'“</div>';
+  }
+  html += '<div class="wd-item wd-custom" data-custom="1">➕ '+(q?'„'+_fbEsc(q)+'“ als eigenes Gewässer eintragen':'Eigenes Gewässer eintragen (z.B. im Ausland)')+'</div>';
+  dd.innerHTML = html;
+  dd.classList.add('show');
+  dd.querySelectorAll('.wd-item[data-nr]').forEach(function(el){
+    // mousedown statt click, damit der Eintrag noch vor dem blur-Ausblenden des
+    // Dropdowns feuert (siehe waterInput.onblur in _fbRenderForm).
+    el.onmousedown = function(ev){
+      ev.preventDefault();
+      _fbSelectWater(el.getAttribute('data-nr'), el.getAttribute('data-name'));
+    };
+  });
+  var customEl = dd.querySelector('.wd-custom');
+  if(customEl){
+    customEl.onmousedown = function(ev){
+      ev.preventDefault();
+      _fbSelectCustomWater(q);
+    };
+  }
+}
+function _fbHideWaterDropdown(){
+  var dd = document.getElementById('fb-water-dropdown');
+  if(dd){ dd.classList.remove('show'); dd.innerHTML=''; }
+}
+function _fbSelectWater(nr, name){
+  _fbState.gewaesserNr = nr;
+  _fbState.gewaesserName = name;
+  _fbState.customGewaesserName = null;
+  var input = document.getElementById('fb-water-input');
+  if(input) input.value = name;
+  _fbHideWaterDropdown();
+  _fbRenderLegalHints();
+}
+function _fbSelectCustomWater(name){
+  _fbState.gewaesserNr = '';
+  _fbState.gewaesserName = '';
+  _fbState.customGewaesserName = name || '';
+  var input = document.getElementById('fb-water-input');
+  if(input){ input.value = name || ''; input.focus(); }
+  _fbHideWaterDropdown();
+  _fbRenderLegalHints();
+}
+
+// ── Fangort: GPS-Standort oder Karten-Klick (07.07.2026) ────────────────────
+function _fbUseGpsLocation(){
+  if(!navigator.geolocation){
+    alert('GPS ist auf diesem Gerät nicht verfügbar.');
+    return;
+  }
+  var statusEl = document.getElementById('fb-fangort-status');
+  if(statusEl){ statusEl.textContent = '📍 Standort wird ermittelt…'; statusEl.classList.remove('ok'); }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    _fbState.fangort = { lat: pos.coords.latitude, lon: pos.coords.longitude, quelle: 'gps' };
+    _fbRenderFangortStatus();
+  }, function(){
+    if(statusEl) statusEl.textContent = '⚠️ Standort konnte nicht ermittelt werden.';
+  }, { enableHighAccuracy:true, timeout:10000 });
+}
+function _fbRenderFangortStatus(){
+  var statusEl = document.getElementById('fb-fangort-status');
+  if(!statusEl) return;
+  if(!_fbState.fangort){ statusEl.textContent=''; statusEl.classList.remove('ok'); return; }
+  statusEl.classList.add('ok');
+  statusEl.textContent = _fbState.fangort.quelle==='gps'
+    ? '✓ Aktueller Standort gespeichert'
+    : '✓ Punkt auf der Karte gespeichert';
+}
+function _fbStartPickLocation(){
+  _fbPicking = true;
+  document.getElementById('fangbuchPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  var banner = document.createElement('div');
+  banner.className = 'fb-pick-banner';
+  banner.id = 'fb-pick-banner';
+  banner.innerHTML = '<span>🗺️ Tippe auf die Karte, um den Fangort zu setzen</span>'
+    + '<button type="button" class="btn-secondary" id="fb-pick-cancel">Abbrechen</button>'
+    + '<button type="button" class="btn-primary" id="fb-pick-confirm" style="display:none">✓ Übernehmen</button>';
+  document.body.appendChild(banner);
+  document.getElementById('fb-pick-cancel').onclick = function(){ _fbCancelPickLocation(); };
+}
+function _fbReopenFangbuchPanel(){
+  document.getElementById('fangbuchPanel').classList.add('open');
+  if(window.innerWidth<=640) document.getElementById('overlay').classList.add('show');
+}
+function _fbCancelPickLocation(){
+  _fbPicking = false;
+  if(_fbPickMarker){ map.removeLayer(_fbPickMarker); _fbPickMarker = null; }
+  var banner = document.getElementById('fb-pick-banner');
+  if(banner) banner.remove();
+  _fbReopenFangbuchPanel();
+}
+function _fbConfirmPickLocation(){
+  if(!_fbPickMarker) return;
+  var ll = _fbPickMarker.getLatLng();
+  _fbState.fangort = { lat: ll.lat, lon: ll.lng, quelle: 'karte' };
+  _fbPicking = false;
+  map.removeLayer(_fbPickMarker); _fbPickMarker = null;
+  var banner = document.getElementById('fb-pick-banner');
+  if(banner) banner.remove();
+  _fbReopenFangbuchPanel();
+  _fbRenderFangortStatus();
+}
+
+// ── Rechtshinweise je Bundesland/Art im Fangbuch (07.07.2026, siehe
+// 07_Recherchen/Fangmelde-Recht Für Angel-Apps.md) — rein informativ, blockiert
+// nichts. Nur für echte (nicht custom) Gewässer möglich, da bundesland-Zuordnung
+// über panelBereichFor() fehlt, sobald kein allData-Datensatz zugrunde liegt.
+var _FB_FEINFISCH_BB = {hecht:1, zander:1, aal:1, forelle:1, regenbogenforelle:1, meerforelle:1, lachs:1, aesche:1, maraene:1};
+var _FB_SA_ENTNAHME = {hecht:1, zander:1, karpfen:1, quappe:1, schleie:1, barbe:1, rapfen:1, forelle:1, regenbogenforelle:1};
+function _fbLegalHints(){
+  if(!_fbState.gewaesserNr) return [];
+  var row = allData.find(function(r){ return r.Gewässer_Nr===_fbState.gewaesserNr; });
+  if(!row) return [];
+  var bereich = panelBereichFor(row);
+  var fish = _fbState.selFish;
+  var hints = [];
+  if(bereich==='Berlin'){
+    var h = 'Berlin: physisches Fangbuch Pflicht, Eintragung sofort nach dem Fang.';
+    if(fish==='aal' || fish==='zander') h += ' Tageslimit Aal + Zander: max. 3 Stück.';
+    hints.push(h);
+  } else if(bereich==='kueste'){
+    hints.push('Küste M-V: Dorsch, Aal und Lachs müssen vor dem Anlanden elektronisch über die EU-App RecFishing gemeldet werden (Meerforelle ausgenommen).');
+  } else if(bereich==='mv'){
+    if(row.ist_salmonide==='ja'){
+      hints.push('Salmonidengewässer M-V: Eintrag in die Fangkarte VOR Angelbeginn Pflicht.');
+    }
+  } else if(bereich==='st'){
+    var h2 = 'Sachsen-Anhalt: physisches Fangbuch Pflicht, sofortige Eintragung am Gewässer.';
+    if(fish && _FB_SA_ENTNAHME[fish]) h2 += ' Gilt insbesondere für '+_fbEsc(_fbFishLabel(fish))+'.';
+    hints.push(h2);
+  } else {
+    if(fish && _FB_FEINFISCH_BB[fish]){
+      hints.push('Brandenburg (LAVB): '+_fbEsc(_fbFishLabel(fish))+' zählt als Feinfisch — sofortige Eintragung nach der Entnahme.');
+    } else {
+      hints.push('Brandenburg (LAVB): Eintragung reicht bis Tagesende (bei Feinfisch/Salmoniden sofort nach der Entnahme).');
+    }
+  }
+  return hints;
+}
+function _fbRenderLegalHints(){
+  var host = document.getElementById('fb-legal-hints-wrap');
+  if(!host) return;
+  var hints = _fbLegalHints();
+  if(!hints.length){ host.style.display='none'; host.innerHTML=''; return; }
+  host.style.display='block';
+  host.innerHTML = hints.map(function(h){ return '<div class="warn-box">📌 '+h+'</div>'; }).join('');
+}
+
 function _fbRenderForm(){
   var host = document.getElementById('fangbuchPanel');
   var isEdit = !!_fbState.editId;
@@ -1511,11 +1711,16 @@ function _fbRenderForm(){
     return '<div class="fb-fish-badge'+(_fbState.selFish===f.key?' active':'')+'" data-fish="'+f.key+'">'
          +   icon + _fbEsc(f.label)
          + '</div>';
-  }).join('');
+  }).join('')
+  + '<div class="fb-fish-badge'+(_fbState.selFish==='__custom__'?' active':'')+'" data-fish="__custom__">'
+  +   '<span class="fb-emoji">➕</span>Andere Art'
+  + '</div>';
   var whenVal = isEdit ? _fbToLocalInputValue(src.caughtAt) : _fbNowLocal();
   var cmVal = isEdit && src.lengthCm!=null ? _fbEsc(src.lengthCm) : '';
   var kgVal = isEdit && src.weightKg!=null ? _fbEsc(src.weightKg) : '';
   var notesVal = isEdit && src.notes ? _fbEsc(src.notes) : '';
+  var waterVal = _fbState.customGewaesserName!=null ? _fbState.customGewaesserName : _fbState.gewaesserName;
+  var customFishVal = isEdit && src.customFischart ? _fbEsc(src.customFischart) : (_fbState.customFischart?_fbEsc(_fbState.customFischart):'');
 
   host.innerHTML =
      '<div class="fb-grip"><span></span></div>'
@@ -1524,15 +1729,24 @@ function _fbRenderForm(){
     +  '<div class="sheet-title">'+(isEdit?'Fang bearbeiten':'Neuer Fang')+'</div>'
     +'</div>'
     +'<div class="sheet-body">'
-    +  '<div class="field">'
+    +  '<div class="field water-field">'
     +    '<span class="f-label">Gewässer</span>'
-    +    '<div class="water-chip"><span class="w-ico">🎣</span><span class="w-name">'+_fbEsc(_fbState.gewaesserName)+'</span>'
-    +      (isEdit?'':'<span class="w-tag">aktueller Spot</span>')
+    +    '<input class="f-input" id="fb-water-input" placeholder="Gewässer suchen oder eingeben…" autocomplete="off" value="'+_fbEsc(waterVal)+'">'
+    +    '<div class="water-dropdown" id="fb-water-dropdown"></div>'
+    +    '<div class="fangort-row">'
+    +      '<button type="button" class="btn-secondary" id="fb-gps-btn">📍 Standort verwenden</button>'
+    +      '<button type="button" class="btn-secondary" id="fb-map-btn">🗺️ Auf Karte wählen</button>'
     +    '</div>'
+    +    '<div class="fangort-status" id="fb-fangort-status"></div>'
     +  '</div>'
+    +  '<div class="field" id="fb-legal-hints-wrap" style="display:none"></div>'
     +  '<div class="field">'
     +    '<span class="f-label">Fischart</span>'
     +    '<div class="fb-fish-grid" id="fb-fish-grid">'+badges+'</div>'
+    +  '</div>'
+    +  '<div class="field" id="fb-fish-custom-wrap" style="'+(_fbState.selFish==='__custom__'?'':'display:none')+'">'
+    +    '<span class="f-label">Fischart (eigene Angabe)</span>'
+    +    '<input class="f-input" id="fb-fish-custom" placeholder="z.B. Rotbarbe, Wolfsbarsch…" value="'+customFishVal+'">'
     +  '</div>'
     +  '<div class="field">'
     +    '<span class="f-label">Datum &amp; Uhrzeit</span>'
@@ -1572,8 +1786,29 @@ function _fbRenderForm(){
       _fbState.selFish = b.getAttribute('data-fish');
       host.querySelectorAll('.fb-fish-badge').forEach(function(x){ x.classList.remove('active'); });
       b.classList.add('active');
+      var customWrap = document.getElementById('fb-fish-custom-wrap');
+      if(customWrap) customWrap.style.display = (_fbState.selFish==='__custom__') ? 'flex' : 'none';
+      _fbRenderLegalHints();
     };
   });
+
+  var waterInput = document.getElementById('fb-water-input');
+  waterInput.oninput = function(){
+    _fbShowWaterDropdown(waterInput.value);
+    var confirmedName = _fbState.customGewaesserName!=null ? _fbState.customGewaesserName : _fbState.gewaesserName;
+    if(waterInput.value.trim() !== (confirmedName||'').trim()){
+      var hintsHost = document.getElementById('fb-legal-hints-wrap');
+      if(hintsHost){ hintsHost.style.display='none'; hintsHost.innerHTML=''; }
+    } else {
+      _fbRenderLegalHints();
+    }
+  };
+  waterInput.onfocus = function(){ _fbShowWaterDropdown(waterInput.value); };
+  waterInput.onblur = function(){ setTimeout(_fbHideWaterDropdown, 150); };
+  document.getElementById('fb-gps-btn').onclick = function(){ _fbUseGpsLocation(); };
+  document.getElementById('fb-map-btn').onclick = function(){ _fbStartPickLocation(); };
+  _fbRenderFangortStatus();
+  _fbRenderLegalHints();
 
   // Foto-Vorschau (nur lokale Auswahl -- der eigentliche Upload folgt separat)
   var photo = document.getElementById('fb-photo');
@@ -1633,6 +1868,24 @@ async function _fbSaveCatch(){
     alert('Bitte zuerst eine Fischart auswählen.');
     return;
   }
+  var customFishInput = document.getElementById('fb-fish-custom');
+  var customFishVal = customFishInput ? customFishInput.value.trim() : '';
+  if(_fbState.selFish==='__custom__' && !customFishVal){
+    alert('Bitte die Fischart eingeben.');
+    return;
+  }
+  var waterInputEl = document.getElementById('fb-water-input');
+  var typedWaterName = waterInputEl ? waterInputEl.value.trim() : '';
+  if(!typedWaterName){
+    alert('Bitte ein Gewässer angeben oder auswählen.');
+    return;
+  }
+  // Nur wenn der Feldinhalt noch exakt der zuletzt per Dropdown bestätigten Auswahl
+  // entspricht, gilt es als bekanntes Gewässer -- sonst (getippt, aber nichts
+  // ausgewählt) wird der Text als eigenes Gewässer übernommen (siehe Konzept 07.07.2026).
+  var knownMatch = _fbState.gewaesserNr ? allData.find(function(r){ return r.Gewässer_Nr===_fbState.gewaesserNr; }) : null;
+  var isKnownWater = !!(knownMatch && knownMatch.Gewässername === typedWaterName);
+
   var saveBtn = document.getElementById('fb-save');
   saveBtn.disabled = true;
   var whenVal = document.getElementById('fb-when').value;
@@ -1642,9 +1895,12 @@ async function _fbSaveCatch(){
   var isEdit = !!_fbState.editId;
 
   var data = {
-    gewaesserNr: _fbState.gewaesserNr || '',
-    gewaesserName: _fbState.gewaesserName || '',
-    speciesKey: _fbState.selFish,
+    gewaesserNr: isKnownWater ? _fbState.gewaesserNr : '',
+    gewaesserName: isKnownWater ? typedWaterName : '',
+    customGewaesserName: isKnownWater ? null : typedWaterName,
+    speciesKey: _fbState.selFish==='__custom__' ? null : _fbState.selFish,
+    customFischart: _fbState.selFish==='__custom__' ? customFishVal : null,
+    fangort: _fbState.fangort || null,
     weightKg: kgVal ? parseFloat(kgVal) : null,
     lengthCm: cmVal ? parseInt(cmVal,10) : null,
     caughtAt: whenVal ? new Date(whenVal) : new Date(),
@@ -1904,6 +2160,18 @@ function initMap() {
   // den jeweiligen .on('click',...) Handlern), daher landet hier nur ein Klick
   // auf leere Kartenflaeche.
   map.on('click', function(e){
+    if(_fbPicking){
+      if(_fbPickMarker){ _fbPickMarker.setLatLng(e.latlng); }
+      else { _fbPickMarker = L.marker(e.latlng,{zIndexOffset:9500}).addTo(map); }
+      var banner = document.getElementById('fb-pick-banner');
+      if(banner){
+        banner.querySelector('span').textContent = '🗺️ Punkt gesetzt — durch erneutes Tippen verschieben';
+        var confirmBtn = banner.querySelector('#fb-pick-confirm');
+        confirmBtn.style.display = 'inline-flex';
+        confirmBtn.onclick = function(){ _fbConfirmPickLocation(); };
+      }
+      return;
+    }
     setPlanMode(e.latlng.lat, e.latlng.lng, 'Kartenpunkt', {recenter:false});
   });
 }
