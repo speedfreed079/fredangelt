@@ -291,6 +291,9 @@ body:not(.outdoor) #map .leaflet-tile-pane {
 .depth-legend .dl-bar{flex:1;height:8px;border-radius:4px;
   background:linear-gradient(90deg,#aee0f5 0%,#0b3d5c 100%)}
 .depth-legend .dl-label{white-space:nowrap}
+.depth-legend.depth-legend-lines{flex-wrap:wrap}
+.depth-legend .dl-iso-chip{background:rgba(174,224,245,.18);border:1px solid var(--border);
+  border-radius:10px;padding:1px 7px;white-space:nowrap}
 .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{
   background:rgba(13,17,23,.7)!important;border:1px solid var(--accent)!important}
 .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{
@@ -877,7 +880,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.32.0";
+const APP_VERSION = "4.33.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1657,7 +1660,12 @@ function initMap() {
   // padding:1 hält außerdem einen ganzen Bildschirm Puffer rund um den Ausschnitt vor,
   // damit beim Verschieben nicht sofort an den Rändern geclippt wird.
   depthRenderer = L.canvas({padding:2});
-  depthLayerGroup = L.layerGroup().addTo(map);
+  // FeatureGroup statt LayerGroup: liefert getBounds() (in updateDepthLayer()
+  // gebraucht) -- mit plain L.layerGroup() war der Aufruf ein Latent Bug
+  // (TypeError, still gefangen von der umgebenden Promise, aber nie sichtbar
+  // geworden, da zoomToWholeGewaesser() unabhängig davon per synchronem
+  // Flächen-Fallback zoomt -- entdeckt 06.07.2026 beim Bodden-Linien-Test).
+  depthLayerGroup = L.featureGroup().addTo(map);
   // War bis 04.07.2026 ein einfaches L.layerGroup() ohne Clustering -- dadurch blieben
   // die ~70+ Küsten-Spots (Häfen/Hotspots/Community, aus kuesten_spots.json/mefo_hotspots.json)
   // beim Rauszoomen als Einzelmarker sichtbar, während die eigentlichen Gewässer-Marker
@@ -2254,18 +2262,65 @@ function depthColorMix(t){
 function setDepthLegend(entry){
   var legend=document.getElementById('p-depth-legend');
   if(!legend) return;
-  if(!entry || !entry.depth_bands || entry.depth_bands.length===0){ legend.innerHTML=''; return; }
-  // Python-Export sortiert numerisch aufsteigend -> bands[0] ist die tiefste Klasse
-  var deepest=entry.depth_bands[0].depth;
-  legend.innerHTML='<div class="depth-legend">'+
-    '<span class="dl-label">📏 0 m</span>'+
-    '<span class="dl-bar"></span>'+
-    '<span class="dl-label">'+Math.abs(deepest).toFixed(1)+' m</span></div>';
+  if(!entry){ legend.innerHTML=''; return; }
+  if(entry.depth_bands && entry.depth_bands.length){
+    // Python-Export sortiert numerisch aufsteigend -> bands[0] ist die tiefste Klasse
+    var deepest=entry.depth_bands[0].depth;
+    legend.innerHTML='<div class="depth-legend">'+
+      '<span class="dl-label">📏 0 m</span>'+
+      '<span class="dl-bar"></span>'+
+      '<span class="dl-label">'+Math.abs(deepest).toFixed(1)+' m</span></div>';
+    return;
+  }
+  // Bodden/Küstengewässer: rohe Isobathen-Linien statt gefüllter Tiefenzonen
+  // (nur nautische 5m-Standardstufen verfügbar, siehe extract_bodden_depths.py) —
+  // eigene Chip-Legende statt Gradient-Balken, da nur einzelne Linien statt
+  // durchgehender Flächen.
+  if(entry.contour_lines && entry.contour_lines.length){
+    var depths=Array.from(new Set(entry.contour_lines.map(function(c){return c.depth;})))
+      .sort(function(a,b){return b-a;});
+    legend.innerHTML='<div class="depth-legend depth-legend-lines">'+
+      '<span class="dl-label">📏 Isobathen:</span>'+
+      depths.map(function(d){return '<span class="dl-iso-chip">'+Math.abs(d).toFixed(0)+' m</span>';}).join('')+
+      '</div>';
+    return;
+  }
+  legend.innerHTML='';
 }
 
 var DEPTH_LABEL_MIN_ZOOM = 15;
 
+// Bodden/Küstengewässer: der BSH-WFS liefert nur Isobathen-LINIEN (keine
+// Flächen wie beim Seen-Tiefenlinien-Pilot) — eigener Renderpfad, dünne
+// Polylinien statt gefüllter Polygone. Siehe extract_bodden_depths.py.
+function renderContourLines(entry, row){
+  var lines=entry.contour_lines;
+  if(!lines || lines.length===0) return;
+  var depthValues=lines.map(function(l){return l.depth;});
+  var shallowest=Math.max.apply(null, depthValues), deepest=Math.min.apply(null, depthValues);
+  var span=(shallowest-deepest)||1;
+  lines.forEach(function(line){
+    var t=(shallowest-line.depth)/span; // 0=flach (hell), 1=tiefste Linie (dunkel)
+    var color=depthColorMix(t);
+    var poly=L.polyline(line.points,{
+      renderer:depthRenderer,
+      color:color, weight:2.5, opacity:.85
+    });
+    poly.bindTooltip((entry.seename||'')+': '+Math.abs(line.depth).toFixed(0)+' m',
+      {sticky:true,className:'polyline-label'});
+    poly.on('click',function(e){ L.DomEvent.stopPropagation(e); openPanel(row); });
+    depthLayerGroup.addLayer(poly);
+  });
+  if(_currentPanelRow && _currentPanelRow.depth_data_id===row.depth_data_id){
+    setDepthLegend(entry);
+  }
+}
+
 function renderDepthEntry(entry, row){
+  if(entry.contour_lines && entry.contour_lines.length){
+    renderContourLines(entry, row);
+    return;
+  }
   var bands=entry.depth_bands;
   if(!bands || bands.length===0) return;
   var deepest=bands[0].depth, shallowest=bands[bands.length-1].depth; // z.B. -18 .. 0
@@ -3608,16 +3663,20 @@ function zoomToWholeGewaesser(row, lat, lon){
   if (row.has_depth_data && row.depth_data_id) {
     loadDepthData().then(function(allDepthData){
       var entry = allDepthData && allDepthData[row.depth_data_id];
-      if (!entry || !entry.depth_bands || !entry.depth_bands.length) return;
+      if (!entry) return;
       var bounds = null;
-      entry.depth_bands.forEach(function(band){
-        band.rings.forEach(function(ring){
-          ring.forEach(function(pt){
-            if (!bounds) bounds = L.latLngBounds(pt, pt);
-            else bounds.extend(pt);
-          });
+      function extendBounds(pt){
+        if (!bounds) bounds = L.latLngBounds(pt, pt);
+        else bounds.extend(pt);
+      }
+      if (entry.depth_bands && entry.depth_bands.length){
+        entry.depth_bands.forEach(function(band){
+          band.rings.forEach(function(ring){ ring.forEach(extendBounds); });
         });
-      });
+      }
+      if (entry.contour_lines && entry.contour_lines.length){
+        entry.contour_lines.forEach(function(line){ line.points.forEach(extendBounds); });
+      }
       if (bounds && bounds.isValid()) map.fitBounds(bounds, {padding:[40,40]});
     });
   }
