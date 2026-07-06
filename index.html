@@ -393,10 +393,20 @@ body.outdoor .metric{background:rgba(45,110,69,.14)}
 .water-dropdown .wd-item:hover{background:var(--surface)}
 .water-dropdown .wd-item.wd-custom{color:var(--accent);font-weight:600}
 .water-dropdown .wd-empty{padding:9px 12px;font-size:.78rem;color:var(--d)}
-.fangort-row{display:flex;gap:8px;margin-top:8px}
+.fangort-row{display:flex;gap:8px}
 .fangort-row .btn-secondary{flex:1;font-size:.74rem;padding:9px 6px;width:auto}
 .fangort-status{font-size:.74rem;color:var(--d);font-family:var(--mono);margin-top:6px;min-height:1em}
 .fangort-status.ok{color:var(--accent)}
+.water-custom-hint{font-size:.76rem;color:var(--d)}
+.water-custom-hint .link{color:var(--accent);cursor:pointer;font-weight:600}
+.water-custom-hint .link:hover{text-decoration:underline}
+.fb-fish-more{margin-top:2px}
+.fb-fish-more summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:5px;
+  font-size:.78rem;color:var(--d);font-family:var(--mono);padding:4px 0}
+.fb-fish-more summary::-webkit-details-marker{display:none}
+.fb-fish-more summary::before{content:'▶';font-size:.55rem;transition:transform .2s}
+.fb-fish-more[open] summary::before{transform:rotate(90deg)}
+.fb-fish-more .fb-fish-grid{margin-top:8px}
 .fb-pick-banner{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:50%;
   transform:translateX(-50%);z-index:5000;background:var(--surface);border:1px solid var(--accent);
   border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;
@@ -1032,7 +1042,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.36.1";
+const APP_VERSION = "4.36.2";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1820,15 +1830,23 @@ function _fbRenderForm(){
   var host = document.getElementById('fangbuchPanel');
   var isEdit = !!_fbState.editId;
   var src = _fbState.editSource || null;
-  var badges = FISH_DEF.map(function(f){
+  function _fbFishBadgeHtml(f){
     var icon = f.png ? fishIconHtml(f.key,'fb-emoji') : '<span class="fb-emoji">'+(f.icon||'🐟')+'</span>';
     return '<div class="fb-fish-badge'+(_fbState.selFish===f.key?' active':'')+'" data-fish="'+f.key+'">'
          +   icon + _fbEsc(f.label)
          + '</div>';
-  }).join('')
+  }
+  // Nur die ersten 8 Arten (häufigste/gängigste, siehe FISH_DEF-Reihenfolge) plus
+  // "Andere Art" sind sofort sichtbar -- der Rest steckt hinter einem Aufklapper,
+  // damit "Neuer Fang" nicht mehr durch alle 27 Arten so lang wird (07.07.2026).
+  var commonFish = FISH_DEF.slice(0, 8);
+  var moreFish = FISH_DEF.slice(8);
+  var badges = commonFish.map(_fbFishBadgeHtml).join('')
   + '<div class="fb-fish-badge'+(_fbState.selFish==='__custom__'?' active':'')+'" data-fish="__custom__">'
   +   '<span class="fb-emoji">➕</span>Andere Art'
   + '</div>';
+  var moreBadges = moreFish.map(_fbFishBadgeHtml).join('');
+  var moreHasActive = moreFish.some(function(f){ return f.key===_fbState.selFish; });
   var whenVal = isEdit ? _fbToLocalInputValue(src.caughtAt) : _fbNowLocal();
   var cmVal = isEdit && src.lengthCm!=null ? _fbEsc(src.lengthCm) : '';
   var kgVal = isEdit && src.weightKg!=null ? _fbEsc(src.weightKg) : '';
@@ -1841,15 +1859,20 @@ function _fbRenderForm(){
     +'<div class="sheet-head">'
     +  '<div class="fb-icon-btn back" onclick="_fbBackToList()" title="Zurück">‹</div>'
     +  '<div class="sheet-title">'+(isEdit?'Fang bearbeiten':'Neuer Fang')+'</div>'
+    +  '<div class="fb-icon-btn" onclick="_fbBackToList()" title="Schließen ohne zu speichern">✕</div>'
     +'</div>'
     +'<div class="sheet-body">'
     +  '<div class="field water-field">'
     +    '<span class="f-label">Gewässer</span>'
     +    '<input class="f-input" id="fb-water-input" placeholder="Gewässer suchen oder eingeben…" autocomplete="off" value="'+_fbEsc(waterVal)+'">'
     +    '<div class="water-dropdown" id="fb-water-dropdown"></div>'
+    +    '<div class="water-custom-hint">Nicht dabei? <span class="link" id="fb-water-custom-link">➕ Eigenes Gewässer eintragen</span></div>'
+    +  '</div>'
+    +  '<div class="field">'
+    +    '<span class="f-label">Genauer Fangort</span>'
     +    '<div class="fangort-row">'
-    +      '<button type="button" class="btn-secondary" id="fb-gps-btn">📍 Standort verwenden</button>'
-    +      '<button type="button" class="btn-secondary" id="fb-map-btn">🗺️ Auf Karte wählen</button>'
+    +      '<button type="button" class="btn-secondary" id="fb-gps-btn">📍 Standort speichern</button>'
+    +      '<button type="button" class="btn-secondary" id="fb-map-btn">🗺️ Auf Karte markieren</button>'
     +    '</div>'
     +    '<div class="fangort-status" id="fb-fangort-status"></div>'
     +  '</div>'
@@ -1857,6 +1880,10 @@ function _fbRenderForm(){
     +  '<div class="field">'
     +    '<span class="f-label">Fischart</span>'
     +    '<div class="fb-fish-grid" id="fb-fish-grid">'+badges+'</div>'
+    +    (moreFish.length ? '<details class="fb-fish-more"'+(moreHasActive?' open':'')+'>'
+    +      '<summary>Weitere Fischarten ('+moreFish.length+')</summary>'
+    +      '<div class="fb-fish-grid">'+moreBadges+'</div>'
+    +    '</details>' : '')
     +  '</div>'
     +  '<div class="field" id="fb-fish-custom-wrap" style="'+(_fbState.selFish==='__custom__'?'':'display:none')+'">'
     +    '<span class="f-label">Fischart (eigene Angabe)</span>'
@@ -1919,6 +1946,13 @@ function _fbRenderForm(){
   };
   waterInput.onfocus = function(){ _fbShowWaterDropdown(waterInput.value); };
   waterInput.onblur = function(){ setTimeout(_fbHideWaterDropdown, 150); };
+  var customLink = document.getElementById('fb-water-custom-link');
+  if(customLink){
+    customLink.onclick = function(){
+      _fbSelectCustomWater(waterInput.value.trim());
+      waterInput.focus();
+    };
+  }
   document.getElementById('fb-gps-btn').onclick = function(){ _fbUseGpsLocation(); };
   document.getElementById('fb-map-btn').onclick = function(){ _fbStartPickLocation(); };
   _fbRenderFangortStatus();
