@@ -770,7 +770,6 @@ body.outdoor{
 #fangbuchPanel{
   background-color:var(--fb-paper);
   background-image:repeating-linear-gradient(180deg, transparent 0 27px, var(--fb-line) 27px 28px);
-  position:relative;
   box-shadow:inset 0 0 34px rgba(0,0,0,.18);
 }
 /* Eselsohr oben rechts -- Ecke ist umgeknickt, man sieht die Rückseite des
@@ -827,7 +826,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 /* Gewässer-Suchfeld + Dropdown */
 #fangbuchPanel .water-dropdown{
   background:var(--fb-paper2);border:1px solid var(--border);border-radius:3px;
-  box-shadow:0 6px 16px rgba(0,0,0,.28);transform:rotate(-.3deg);overflow:visible;
+  box-shadow:0 6px 16px rgba(0,0,0,.28);transform:rotate(-.3deg);
 }
 #fangbuchPanel .wd-item{border-bottom-style:dashed}
 #fangbuchPanel .wd-custom{font-style:italic}
@@ -1033,7 +1032,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.36.0";
+const APP_VERSION = "4.36.1";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
