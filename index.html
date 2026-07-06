@@ -877,7 +877,7 @@ body.outdoor .warn-box strong{color:var(--warn)}
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.31.3";
+const APP_VERSION = "4.32.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -907,6 +907,16 @@ const FISH_DEF = [
   {key:'makrele',           label:'Makrele',           png:'assets/icons/icon_makrele_dark.png'},
   // Friedfischart — bislang ohne Icon (siehe recherche_fischicons_bedarf_audit.md), jetzt PNG.
   {key:'barbe',             label:'Barbe',             png:'assets/icons/icon_barbe_dark.png'},
+  // Zielfisch-Friedfische aus dem 8er-Restbestand (06.07.2026) — nur Arten mit
+  // echtem Ansitz-Charakter ausgewählt, siehe recherche_fischicons_bedarf_audit.md.
+  // Güster/Hasel/Moderlieschen/Rotfeder/Ukelei bewusst ohne Icon gelassen (Beifang/Köderfisch).
+  {key:'alande',            label:'Aland',             png:'assets/icons/icon_aland_dark.png'},
+  {key:'karausche',         label:'Karausche',         png:'assets/icons/icon_karausche_dark.png'},
+  {key:'zope',              label:'Zope',              png:'assets/icons/icon_zope_dark.png'},
+  // Küsten-Meeresarten aus dem Fiskado-Import v4.31.1 — DB-Flag existierte bereits,
+  // Icon war bewusst aufgeschoben ("Icon später"), jetzt nachgeholt (06.07.2026).
+  {key:'lachs',             label:'Lachs',             png:'assets/icons/icon_lachs_dark.png'},
+  {key:'meeraesche',        label:'Meeräsche',         png:'assets/icons/icon_meeraesche_dark.png'},
 ];
 
 // Fischarten mit Beißindex-Score in der ActivityEngine (Zentrale Quelle — siehe ActivityEngine v3)
@@ -953,6 +963,12 @@ var FISH_ICON_FILTER = {
   hornhecht:         'sepia(1) hue-rotate(240deg) saturate(3.2) brightness(2.2)',  // Kobaltblau
   makrele:           'sepia(1) hue-rotate(260deg) saturate(3.5) brightness(2.2)',  // Blauviolett
   barbe:             'sepia(1) hue-rotate(357deg) saturate(3.5) brightness(2.4)',  // Bronzegold
+  // Neue Icons vom 06.07.2026 (Aland/Karausche/Zope/Lachs/Meeräsche) noch ohne Filter-Eintrag.
+  alande:            'sepia(1) hue-rotate(6deg)   saturate(3.5) brightness(2.4)',  // Orangerot (Flossen)
+  karausche:         'sepia(1) hue-rotate(85deg)  saturate(2.8) brightness(2.2)',  // Goldoliv
+  zope:              'sepia(1) hue-rotate(140deg) saturate(2.2) brightness(2.0)',  // Graugrün-Silber
+  lachs:             'sepia(1) hue-rotate(325deg) saturate(3.8) brightness(2.4)',  // Lachsrosa-Silber
+  meeraesche:        'sepia(1) hue-rotate(160deg) saturate(2.0) brightness(2.0)',  // Silbergrau-Grün
 };
 
 // CSS-Filter für Outdoor-Theme (heller Hintergrund → dunklere, sattere Werte)
@@ -979,6 +995,11 @@ var FISH_ICON_FILTER_OUTDOOR = {
   hornhecht:          'sepia(1) hue-rotate(240deg) saturate(3.6) brightness(0.80)',
   makrele:            'sepia(1) hue-rotate(260deg) saturate(4.0) brightness(0.80)',
   barbe:              'sepia(1) hue-rotate(357deg) saturate(4.0) brightness(0.82)',
+  alande:             'sepia(1) hue-rotate(6deg)   saturate(4.0) brightness(0.80)',
+  karausche:          'sepia(1) hue-rotate(85deg)  saturate(3.2) brightness(0.80)',
+  zope:               'sepia(1) hue-rotate(140deg) saturate(2.6) brightness(0.75)',
+  lachs:              'sepia(1) hue-rotate(325deg) saturate(4.2) brightness(0.80)',
+  meeraesche:         'sepia(1) hue-rotate(160deg) saturate(2.4) brightness(0.75)',
 };
 
 function fishIconHtml(key, cssClass) {
@@ -2598,8 +2619,10 @@ const FISH_PARAMS = {
 // daher Formulierung im UI immer als "wahrscheinlich ... bitte prüfen", nie als Verbot.
 // Gesetzliche Schonzeiten & Mindestmaße (Quelle: 07_Recherchen/recherche_schonzeit_mindesmass_Berlin_und_BB.md,
 // Datenformat dokumentiert in 01_Daten_Aktuell/schonzeiten.json — Stand 2026, BbgFischO / LFischO).
-// 'noFlag:true' = Art hat kein eigenes fisch_*-Flag im Gewässer-Datensatz und erscheint daher nur in der
-// allgemeinen Gesetzesübersicht (SCHONZEIT_ORDER), nicht als Mini-Zeile bei den vorhandenen Zielfischen.
+// 'noFlag:true' = Art hat (noch) keinen eigenen FISH_DEF-Eintrag/Icon und erscheint daher nur in der
+// allgemeinen Gesetzesübersicht (SCHONZEIT_ORDER), nicht als Mini-Zeile bei den vorhandenen Zielfischen
+// (Korrektur 06.07.2026: vorher fälschlich als "kein fisch_*-Flag im Datensatz" dokumentiert -- die
+// fisch_*-Spalte existiert für alle hier gelisteten Arten längst, entscheidend ist nur FISH_DEF).
 // 'forelle' bildet hier die Bachforelle ab; Meerforelle ist wegen abweichender Regeln ein eigener Eintrag.
 const SCHONZEIT_DATA = {
   hecht:   { label:'Hecht',        brandenburg:{start:'01-02',end:'31-03',mindestmass:45,  hinweis:'Regionale Schonzeiten in Hegeplänen und Spreewald-Gewässern (15.01.–30.04.) beachten.'},
@@ -2649,21 +2672,21 @@ const SCHONZEIT_DATA = {
                                     mv:         {start:'01-01',end:'15-02',mindestmass:30,   hinweis:'Binnengewässer M-V hat (anders als BB/Berlin) eine echte Winterlaich-Schonzeit (LALLF-Mindestmaßtabelle).'} },
   maraene: { label:'Maräne',       mv:         {start:'01-10',end:'31-12',mindestmass:30,   hinweis:'Binnengewässer M-V (Großmaräne, LALLF-Mindestmaßtabelle). Für BB/Berlin nicht separat recherchiert.'} },
   // Kein eigenes fisch_*-Flag im Gewässer-Datensatz vorhanden — nur in der Gesetzesübersicht sichtbar:
-  meerforelle:{ label:'Meerforelle', noFlag:true, brandenburg:{start:'01-01',end:'31-12',mindestmass:null,hinweis:'Wilde Meerforellen ganzjährig geschont. Satzfische: 16.10.–15.04., 60 cm Mindestmaß.'},
+  meerforelle:{ label:'Meerforelle', brandenburg:{start:'01-01',end:'31-12',mindestmass:null,hinweis:'Wilde Meerforellen ganzjährig geschont. Satzfische: 16.10.–15.04., 60 cm Mindestmaß.'},
                                                    berlin:     {start:'01-01',end:'31-12',mindestmass:null,hinweis:'Ganzjährig geschützt, gezieltes Angeln/Entnahme verboten.'},
                                                    mv:         {start:'01-09',end:'31-03',mindestmass:45,  hinweis:'Binnengewässer M-V (LALLF-Mindestmaßtabelle) — andere Schonzeit-Daten als an der Küste (dort 15.09.–14.12.).'},
                                                    mv_kueste:  {start:'15-09',end:'14-12',mindestmass:45,  hinweis:'Keine Wild-/Satzfisch-Differenzierung wie beim Lachs. Kombiniertes Tageslimit mit Hecht/Zander/Salmoniden: max. 3 Stück gesamt/Tag.'} },
-  barbe:      { label:'Barbe',       noFlag:true, brandenburg:{start:'01-05',end:'31-07',mindestmass:40,  hinweis:'Schonzeit während der Hauptlaichzeit im Sommer.'},
+  barbe:      { label:'Barbe',       brandenburg:{start:'01-05',end:'31-07',mindestmass:40,  hinweis:'Schonzeit während der Hauptlaichzeit im Sommer.'},
                                                    berlin:     {start:'01-01',end:'31-12',mindestmass:null,hinweis:'In Berlin ganzjährig geschützt — abweichend von Brandenburg.'},
                                                    mv:         {start:'01-01',end:'31-12',mindestmass:null,hinweis:'Binnengewässer M-V: ganzjährig geschützt (LALLF-Mindestmaßtabelle), wie Berlin.'} },
-  aland:      { label:'Aland',       noFlag:true, brandenburg:{start:null,   end:null,   mindestmass:30,  hinweis:'Keine Schonzeit, Mindestmaß 30 cm gilt ganzjährig.'},
+  alande:     { label:'Aland',       brandenburg:{start:null,   end:null,   mindestmass:30,  hinweis:'Keine Schonzeit, Mindestmaß 30 cm gilt ganzjährig.'},
                                                    berlin:     {start:null,   end:null,   mindestmass:30,  hinweis:'Keine Schonzeit, Mindestmaß 30 cm einzuhalten.'},
                                                    mv:         {start:null,   end:null,   mindestmass:25,  hinweis:'Binnengewässer M-V: niedrigeres Mindestmaß als BB/Berlin (LALLF-Mindestmaßtabelle).'} },
   hasel:      { label:'Hasel',       noFlag:true, mv:         {start:'01-03',end:'31-05',mindestmass:null,hinweis:'Binnengewässer M-V (LALLF-Mindestmaßtabelle). Für BB/Berlin nicht separat recherchiert.'} }
 };
 // Anzeigereihenfolge für die allgemeine Gesetzesübersicht (alle 15 recherchierten Arten)
 const SCHONZEIT_ORDER = ['hecht','zander','barsch','aal','karpfen','schleie','wels','forelle',
-                          'meerforelle','aesche','barbe','quappe','rapfen','aland','döbel'];
+                          'meerforelle','aesche','barbe','quappe','rapfen','alande','döbel'];
 // Eigene Reihenfolge für Küstengewässer M-V (verband='kueste_mv') -- bewusst getrennt von
 // SCHONZEIT_ORDER, damit Dorsch/Hering/Hornhecht/Plattfisch/Makrele NICHT mit leeren '–'-
 // Zeilen in der Brandenburg/Berlin-Gesetzesübersicht auftauchen (schema_phase2.md 0.4).
@@ -2675,7 +2698,7 @@ const SCHONZEIT_ORDER_KUESTE = ['dorsch','aal','meerforelle','hecht','zander','p
 // LALLF-Seite nicht gelistet, keine Vermutung eingesetzt (siehe projektlog.md-Eintrag).
 const SCHONZEIT_ORDER_MV_BINNEN = ['hecht','zander','barsch','aal','karpfen','schleie','wels',
                                     'forelle','aesche','maraene','quappe','rapfen','meerforelle',
-                                    'barbe','aland','hasel'];
+                                    'barbe','alande','hasel'];
 
 // ActivityEngine
 var ActivityEngine = {
