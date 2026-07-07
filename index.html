@@ -428,7 +428,7 @@ body.outdoor .metric{background:rgba(45,110,69,.14)}
 .fb-fish-more .fb-fish-grid{margin-top:8px}
 .fb-pick-banner{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:50%;
   transform:translateX(-50%);z-index:5000;background:var(--surface);border:1px solid var(--accent);
-  border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;
+  border-radius:12px;padding:10px 14px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;
   box-shadow:0 4px 18px rgba(0,0,0,.35);font-size:.82rem;color:var(--t);max-width:92vw}
 .fb-pick-banner .btn-secondary,.fb-pick-banner .btn-primary{flex-shrink:0;width:auto;padding:7px 11px;font-size:.76rem}
 .fb-fish-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
@@ -1078,7 +1078,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.39.1";
+const APP_VERSION = "4.40.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1573,6 +1573,15 @@ function _spotsStartAdd(){
   _spotsState.editId = null;
   _spotsState.draftLat = null;
   _spotsState.draftLon = null;
+  _spotsState.draftName = '';
+  _spotsRenderForm();
+}
+function _spotsStartAddAt(lat, lon, prefillName){
+  _spotsState.view = 'form';
+  _spotsState.editId = null;
+  _spotsState.draftLat = lat;
+  _spotsState.draftLon = lon;
+  _spotsState.draftName = prefillName || '';
   _spotsRenderForm();
 }
 function _spotsOpenEdit(spotId){
@@ -1604,7 +1613,7 @@ function _spotsRenderLocStatus(){
 function _spotsRenderForm(){
   var isEdit = !!_spotsState.editId;
   var s = isEdit ? _spotsState.spots.filter(function(x){return x.id===_spotsState.editId;})[0] : null;
-  var name = s ? (s.name||'') : '';
+  var name = s ? (s.name||'') : (_spotsState.draftName||'');
   var notiz = s ? (s.notiz||'') : '';
   var host = document.getElementById('spotsPanel');
   host.innerHTML =
@@ -1647,6 +1656,7 @@ function _spotsUseGps(){
 }
 
 function _spotsStartPickLocation(){
+  _cancelLongPressSpot();
   _spotPicking = true;
   document.getElementById('spotsPanel').classList.remove('open');
   document.getElementById('overlay').classList.remove('show');
@@ -1710,6 +1720,54 @@ function _renderSpotMarkers(){
     mySpotsLayerGroup.addLayer(m);
   });
   if(!map.hasLayer(mySpotsLayerGroup)) mySpotsLayerGroup.addTo(map);
+}
+
+// ── Long-Press auf die Karte → Schnellzugriff "Als Spot speichern" ──────────
+// Toleranz 300m: liegt ein bekanntes Gewässer nah genug am Long-Press-Punkt,
+// wird sein Name direkt als Spot-Name vorausgefüllt (spart Tipparbeit unterwegs).
+var _LONGPRESS_SPOT_MAXKM = 0.3;
+function _findNearestGewaesserName(lat, lon){
+  var best = null, bestDist = Infinity;
+  for(var i=0;i<allData.length;i++){
+    var row = allData[i];
+    var rLat = parseFloat(row.lat), rLon = parseFloat(row.lon);
+    if(isNaN(rLat)||isNaN(rLon)) continue;
+    var d = haversine(lat, lon, rLat, rLon);
+    if(d < bestDist){ bestDist = d; best = row; }
+  }
+  return (best && bestDist <= _LONGPRESS_SPOT_MAXKM) ? (best.Gewässername||'') : '';
+}
+
+var _longPressSpotMarker = null;
+function _mapLongPressToSpot(latlng){
+  if(!(window.FreddyAuth && window.FreddyAuth.getCurrentUser())){
+    toggleAuthPopover();
+    return;
+  }
+  if(_fbPicking || _spotPicking) return; // nicht mit einem laufenden Picking-Flow überlappen
+  _cancelLongPressSpot();
+  _longPressSpotMarker = L.marker(latlng,{zIndexOffset:9500}).addTo(map);
+  var nearbyName = _findNearestGewaesserName(latlng.lat, latlng.lng);
+  var banner = document.createElement('div');
+  banner.className = 'fb-pick-banner';
+  banner.id = 'longpress-spot-banner';
+  banner.innerHTML = '<span>📌 '+(nearbyName ? ('Spot bei „'+_fbEsc(nearbyName)+'“?') : 'Spot hier speichern?')+'</span>'
+    + '<button type="button" class="btn-secondary" id="longpress-spot-cancel">Abbrechen</button>'
+    + '<button type="button" class="btn-primary" id="longpress-spot-confirm">✓ Speichern</button>';
+  document.body.appendChild(banner);
+  document.getElementById('longpress-spot-cancel').onclick = function(){ _cancelLongPressSpot(); };
+  document.getElementById('longpress-spot-confirm').onclick = function(){ _confirmLongPressSpot(latlng, nearbyName); };
+}
+function _cancelLongPressSpot(){
+  if(_longPressSpotMarker){ map.removeLayer(_longPressSpotMarker); _longPressSpotMarker = null; }
+  var banner = document.getElementById('longpress-spot-banner');
+  if(banner) banner.remove();
+}
+function _confirmLongPressSpot(latlng, name){
+  _cancelLongPressSpot();
+  _spotsStartAddAt(latlng.lat, latlng.lng, name);
+  document.getElementById('spotsPanel').classList.add('open');
+  if(window.innerWidth<=640) document.getElementById('overlay').classList.add('show');
 }
 
 function _fbStartListening(){
@@ -2043,6 +2101,7 @@ function _fbRenderFangortStatus(){
     : '✓ Punkt auf der Karte gespeichert';
 }
 function _fbStartPickLocation(){
+  _cancelLongPressSpot();
   _fbPicking = true;
   document.getElementById('fangbuchPanel').classList.remove('open');
   document.getElementById('overlay').classList.remove('show');
@@ -2635,6 +2694,11 @@ function initMap() {
       return;
     }
     setPlanMode(e.latlng.lat, e.latlng.lng, 'Kartenpunkt', {recenter:false});
+  });
+  // Long-Press auf die Karte (Leaflet feuert 'contextmenu' nativ auch bei
+  // Touch-Long-Press, siehe Leaflet-Doku Map.TapHold) → Schnellzugriff Spot speichern.
+  map.on('contextmenu', function(e){
+    _mapLongPressToSpot(e.latlng);
   });
 }
 
