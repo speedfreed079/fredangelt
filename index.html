@@ -287,6 +287,11 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
 .myspot-marker{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.35);
              display:flex;align-items:center;justify-content:center;background:#e0b23d}
 .myspot-marker-inner{font-size:11px;line-height:1}
+/* Von Freunden geteilte Spots (07.07.2026) -- bewusst andere Farbe als .myspot-marker,
+   damit "meins" vs. "von einem Freund geteilt" auf der Karte sofort unterscheidbar bleibt. */
+.friendspot-marker{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.35);
+             display:flex;align-items:center;justify-content:center;background:#5b8def}
+.friendspot-marker-inner{font-size:11px;line-height:1}
 /* Fließgewässer Polyline */
 .fliess-line{stroke:#4fc3f7;stroke-width:2.5;stroke-opacity:.55;stroke-dasharray:6,4;fill:none}
 /* Dark-Basemap leicht aufhellen damit Gewässer sichtbar bleiben */
@@ -353,6 +358,30 @@ body:not(.outdoor) #map .leaflet-tile-pane {
          border-left:none;border-top:1px solid var(--border);border-radius:16px 16px 0 0;
          transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
   #spotsPanel.open{transform:translateY(0)}
+}
+/* ===== Admin-Panel (07.07.2026) — gleiche Sheet-Mechanik, eigene ID ===== */
+#adminPanel{position:fixed;top:0;right:0;width:var(--panel-w);height:100dvh;
+       background:var(--surface);border-left:1px solid var(--border);
+       transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+       z-index:2000;display:flex;flex-direction:column;overflow:hidden}
+#adminPanel.open{transform:translateX(0)}
+@media(max-width:640px){
+  #adminPanel{top:auto;bottom:0;right:0;left:0;width:100%;height:83vh;
+         border-left:none;border-top:1px solid var(--border);border-radius:16px 16px 0 0;
+         transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+  #adminPanel.open{transform:translateY(0)}
+}
+/* ===== Freunde-Panel (07.07.2026) — gleiche Sheet-Mechanik, eigene ID ===== */
+#friendsPanel{position:fixed;top:0;right:0;width:var(--panel-w);height:100dvh;
+       background:var(--surface);border-left:1px solid var(--border);
+       transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+       z-index:2000;display:flex;flex-direction:column;overflow:hidden}
+#friendsPanel.open{transform:translateX(0)}
+@media(max-width:640px){
+  #friendsPanel{top:auto;bottom:0;right:0;left:0;width:100%;height:83vh;
+         border-left:none;border-top:1px solid var(--border);border-radius:16px 16px 0 0;
+         transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+  #friendsPanel.open{transform:translateY(0)}
 }
 .fb-grip{flex-shrink:0;display:flex;justify-content:center;padding:9px 0 4px;cursor:grab}
 .fb-grip span{width:38px;height:4px;border-radius:99px;background:var(--border)}
@@ -956,6 +985,8 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
     <div class="auth-user-row">👤 <span id="authUsernameDisplay"></span></div>
     <button class="btn-primary" onclick="openFangbuchPanel()">📖 Fangbuch öffnen</button>
     <button class="btn-secondary" onclick="openSpotsPanel()">📌 Meine Spots</button>
+    <button class="btn-secondary" onclick="openFriendsPanel()">🤝 Freunde</button>
+    <button class="btn-secondary" id="adminEntryBtn" onclick="openAdminPanel()" style="display:none">🛡️ Zugelassene E-Mails</button>
     <button class="btn-secondary" onclick="handleAuthRename()">Namen ändern</button>
     <button class="btn-secondary" onclick="handleAuthSignOut()">Abmelden</button>
   </div>
@@ -1051,6 +1082,8 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 
 <div id="fangbuchPanel"></div>
 <div id="spotsPanel"></div>
+<div id="adminPanel"></div>
+<div id="friendsPanel"></div>
 
 <!-- Fisch-Filterbar — unten, Daumen-erreichbar -->
 <div class="filterbar">
@@ -1078,7 +1111,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.40.0";
+const APP_VERSION = "4.43.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1424,11 +1457,12 @@ function setAuthTab(mode){
 document.getElementById('authTabLogin').addEventListener('click', function(){ setAuthTab('login'); });
 document.getElementById('authTabRegister').addEventListener('click', function(){ setAuthTab('register'); });
 
-function setAuthLoggedInUI(isLoggedIn, username){
+function setAuthLoggedInUI(isLoggedIn, username, isAdmin){
   document.getElementById('authViewLoggedOut').classList.toggle('on', !isLoggedIn);
   document.getElementById('authViewLoggedIn').classList.toggle('on', isLoggedIn);
   document.getElementById('authBtn').classList.toggle('active', isLoggedIn);
   if(isLoggedIn) document.getElementById('authUsernameDisplay').textContent = username || '…';
+  document.getElementById('adminEntryBtn').style.display = (isLoggedIn && isAdmin) ? '' : 'none';
 }
 
 // ── Fangbuch-Panel (Claude-Design-Handoff 02.07.2026) ───────────────────────
@@ -1549,7 +1583,7 @@ function _spotsRenderList(){
       return '<div class="catch-card" onclick="_spotsOpenEdit(\''+s.id+'\')">'
         + '<div class="catch-ico">📌</div>'
         + '<div class="catch-main">'
-        +   '<div class="catch-name">'+_fbEsc(s.name||'Unbenannter Spot')+'</div>'
+        +   '<div class="catch-name">'+_fbEsc(s.name||'Unbenannter Spot')+(s.shared?' <span class="metric">🤝 Geteilt</span>':'')+'</div>'
         +   (s.notiz ? '<div class="catch-sub">'+_fbEsc(s.notiz)+'</div>' : '')
         + '</div>'
         + '<div class="catch-del" onclick="event.stopPropagation();_spotsDelete(\''+s.id+'\')" title="Löschen">🗑</div>'
@@ -1610,11 +1644,14 @@ function _spotsRenderLocStatus(){
   }
 }
 
+var _spotsDraftShared = false;
+
 function _spotsRenderForm(){
   var isEdit = !!_spotsState.editId;
   var s = isEdit ? _spotsState.spots.filter(function(x){return x.id===_spotsState.editId;})[0] : null;
   var name = s ? (s.name||'') : (_spotsState.draftName||'');
   var notiz = s ? (s.notiz||'') : '';
+  _spotsDraftShared = s ? !!s.shared : false;
   var host = document.getElementById('spotsPanel');
   host.innerHTML =
      '<div class="fb-grip"><span></span></div>'
@@ -1635,11 +1672,23 @@ function _spotsRenderForm(){
     +    '</div>'
     +    '<div class="fangort-status" id="spotLocStatus"></div>'
     +  '</div>'
+    +  '<div class="field">'
+    +    '<div class="profile-opt'+(_spotsDraftShared?' sel':'')+'" id="spotSharedToggle" onclick="_spotsToggleShared()">'
+    +      '<span class="pc-check" id="spotSharedCheck">'+(_spotsDraftShared?'✓':'')+'</span>'
+    +      '<span>🤝 Mit Freunden teilen</span>'
+    +    '</div>'
+    +  '</div>'
     +'</div>'
     +'<div class="sheet-foot form-actions">'
     +  '<button class="btn-primary" onclick="_spotsSave()">Speichern</button>'
     +'</div>';
   _spotsRenderLocStatus();
+}
+
+function _spotsToggleShared(){
+  _spotsDraftShared = !_spotsDraftShared;
+  document.getElementById('spotSharedToggle').classList.toggle('sel', _spotsDraftShared);
+  document.getElementById('spotSharedCheck').textContent = _spotsDraftShared ? '✓' : '';
 }
 
 function _spotsUseGps(){
@@ -1700,7 +1749,7 @@ async function _spotsSave(){
     alert('Bitte zuerst einen Standort wählen (GPS oder Karte).');
     return;
   }
-  var data = { name: name, notiz: notiz, lat: _spotsState.draftLat, lon: _spotsState.draftLon };
+  var data = { name: name, notiz: notiz, lat: _spotsState.draftLat, lon: _spotsState.draftLon, shared: _spotsDraftShared };
   var res = _spotsState.editId
     ? await window.FreddyAuth.updateSpot(_spotsState.editId, data)
     : await window.FreddyAuth.addSpot(data);
@@ -1768,6 +1817,286 @@ function _confirmLongPressSpot(latlng, name){
   _spotsStartAddAt(latlng.lat, latlng.lng, name);
   document.getElementById('spotsPanel').classList.add('open');
   if(window.innerWidth<=640) document.getElementById('overlay').classList.add('show');
+}
+
+// ── Admin-Bereich: Allowlist-Pflege (07.07.2026) ────────────────────────────
+// Ersetzt die bisherige Handarbeit in der Firebase-Konsole -- sichtbar/nutzbar
+// nur für den einen Admin-Account (siehe firestore.rules "allowlist"-Regel und
+// window.FreddyAuth.isAdminUser()).
+var _adminEntries = [];
+var _adminUnsubscribe = null;
+
+function _adminStartListening(){
+  if(_adminUnsubscribe) return;
+  _adminUnsubscribe = window.FreddyAuth.listenAllowlist(function(list){
+    _adminEntries = list;
+    if(document.getElementById('adminPanel').classList.contains('open')) _adminRenderList();
+  });
+}
+function _adminStopListening(){
+  if(_adminUnsubscribe){ _adminUnsubscribe(); _adminUnsubscribe = null; }
+  _adminEntries = [];
+}
+
+function openAdminPanel(){
+  if(!(window.FreddyAuth.getCurrentUser() && window.FreddyAuth.isAdminUser())) return;
+  document.getElementById('authPopover').classList.remove('show');
+  _adminRenderList();
+  document.getElementById('adminPanel').classList.add('open');
+  if(window.innerWidth<=640) document.getElementById('overlay').classList.add('show');
+}
+function closeAdminPanel(){
+  document.getElementById('adminPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function _adminFormatDate(ts){
+  if(!ts || !ts.seconds) return '';
+  return new Date(ts.seconds*1000).toLocaleDateString('de-DE');
+}
+
+function _adminRenderList(){
+  var host = document.getElementById('adminPanel');
+  var body;
+  if(_adminEntries.length === 0){
+    body = '<div class="fb-empty"><div class="fb-empty-ico">🛡️</div>'
+      + '<div class="fb-empty-h">Noch keine Einladungen</div>'
+      + '<div class="fb-empty-p">Trage unten eine E-Mail-Adresse ein, um jemanden zur Registrierung zuzulassen.</div></div>';
+  } else {
+    body = _adminEntries.slice().sort(function(a,b){ return (a.id||'').localeCompare(b.id||''); }).map(function(e){
+      var dateStr = _adminFormatDate(e.invitedAt);
+      return '<div class="catch-card">'
+        + '<div class="catch-ico">✉️</div>'
+        + '<div class="catch-main">'
+        +   '<div class="catch-name">'+_fbEsc(e.id)+'</div>'
+        +   (dateStr ? '<div class="catch-sub">Eingeladen am '+dateStr+'</div>' : '')
+        + '</div>'
+        + '<div class="catch-del" onclick="_adminRemove(\''+_fbEsc(e.id)+'\')" title="Zugang entziehen">🗑</div>'
+        + '</div>';
+    }).join('');
+  }
+  host.innerHTML =
+     '<div class="fb-grip"><span></span></div>'
+    +'<div class="sheet-head">'
+    +  '<div class="sheet-title">🛡️ Zugelassene E-Mails</div>'
+    +  '<div class="fb-icon-btn" onclick="closeAdminPanel()" title="Schließen">✕</div>'
+    +'</div>'
+    +'<div class="sheet-body">'+body+'</div>'
+    +'<div class="sheet-foot">'
+    +  '<div class="field">'
+    +    '<div class="f-label">Neue E-Mail einladen</div>'
+    +    '<input class="f-input" id="adminInviteEmail" type="email" placeholder="name@example.com" autocomplete="off">'
+    +  '</div>'
+    +  '<button class="btn-primary" onclick="_adminInvite()">➕ Einladen</button>'
+    +'</div>';
+}
+
+async function _adminInvite(){
+  var input = document.getElementById('adminInviteEmail');
+  var email = (input.value||'').trim();
+  if(!email){ alert('Bitte eine E-Mail-Adresse eingeben.'); return; }
+  var res = await window.FreddyAuth.adminAddAllowlist(email);
+  if(!res.ok){ alert(res.message || 'Fehler beim Einladen.'); return; }
+  input.value = '';
+}
+async function _adminRemove(email){
+  if(!confirm('Zugang für „'+email+'“ wirklich entziehen?')) return;
+  var res = await window.FreddyAuth.adminRemoveAllowlist(email);
+  if(!res.ok){ alert(res.message || 'Fehler beim Entfernen.'); }
+}
+
+// ── Freundschaftssystem (07.07.2026, Phase 1 der Social-Architekturrunde) ───
+// Grundlage für die geplanten Folgephasen Spot-Sharing/Fangbuch-Freigabe/Live-Tracker
+// (siehe projektlog.md) -- hier nur Anfragen senden/annehmen/entfernen + Freundesliste.
+var _friendsState = { entries: [], usernameCache: {} };
+var _friendsUnsubscribe = null;
+
+function _friendsStartListening(){
+  if(_friendsUnsubscribe) return;
+  _friendsUnsubscribe = window.FreddyAuth.listenFriendships(function(list){
+    _friendsState.entries = list;
+    // _friendsResolveUsernames ist async und läuft bewusst nicht mit await hier --
+    // erneutes Rendern nach Abschluss, falls der Freund-Spot-Listener (unten) schon
+    // vorher gefeuert hat und Marker ohne aufgelösten Besitzernamen gezeichnet wurden.
+    _friendsResolveUsernames(list).then(_renderFriendSpotMarkers);
+    _syncFriendSpotListeners();
+    if(document.getElementById('friendsPanel').classList.contains('open')) _friendsRenderList();
+  });
+}
+function _friendsStopListening(){
+  if(_friendsUnsubscribe){ _friendsUnsubscribe(); _friendsUnsubscribe = null; }
+  _friendsState.entries = [];
+  _friendsState.usernameCache = {};
+  _stopAllFriendSpotListeners();
+}
+
+function openFriendsPanel(){
+  if(!_fbRequireAuth()) return;
+  document.getElementById('authPopover').classList.remove('show');
+  _friendsRenderList();
+  document.getElementById('friendsPanel').classList.add('open');
+  if(window.innerWidth<=640) document.getElementById('overlay').classList.add('show');
+}
+function closeFriendsPanel(){
+  document.getElementById('friendsPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+function _friendOtherUid(entry){
+  var uid = window.FreddyAuth.getCurrentUser().uid;
+  return entry.uids[0] === uid ? entry.uids[1] : entry.uids[0];
+}
+
+async function _friendsResolveUsernames(entries){
+  var uid = window.FreddyAuth.getCurrentUser().uid;
+  var toFetch = [];
+  entries.forEach(function(e){
+    var other = e.uids[0]===uid ? e.uids[1] : e.uids[0];
+    if(_friendsState.usernameCache[other] === undefined && toFetch.indexOf(other)===-1) toFetch.push(other);
+  });
+  for(var i=0;i<toFetch.length;i++){
+    var name = await window.FreddyAuth.getUsernameForUid(toFetch[i]);
+    _friendsState.usernameCache[toFetch[i]] = name || '(unbekannt)';
+  }
+}
+
+async function _friendsRenderList(){
+  await _friendsResolveUsernames(_friendsState.entries);
+  var uid = window.FreddyAuth.getCurrentUser().uid;
+  var received = _friendsState.entries.filter(function(e){ return e.status==='pending' && e.requestedBy!==uid; });
+  var sent = _friendsState.entries.filter(function(e){ return e.status==='pending' && e.requestedBy===uid; });
+  var accepted = _friendsState.entries.filter(function(e){ return e.status==='accepted'; });
+
+  function nameFor(e){ return _fbEsc(_friendsState.usernameCache[_friendOtherUid(e)] || '…'); }
+
+  var body = '';
+  if(received.length){
+    body += '<div class="f-label" style="margin-bottom:4px">Anfragen erhalten</div>';
+    body += received.map(function(e){
+      return '<div class="catch-card">'
+        + '<div class="catch-ico">🤝</div>'
+        + '<div class="catch-main"><div class="catch-name">'+nameFor(e)+'</div></div>'
+        + '<div style="display:flex;gap:6px">'
+        +   '<button type="button" class="btn-secondary" style="width:auto;padding:7px 10px;font-size:.74rem" onclick="_friendsAccept(\''+e.id+'\')">✓ Annehmen</button>'
+        +   '<div class="catch-del" onclick="_friendsRemove(\''+e.id+'\')" title="Ablehnen">🗑</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+  if(accepted.length){
+    body += '<div class="f-label" style="margin:10px 0 4px">Freunde</div>';
+    body += accepted.map(function(e){
+      return '<div class="catch-card">'
+        + '<div class="catch-ico">🎣</div>'
+        + '<div class="catch-main"><div class="catch-name">'+nameFor(e)+'</div></div>'
+        + '<div class="catch-del" onclick="_friendsRemove(\''+e.id+'\')" title="Freundschaft beenden">🗑</div>'
+        + '</div>';
+    }).join('');
+  }
+  if(sent.length){
+    body += '<div class="f-label" style="margin:10px 0 4px">Gesendete Anfragen</div>';
+    body += sent.map(function(e){
+      return '<div class="catch-card">'
+        + '<div class="catch-ico">⏳</div>'
+        + '<div class="catch-main"><div class="catch-name">'+nameFor(e)+'</div><div class="catch-sub">Wartet auf Bestätigung</div></div>'
+        + '<div class="catch-del" onclick="_friendsRemove(\''+e.id+'\')" title="Zurückziehen">🗑</div>'
+        + '</div>';
+    }).join('');
+  }
+  if(!received.length && !accepted.length && !sent.length){
+    body = '<div class="fb-empty"><div class="fb-empty-ico">🤝</div>'
+      + '<div class="fb-empty-h">Noch keine Freunde</div>'
+      + '<div class="fb-empty-p">Sende unten eine Anfrage über den Benutzernamen deines Angelkumpels.</div></div>';
+  }
+
+  var host = document.getElementById('friendsPanel');
+  host.innerHTML =
+     '<div class="fb-grip"><span></span></div>'
+    +'<div class="sheet-head">'
+    +  '<div class="sheet-title">🤝 Freunde</div>'
+    +  '<div class="fb-icon-btn" onclick="closeFriendsPanel()" title="Schließen">✕</div>'
+    +'</div>'
+    +'<div class="sheet-body">'+body+'</div>'
+    +'<div class="sheet-foot">'
+    +  '<div class="field">'
+    +    '<div class="f-label">Freund per Benutzername einladen</div>'
+    +    '<input class="f-input" id="friendUsernameInput" placeholder="Benutzername" autocomplete="off">'
+    +  '</div>'
+    +  '<button class="btn-primary" onclick="_friendsSendRequest()">➕ Anfrage senden</button>'
+    +'</div>';
+}
+
+async function _friendsSendRequest(){
+  var input = document.getElementById('friendUsernameInput');
+  var username = (input.value||'').trim();
+  if(!username){ alert('Bitte einen Benutzernamen eingeben.'); return; }
+  var res = await window.FreddyAuth.sendFriendRequest(username);
+  if(!res.ok){ alert(res.message || 'Fehler beim Senden.'); return; }
+  input.value = '';
+}
+async function _friendsAccept(pairId){
+  var res = await window.FreddyAuth.acceptFriendRequest(pairId);
+  if(!res.ok){ alert(res.message || 'Fehler beim Annehmen.'); }
+}
+async function _friendsRemove(pairId){
+  if(!confirm('Bist du sicher?')) return;
+  var res = await window.FreddyAuth.removeFriendship(pairId);
+  if(!res.ok){ alert(res.message || 'Fehler beim Entfernen.'); }
+}
+
+// ── Geteilte Freund-Spots (Phase 2 der Social-Architekturrunde, 07.07.2026) ──
+// Ein eigener onSnapshot-Listener pro bestätigtem Freund (nur dessen shared==true-
+// Spots), verwaltet über _syncFriendSpotListeners() -- läuft automatisch mit, sobald
+// sich die Freundesliste ändert (neuer Freund -> neuer Listener, entfernt -> aufräumen).
+var _friendSpotsUnsubscribers = {}; // friendUid -> unsubscribe function
+var _friendSpotsByFriend = {}; // friendUid -> Array geteilter Spots
+var friendSpotsLayerGroup = L.layerGroup();
+
+function _syncFriendSpotListeners(){
+  var acceptedUids = _friendsState.entries
+    .filter(function(e){ return e.status==='accepted'; })
+    .map(_friendOtherUid);
+  acceptedUids.forEach(function(friendUid){
+    if(!_friendSpotsUnsubscribers[friendUid]){
+      _friendSpotsUnsubscribers[friendUid] = window.FreddyAuth.listenFriendSharedSpots(friendUid, function(list){
+        _friendSpotsByFriend[friendUid] = list;
+        _renderFriendSpotMarkers();
+      });
+    }
+  });
+  Object.keys(_friendSpotsUnsubscribers).forEach(function(friendUid){
+    if(acceptedUids.indexOf(friendUid)===-1){
+      _friendSpotsUnsubscribers[friendUid]();
+      delete _friendSpotsUnsubscribers[friendUid];
+      delete _friendSpotsByFriend[friendUid];
+      _renderFriendSpotMarkers();
+    }
+  });
+}
+function _stopAllFriendSpotListeners(){
+  Object.keys(_friendSpotsUnsubscribers).forEach(function(friendUid){
+    _friendSpotsUnsubscribers[friendUid]();
+  });
+  _friendSpotsUnsubscribers = {};
+  _friendSpotsByFriend = {};
+  friendSpotsLayerGroup.clearLayers();
+}
+
+function _renderFriendSpotMarkers(){
+  friendSpotsLayerGroup.clearLayers();
+  Object.keys(_friendSpotsByFriend).forEach(function(friendUid){
+    var ownerName = _friendsState.usernameCache[friendUid] || '';
+    (_friendSpotsByFriend[friendUid]||[]).forEach(function(s){
+      if(s.lat==null || s.lon==null) return;
+      var m = L.marker([s.lat, s.lon], {
+        icon: L.divIcon({className:'', html:'<div class="friendspot-marker"><div class="friendspot-marker-inner">🤝</div></div>',
+          iconSize:[24,24], iconAnchor:[12,24], popupAnchor:[0,-24]})
+      });
+      m.bindPopup('<b>'+_fbEsc(s.name||'Spot')+'</b>'+(ownerName?' · '+_fbEsc(ownerName):'')+(s.notiz?'<br>'+_fbEsc(s.notiz):''));
+      friendSpotsLayerGroup.addLayer(m);
+    });
+  });
+  if(!map.hasLayer(friendSpotsLayerGroup)) friendSpotsLayerGroup.addTo(map);
 }
 
 function _fbStartListening(){
@@ -2477,7 +2806,7 @@ async function handleAuthRegister(){
   if(!res.ok){ showAuthError(res.message); return; }
   var claim = await window.FreddyAuth.claimUsername(username);
   if(!claim.ok){ showAuthError(claim.message); return; }
-  setAuthLoggedInUI(true, username);
+  setAuthLoggedInUI(true, username, window.FreddyAuth.isAdminUser());
 }
 
 async function handleAuthGoogle(){
@@ -2488,7 +2817,7 @@ async function handleAuthGoogle(){
     var username = prompt('Willkommen! Wähle einen Benutzernamen (3-20 Zeichen):');
     if(username){
       var claim = await window.FreddyAuth.claimUsername(username.trim());
-      if(claim.ok) setAuthLoggedInUI(true, username.trim());
+      if(claim.ok) setAuthLoggedInUI(true, username.trim(), window.FreddyAuth.isAdminUser());
       else showAuthError(claim.message);
     }
   }
@@ -2502,7 +2831,7 @@ async function handleAuthRename(){
   var neu = prompt('Neuer Benutzername (3-20 Zeichen):');
   if(!neu) return;
   var res = await window.FreddyAuth.changeUsername(neu.trim());
-  if(res.ok) setAuthLoggedInUI(true, neu.trim());
+  if(res.ok) setAuthLoggedInUI(true, neu.trim(), window.FreddyAuth.isAdminUser());
   else alert(res.message);
 }
 
@@ -2512,15 +2841,22 @@ window.onFreddyAuthReady = function(bridge){
       setAuthLoggedInUI(false);
       if(document.getElementById('fangbuchPanel').classList.contains('open')) closeFangbuchPanel();
       if(document.getElementById('spotsPanel').classList.contains('open')) closeSpotsPanel();
+      if(document.getElementById('adminPanel').classList.contains('open')) closeAdminPanel();
+      if(document.getElementById('friendsPanel').classList.contains('open')) closeFriendsPanel();
       _favStopListening();
       _spotsStopListening();
+      _adminStopListening();
+      _friendsStopListening();
       return;
     }
     _favStartListening();
     _spotsStartListening();
+    _friendsStartListening();
+    var isAdmin = bridge.isAdminUser();
+    if(isAdmin) _adminStartListening();
     var profile = await bridge.getUserProfile();
     if(profile && profile.username){
-      setAuthLoggedInUI(true, profile.username);
+      setAuthLoggedInUI(true, profile.username, isAdmin);
     } else {
       // Angemeldet, aber noch kein Firestore-Profil (z.B. abgebrochene Google-Erstregistrierung)
       setAuthLoggedInUI(false);
@@ -5001,7 +5337,7 @@ import {
   GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, deleteUser
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc, writeBatch, collection, addDoc, query, orderBy,
+  getFirestore, doc, getDoc, setDoc, writeBatch, collection, addDoc, query, orderBy, where,
   onSnapshot, deleteDoc, updateDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import {
@@ -5302,6 +5638,127 @@ async function deleteSpot(spotId){
   }
 }
 
+var ADMIN_EMAIL = 'frederik.ruehmann@gmail.com';
+
+function isAdminUser(){
+  var email = auth.currentUser && auth.currentUser.email;
+  return !!email && email.toLowerCase() === ADMIN_EMAIL;
+}
+
+async function adminAddAllowlist(email){
+  var lower = (email||'').trim().toLowerCase();
+  if(!lower) return { ok:false, message:'Bitte eine E-Mail-Adresse eingeben.' };
+  try {
+    await setDoc(doc(db, 'allowlist', lower), {
+      email: lower, invitedAt: serverTimestamp(), invitedBy: auth.currentUser.uid
+    });
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Einladen.' };
+  }
+}
+
+function listenAllowlist(cb){
+  return onSnapshot(collection(db, 'allowlist'), function(snap){
+    var list = [];
+    snap.forEach(function(d){ list.push(Object.assign({ id: d.id }, d.data())); });
+    cb(list);
+  }, function(err){
+    console.warn('Allowlist-Listener beendet:', err.code);
+  });
+}
+
+async function adminRemoveAllowlist(email){
+  try {
+    await deleteDoc(doc(db, 'allowlist', email));
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Entfernen.' };
+  }
+}
+
+function _friendPairId(uidA, uidB){
+  return [uidA, uidB].sort().join('_');
+}
+
+async function sendFriendRequest(username){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  var lower = (username||'').trim().toLowerCase();
+  if(!lower) return { ok:false, message:'Bitte einen Benutzernamen eingeben.' };
+  try {
+    var unameSnap = await getDoc(doc(db, 'usernames', lower));
+    if(!unameSnap.exists()) return { ok:false, message:'Kein Nutzer mit diesem Benutzernamen gefunden.' };
+    var friendUid = unameSnap.data().uid;
+    if(friendUid === uid) return { ok:false, message:'Das bist du selbst.' };
+    var pairId = _friendPairId(uid, friendUid);
+    var ref_ = doc(db, 'friendships', pairId);
+    var existing = await getDoc(ref_);
+    if(existing.exists()) return { ok:false, message:'Es gibt bereits eine Anfrage oder Freundschaft mit diesem Nutzer.' };
+    await setDoc(ref_, {
+      uids: [uid, friendUid].sort(), requestedBy: uid, status: 'pending', createdAt: serverTimestamp()
+    });
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Senden der Anfrage.' };
+  }
+}
+
+function listenFriendships(cb){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid){ cb([]); return function(){}; }
+  var q = query(collection(db, 'friendships'), where('uids', 'array-contains', uid));
+  return onSnapshot(q, function(snap){
+    var list = [];
+    snap.forEach(function(d){ list.push(Object.assign({ id: d.id }, d.data())); });
+    cb(list);
+  }, function(err){
+    console.warn('Freundschafts-Listener beendet:', err.code);
+  });
+}
+
+async function acceptFriendRequest(pairId){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  try {
+    await updateDoc(doc(db, 'friendships', pairId), { status:'accepted', respondedAt: serverTimestamp() });
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Annehmen.' };
+  }
+}
+
+async function removeFriendship(pairId){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false };
+  try {
+    await deleteDoc(doc(db, 'friendships', pairId));
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Entfernen.' };
+  }
+}
+
+function listenFriendSharedSpots(friendUid, cb){
+  var q = query(collection(db, 'users', friendUid, 'spots'), where('shared', '==', true));
+  return onSnapshot(q, function(snap){
+    var list = [];
+    snap.forEach(function(d){ list.push(Object.assign({ id: d.id }, d.data())); });
+    cb(list);
+  }, function(err){
+    console.warn('Freund-Spots-Listener beendet ('+friendUid+'):', err.code);
+  });
+}
+
+async function getUsernameForUid(uid){
+  try {
+    var snap = await getDoc(doc(db, 'users', uid));
+    return snap.exists() ? (snap.data().username || '') : '';
+  } catch(e){
+    return '';
+  }
+}
+
 function onAuthChange(cb){
   onAuthStateChanged(auth, cb);
 }
@@ -5314,7 +5771,10 @@ window.FreddyAuth = {
   claimUsername, changeUsername, getUserProfile, getCurrentUser,
   addCatch, updateCatch, listenCatches, deleteCatch, uploadCatchPhoto,
   toggleFavorite, listenFavorites,
-  addSpot, listenSpots, updateSpot, deleteSpot
+  addSpot, listenSpots, updateSpot, deleteSpot,
+  isAdminUser, adminAddAllowlist, listenAllowlist, adminRemoveAllowlist,
+  sendFriendRequest, listenFriendships, acceptFriendRequest, removeFriendship, getUsernameForUid,
+  listenFriendSharedSpots
 };
 
 if (typeof window.onFreddyAuthReady === 'function') {
