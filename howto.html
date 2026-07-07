@@ -85,6 +85,9 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:0 0 26px 0}
     <a href="#planmodus">🗺️ Plan-Modus</a>
     <a href="#liste">☰ Liste</a>
     <a href="#profil">🪪 Profil</a>
+    <a href="#fangbuch">📖 Fangbuch</a>
+    <a href="#favoriten">⭐ Favoriten</a>
+    <a href="#spots">📌 Meine Spots</a>
     <a href="#outdoor">☀️ Outdoor</a>
     <a href="#einstellungen">⚙️ Einstellungen</a>
   </nav>
@@ -574,6 +577,41 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:0 0 26px 0}
     <h2><span class="ic">🪪</span> Profil</h2>
     <p>Über den <span class="chip">🪪</span>-Button stellst du ein, welche Angelkarten du besitzt — Berlin (DAV), Brandenburg (LAVB), MV-Binnen (LAV MV), Ostsee-Küstengewässer MV und Sachsen-Anhalt (LAV ST) lassen sich unabhängig voneinander an- und abhaken, beliebig viele gleichzeitig. Gewässer außerhalb deines Profils werden in der Karte/Liste abgeblendet dargestellt, bleiben aber sichtbar. Hakst du "Ostsee-Küstengewässer MV" ab, verschwindet damit auch die zusätzliche Häfen/Hotspot-Ebene an der Küste.</p>
     <p>Darunter findest du den Abschnitt <b>Gewässerfonds-Marke (GF)</b>: Bist du z.B. LAVB-Mitglied und hast zusätzlich eine Gemeinsamer-Gewässerfonds-Marke für MV oder Sachsen-Anhalt gekauft, hakst du dort das jeweilige Bundesland an — die Gewässer erscheinen dann in deinem Profil, ohne dass du extra die eigenständige Verbandskarte (z.B. "MV-Binnen (LAV MV)") ankreuzen musst.</p>
+  </section>
+
+  <section id="fangbuch">
+    <h2><span class="ic">📖</span> Fangbuch</h2>
+    <p>Dein persönliches Fangbuch führt Buch über deine Fänge — mit eigenem Login, damit deine Einträge geräteübergreifend erhalten bleiben. Öffnen kannst du es über den Button <span class="chip">🐟 Fang eintragen</span> direkt im Gewässer-Panel (trägt das Gewässer automatisch ein) oder über den Account-Bereich, wenn du ohne offenes Panel einen Fang nachtragen willst.</p>
+    <p><b>Beim Eintragen eines Fangs:</b></p>
+    <ul>
+      <li><b>Gewässer:</b> Suchfeld mit Live-Vorschlägen aus allen erfassten Gewässern. Ist dein Fanggewässer nicht dabei (z.B. im Ausland oder ein kleines, nicht erfasstes Gewässer), tippe einfach den Namen ein und wähle "➕ Eigenes Gewässer eintragen".</li>
+      <li><b>Fischart:</b> Auswahl aus der Fischarten-Liste, oder Badge <b>➕ Andere Art</b> für ein Freitextfeld bei Arten, die (noch) nicht in der Liste stehen.</li>
+      <li><b>Fangort:</b> optional zusätzlich zum Gewässer — entweder <b>📍 Standort speichern</b> (per GPS) oder <b>Auf Karte markieren</b> (die Karte öffnet sich kurz, Panel blendet währenddessen aus, ein Antippen setzt den Punkt).</li>
+      <li>Datum, Länge, Gewicht, Notizen und ein Foto lassen sich ergänzen — alle Felder außer Gewässer und Fischart sind optional.</li>
+    </ul>
+    <p><b>Bestehende Fänge:</b> In der Übersicht antippen öffnet den Fang zum Bearbeiten (inkl. Foto austauschen); der Löschen-Button auf der Karte entfernt den Eintrag direkt, ohne ihn zu öffnen.</p>
+    <p><b>Rechtshinweise:</b> Je nach Bundesland des gewählten Gewässers zeigt das Formular automatisch die dort geltenden Melde-/Eintragungsregeln an — z.B. Berlins Tageslimit für Aal/Zander, die Vorab-Eintragungspflicht an MV-Salmonidengewässern, oder den Hinweis auf die EU-Pflichtmeldung für Dorsch/Aal/Lachs über die offizielle <b>RecFishing</b>-App an der Küste M-V. Diese Hinweise ersetzen keine amtliche Meldepflicht — sie sollen nur daran erinnern.</p>
+    <p><b>Jahresexport:</b> Sobald mindestens ein Fang gespeichert ist, erscheint über der Fangliste eine Export-Leiste — Jahr auswählen und als CSV herunterladen (z.B. für die jährliche Vereinsabgabe). Ein direkter Versand an Verbände/Behörden ist nicht möglich, da es außer dem LAVB-Online-Portal und der EU-RecFishing-Plattform keine offene Schnittstelle dafür gibt.</p>
+    <div class="note">Das Fangbuch ist ein persönliches Hilfsmittel, kein Ersatz für ein amtlich vorgeschriebenes Fangbuch oder eine gesetzliche Meldepflicht (z.B. RecFishing an der Küste) — im Zweifel gilt immer die Gewässerordnung deines Verbands.</div>
+  </section>
+
+  <section id="favoriten">
+    <h2><span class="ic">⭐</span> Favoriten</h2>
+    <p>Im Gewässer-Panel markiert der Stern-Button oben (neben dem Schließen-Kreuz) ein Gewässer als Favorit — antippen schaltet zwischen ☆ (kein Favorit) und ★ (Favorit) um. Deine Favoriten sind mit deinem Konto verknüpft und bleiben geräteübergreifend erhalten.</p>
+    <p>Über den Chip <span class="chip">⭐ Favoriten</span> in der Fischarten-Filterleiste unten blendest du Karte und Liste auf ausschließlich deine favorisierten Gewässer ein.</p>
+    <div class="note">Favoriten setzen ein Login voraus — tippst du den Stern ohne angemeldet zu sein, öffnet sich automatisch das Anmelde-Fenster.</div>
+  </section>
+
+  <section id="spots">
+    <h2><span class="ic">📌</span> Meine Spots</h2>
+    <p>Zusätzlich zu Gewässer-Favoriten kannst du dir einzelne Lieblingsplätze auf der Karte merken — unabhängig von einem bestimmten Gewässer oder einem eingetragenen Fang, z.B. "guter Platz an der Steganlage". Öffnen kannst du die Übersicht über den Button <span class="chip">📌 Meine Spots</span> im Account-Bereich (👤).</p>
+    <p><b>Neuen Spot anlegen:</b></p>
+    <ul>
+      <li><b>Standort:</b> entweder <b>📍 Standort speichern</b> (per GPS) oder <b>Auf Karte markieren</b> (die Karte öffnet sich kurz, ein Antippen setzt den Punkt, erneutes Antippen verschiebt ihn).</li>
+      <li><b>Name</b> (optional) und <b>Notiz</b> — z.B. Beobachtungen zu Wind, Kraut oder Tageszeit.</li>
+    </ul>
+    <p>Deine Spots erscheinen als goldene Rundmarker auf der Karte (zur Unterscheidung von den tropfenförmigen Gewässer-Markern) — Antippen zeigt Name und Notiz. In der Übersichtsliste lässt sich jeder Spot zum Bearbeiten öffnen oder über den Papierkorb-Button direkt löschen.</p>
+    <div class="note">Auch Spots setzen ein Login voraus und sind nur für dich sichtbar — kein geteiltes Community-Feature.</div>
   </section>
 
   <section id="outdoor">

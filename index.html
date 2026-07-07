@@ -230,6 +230,7 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
 .chip.warn-chip.on{border-color:var(--warn);color:var(--warn);background:rgba(192,137,42,.12)}
 .chip.sal-chip.on{border-color:var(--sal);color:var(--sal);background:rgba(108,99,192,.12)}
 .chip.pacht-chip.on{border-color:var(--pacht);color:var(--pacht);background:rgba(42,159,192,.12)}
+.chip.fav-chip.on{border-color:#e0b23d;color:#e0b23d;background:rgba(224,178,61,.12)}
 
 /* Map */
 #map{flex:1;z-index:1;min-height:0}
@@ -281,6 +282,11 @@ body.outdoor #gpsToast.error{background:#fdf0dc;border-color:var(--warn);color:v
 .spot-popup .spot-fisch,.spot-popup .spot-saison{color:var(--d);margin-top:2px}
 .spot-popup .spot-community{color:var(--sal);margin-top:2px;font-size:.75rem}
 .spot-popup .spot-hinweis{margin-top:4px}
+/* Eigene Lieblingsspots (07.07.2026) -- bewusst eigener Klassenname, .spot-marker
+   ist bereits für die öffentlichen Küsten-Community-Spots vergeben (siehe oben). */
+.myspot-marker{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.35);
+             display:flex;align-items:center;justify-content:center;background:#e0b23d}
+.myspot-marker-inner{font-size:11px;line-height:1}
 /* Fließgewässer Polyline */
 .fliess-line{stroke:#4fc3f7;stroke-width:2.5;stroke-opacity:.55;stroke-dasharray:6,4;fill:none}
 /* Dark-Basemap leicht aufhellen damit Gewässer sichtbar bleiben */
@@ -334,6 +340,19 @@ body:not(.outdoor) #map .leaflet-tile-pane {
          border-left:none;border-top:1px solid var(--border);border-radius:16px 16px 0 0;
          transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
   #fangbuchPanel.open{transform:translateY(0)}
+}
+/* ===== Spots-Panel (07.07.2026) — gleiche Mechanik wie #fangbuchPanel, eigene ID,
+   bewusst OHNE die Notizheft-Overrides (reine Sheet-Optik reicht, kein neues Design). */
+#spotsPanel{position:fixed;top:0;right:0;width:var(--panel-w);height:100dvh;
+       background:var(--surface);border-left:1px solid var(--border);
+       transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+       z-index:2000;display:flex;flex-direction:column;overflow:hidden}
+#spotsPanel.open{transform:translateX(0)}
+@media(max-width:640px){
+  #spotsPanel{top:auto;bottom:0;right:0;left:0;width:100%;height:83vh;
+         border-left:none;border-top:1px solid var(--border);border-radius:16px 16px 0 0;
+         transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+  #spotsPanel.open{transform:translateY(0)}
 }
 .fb-grip{flex-shrink:0;display:flex;justify-content:center;padding:9px 0 4px;cursor:grab}
 .fb-grip span{width:38px;height:4px;border-radius:99px;background:var(--border)}
@@ -483,6 +502,13 @@ body.outdoor .fb-fish-badge.active{background:rgba(45,110,69,.16)}
              color:var(--d);font-size:14px;transition:all .15s;z-index:1;
              touch-action:manipulation}
 .panel-close:hover{color:var(--t);border-color:var(--d)}
+.fav-btn{position:absolute;top:10px;right:50px;background:var(--surface2);
+             border:1px solid var(--border);border-radius:50%;width:30px;height:30px;
+             display:flex;align-items:center;justify-content:center;cursor:pointer;
+             color:var(--d);font-size:15px;transition:all .15s;z-index:1;
+             touch-action:manipulation}
+.fav-btn:hover{color:#e0b23d;border-color:#e0b23d}
+.fav-btn.on{color:#e0b23d;border-color:#e0b23d;background:rgba(224,178,61,.12)}
 .gw-nr{font-family:var(--mono);font-size:.72rem;color:var(--accent);letter-spacing:.5px;margin-bottom:4px}
 .gw-name{font-size:1.1rem;font-weight:700;line-height:1.25;margin-bottom:8px}
 
@@ -929,6 +955,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
   <div class="auth-view" id="authViewLoggedIn">
     <div class="auth-user-row">👤 <span id="authUsernameDisplay"></span></div>
     <button class="btn-primary" onclick="openFangbuchPanel()">📖 Fangbuch öffnen</button>
+    <button class="btn-secondary" onclick="openSpotsPanel()">📌 Meine Spots</button>
     <button class="btn-secondary" onclick="handleAuthRename()">Namen ändern</button>
     <button class="btn-secondary" onclick="handleAuthSignOut()">Abmelden</button>
   </div>
@@ -987,6 +1014,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 <div id="panel">
   <div style="padding:8px 0 2px;flex-shrink:0;text-align:center;position:relative">
     <div class="drag-handle"></div>
+    <button class="fav-btn" id="p-fav-btn" onclick="toggleFavoriteClick(event)" title="Als Favorit merken">☆</button>
     <button class="panel-close" onclick="closePanel()">✕</button>
   </div>
   <div class="panel-head">
@@ -1022,6 +1050,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 </div>
 
 <div id="fangbuchPanel"></div>
+<div id="spotsPanel"></div>
 
 <!-- Fisch-Filterbar — unten, Daumen-erreichbar -->
 <div class="filterbar">
@@ -1036,13 +1065,20 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
   <div class="chip"        data-filter="forelle">Forelle</div>
   <div class="chip"        data-filter="maraene">Maräne</div>
   <div class="chip sal-chip"  data-filter="salmonide">Salmonide</div>
+  <div class="chip"        data-filter="meerforelle">Meerforelle</div>
+  <div class="chip"        data-filter="dorsch">Dorsch</div>
+  <div class="chip"        data-filter="hering">Hering</div>
+  <div class="chip"        data-filter="hornhecht">Hornhecht</div>
+  <div class="chip"        data-filter="plattfisch">Plattfisch</div>
+  <div class="chip"        data-filter="makrele">Makrele</div>
+  <div class="chip fav-chip"  data-filter="favoriten">⭐ Favoriten</div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.37.0";
+const APP_VERSION = "4.39.1";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1413,6 +1449,267 @@ function _fbRequireAuth(){
     return false;
   }
   return true;
+}
+
+// ── Favoriten (Lieblingsgewässer) ───────────────────────────────────────────
+var _favoriteNrs = new Set();
+var _favUnsubscribe = null;
+
+function _favStartListening(){
+  if(_favUnsubscribe) return;
+  _favUnsubscribe = window.FreddyAuth.listenFavorites(function(list){
+    _favoriteNrs = new Set(list);
+    _updateFavButton();
+  });
+}
+
+function _favStopListening(){
+  if(_favUnsubscribe){ _favUnsubscribe(); _favUnsubscribe = null; }
+  _favoriteNrs = new Set();
+}
+
+function _updateFavButton(){
+  var btn = document.getElementById('p-fav-btn');
+  if(!btn || !_currentPanelRow) return;
+  var nr = _currentPanelRow.Gewässer_Nr || '';
+  var isFav = _favoriteNrs.has(nr);
+  btn.classList.toggle('on', isFav);
+  btn.textContent = isFav ? '★' : '☆';
+  btn.title = isFav ? 'Favorit entfernen' : 'Als Favorit merken';
+}
+
+async function toggleFavoriteClick(evt){
+  // stopPropagation: der Button liegt außerhalb des #authPopover -- ohne das würde der
+  // globale document-Klick-Handler (schließt das Popover bei Klick außerhalb) das gerade
+  // von _fbRequireAuth() geöffnete Login-Popover noch im selben Klick-Event sofort wieder zuklappen.
+  if(evt) evt.stopPropagation();
+  if(!_fbRequireAuth()) return;
+  var row = _currentPanelRow;
+  if(!row) return;
+  var nr = row.Gewässer_Nr || '', name = row.Gewässername || '';
+  var res = await window.FreddyAuth.toggleFavorite(nr, name);
+  if(!res.ok){ alert(res.message || 'Fehler beim Speichern des Favoriten.'); return; }
+  // _favoriteNrs wird durch den Firestore-Listener aktualisiert (_favStartListening),
+  // hier zusätzlich optimistisch setzen, damit der Stern ohne Round-Trip-Verzögerung umspringt.
+  if(res.isFavorite) _favoriteNrs.add(nr); else _favoriteNrs.delete(nr);
+  _updateFavButton();
+}
+
+// ── Spots (Lieblingsspots, unabhängig vom Fangbuch) ─────────────────────────
+var _spotsState = { view:'list', spots:[], editId:null, draftLat:null, draftLon:null };
+var _spotsUnsubscribe = null;
+var _spotPicking = false;
+var _spotPickMarker = null;
+var mySpotsLayerGroup = L.layerGroup();
+
+function _spotsStartListening(){
+  if(_spotsUnsubscribe) return;
+  _spotsUnsubscribe = window.FreddyAuth.listenSpots(function(list){
+    _spotsState.spots = list;
+    if(_spotsState.view === 'list') _spotsRenderList();
+    _renderSpotMarkers();
+  });
+}
+function _spotsStopListening(){
+  if(_spotsUnsubscribe){ _spotsUnsubscribe(); _spotsUnsubscribe = null; }
+  _spotsState.spots = [];
+  _renderSpotMarkers();
+}
+
+function openSpotsPanel(){
+  if(!_fbRequireAuth()) return;
+  document.getElementById('authPopover').classList.remove('show');
+  _spotsState.view = 'list';
+  _spotsStartListening();
+  _spotsRenderList();
+  document.getElementById('spotsPanel').classList.add('open');
+  if(window.innerWidth<=640) document.getElementById('overlay').classList.add('show');
+}
+function closeSpotsPanel(){
+  document.getElementById('spotsPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+function _spotsBackToList(){
+  _spotsState.view = 'list';
+  _spotsState.editId = null;
+  _spotsState.draftLat = null;
+  _spotsState.draftLon = null;
+  _spotsRenderList();
+}
+
+function _spotsRenderList(){
+  var host = document.getElementById('spotsPanel');
+  var body;
+  if(_spotsState.spots.length === 0){
+    body = '<div class="fb-empty"><div class="fb-empty-ico">📌</div>'
+      + '<div class="fb-empty-h">Noch keine Spots</div>'
+      + '<div class="fb-empty-p">Markiere deine Lieblingsplätze per GPS oder direkt auf der Karte — unabhängig von einem Fang.</div></div>';
+  } else {
+    body = _spotsState.spots.map(function(s){
+      return '<div class="catch-card" onclick="_spotsOpenEdit(\''+s.id+'\')">'
+        + '<div class="catch-ico">📌</div>'
+        + '<div class="catch-main">'
+        +   '<div class="catch-name">'+_fbEsc(s.name||'Unbenannter Spot')+'</div>'
+        +   (s.notiz ? '<div class="catch-sub">'+_fbEsc(s.notiz)+'</div>' : '')
+        + '</div>'
+        + '<div class="catch-del" onclick="event.stopPropagation();_spotsDelete(\''+s.id+'\')" title="Löschen">🗑</div>'
+        + '</div>';
+    }).join('');
+  }
+  host.innerHTML =
+     '<div class="fb-grip"><span></span></div>'
+    +'<div class="sheet-head">'
+    +  '<div class="sheet-title">📌 Meine Spots</div>'
+    +  '<div class="fb-icon-btn" onclick="closeSpotsPanel()" title="Schließen">✕</div>'
+    +'</div>'
+    +'<div class="sheet-body">'+body+'</div>'
+    +'<div class="sheet-foot">'
+    +  '<button class="btn-primary" onclick="_spotsStartAdd()">➕ Neuer Spot</button>'
+    +'</div>';
+}
+
+function _spotsStartAdd(){
+  _spotsState.view = 'form';
+  _spotsState.editId = null;
+  _spotsState.draftLat = null;
+  _spotsState.draftLon = null;
+  _spotsRenderForm();
+}
+function _spotsOpenEdit(spotId){
+  var s = _spotsState.spots.filter(function(x){ return x.id===spotId; })[0];
+  if(!s) return;
+  _spotsState.view = 'form';
+  _spotsState.editId = spotId;
+  _spotsState.draftLat = s.lat;
+  _spotsState.draftLon = s.lon;
+  _spotsRenderForm();
+}
+async function _spotsDelete(spotId){
+  if(!confirm('Diesen Spot wirklich löschen?')) return;
+  await window.FreddyAuth.deleteSpot(spotId);
+}
+
+function _spotsRenderLocStatus(){
+  var el = document.getElementById('spotLocStatus');
+  if(!el) return;
+  if(_spotsState.draftLat==null || _spotsState.draftLon==null){
+    el.textContent = 'Noch kein Standort gewählt';
+    el.classList.remove('ok');
+  } else {
+    el.textContent = '✓ '+_spotsState.draftLat.toFixed(5)+', '+_spotsState.draftLon.toFixed(5);
+    el.classList.add('ok');
+  }
+}
+
+function _spotsRenderForm(){
+  var isEdit = !!_spotsState.editId;
+  var s = isEdit ? _spotsState.spots.filter(function(x){return x.id===_spotsState.editId;})[0] : null;
+  var name = s ? (s.name||'') : '';
+  var notiz = s ? (s.notiz||'') : '';
+  var host = document.getElementById('spotsPanel');
+  host.innerHTML =
+     '<div class="fb-grip"><span></span></div>'
+    +'<div class="sheet-head">'
+    +  '<div class="fb-icon-btn back" onclick="_spotsBackToList()" title="Zurück">‹</div>'
+    +  '<div class="sheet-title">'+(isEdit?'Spot bearbeiten':'Neuer Spot')+'</div>'
+    +  '<div class="fb-icon-btn" onclick="_spotsBackToList()" title="Schließen ohne zu speichern">✕</div>'
+    +'</div>'
+    +'<div class="sheet-body">'
+    +  '<div class="field"><div class="f-label">Name (optional)</div>'
+    +    '<input class="f-input" id="spotName" value="'+_fbEsc(name)+'" placeholder="z.B. Steganlage Ost"></div>'
+    +  '<div class="field"><div class="f-label">Notiz</div>'
+    +    '<textarea class="f-area" id="spotNotiz" placeholder="z.B. guter Platz bei Ostwind, Kraut ca. 15m raus">'+_fbEsc(notiz)+'</textarea></div>'
+    +  '<div class="field"><div class="f-label">Standort</div>'
+    +    '<div class="fangort-row">'
+    +      '<div class="btn-secondary" onclick="_spotsUseGps()">📍 Standort speichern</div>'
+    +      '<div class="btn-secondary" onclick="_spotsStartPickLocation()">Auf Karte markieren</div>'
+    +    '</div>'
+    +    '<div class="fangort-status" id="spotLocStatus"></div>'
+    +  '</div>'
+    +'</div>'
+    +'<div class="sheet-foot form-actions">'
+    +  '<button class="btn-primary" onclick="_spotsSave()">Speichern</button>'
+    +'</div>';
+  _spotsRenderLocStatus();
+}
+
+function _spotsUseGps(){
+  if(!navigator.geolocation){ alert('GPS ist auf diesem Gerät nicht verfügbar.'); return; }
+  var statusEl = document.getElementById('spotLocStatus');
+  if(statusEl){ statusEl.textContent = '📍 Standort wird ermittelt…'; statusEl.classList.remove('ok'); }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    _spotsState.draftLat = pos.coords.latitude;
+    _spotsState.draftLon = pos.coords.longitude;
+    _spotsRenderLocStatus();
+  }, function(){
+    if(statusEl) statusEl.textContent = '⚠️ Standort konnte nicht ermittelt werden.';
+  }, { enableHighAccuracy:true, timeout:10000 });
+}
+
+function _spotsStartPickLocation(){
+  _spotPicking = true;
+  document.getElementById('spotsPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  var banner = document.createElement('div');
+  banner.className = 'fb-pick-banner';
+  banner.id = 'spot-pick-banner';
+  banner.innerHTML = '<span>🗺️ Tippe auf die Karte, um den Spot zu setzen</span>'
+    + '<button type="button" class="btn-secondary" id="spot-pick-cancel">Abbrechen</button>'
+    + '<button type="button" class="btn-primary" id="spot-pick-confirm" style="display:none">✓ Übernehmen</button>';
+  document.body.appendChild(banner);
+  document.getElementById('spot-pick-cancel').onclick = function(){ _spotsCancelPickLocation(); };
+}
+function _spotsReopenPanel(){
+  document.getElementById('spotsPanel').classList.add('open');
+  if(window.innerWidth<=640) document.getElementById('overlay').classList.add('show');
+}
+function _spotsCancelPickLocation(){
+  _spotPicking = false;
+  if(_spotPickMarker){ map.removeLayer(_spotPickMarker); _spotPickMarker = null; }
+  var banner = document.getElementById('spot-pick-banner');
+  if(banner) banner.remove();
+  _spotsReopenPanel();
+}
+function _spotsConfirmPickLocation(){
+  if(!_spotPickMarker) return;
+  var ll = _spotPickMarker.getLatLng();
+  _spotsState.draftLat = ll.lat;
+  _spotsState.draftLon = ll.lng;
+  _spotPicking = false;
+  map.removeLayer(_spotPickMarker); _spotPickMarker = null;
+  var banner = document.getElementById('spot-pick-banner');
+  if(banner) banner.remove();
+  _spotsReopenPanel();
+  _spotsRenderLocStatus();
+}
+
+async function _spotsSave(){
+  var name = (document.getElementById('spotName').value||'').trim();
+  var notiz = (document.getElementById('spotNotiz').value||'').trim();
+  if(_spotsState.draftLat==null || _spotsState.draftLon==null){
+    alert('Bitte zuerst einen Standort wählen (GPS oder Karte).');
+    return;
+  }
+  var data = { name: name, notiz: notiz, lat: _spotsState.draftLat, lon: _spotsState.draftLon };
+  var res = _spotsState.editId
+    ? await window.FreddyAuth.updateSpot(_spotsState.editId, data)
+    : await window.FreddyAuth.addSpot(data);
+  if(!res.ok){ alert(res.message || 'Fehler beim Speichern.'); return; }
+  _spotsBackToList();
+}
+
+function _renderSpotMarkers(){
+  mySpotsLayerGroup.clearLayers();
+  _spotsState.spots.forEach(function(s){
+    if(s.lat==null || s.lon==null) return;
+    var m = L.marker([s.lat, s.lon], {
+      icon: L.divIcon({className:'', html:'<div class="myspot-marker"><div class="myspot-marker-inner">📌</div></div>',
+        iconSize:[26,26], iconAnchor:[13,26], popupAnchor:[0,-26]})
+    });
+    m.bindPopup('<b>'+_fbEsc(s.name||'Spot')+'</b>'+(s.notiz?'<br>'+_fbEsc(s.notiz):''));
+    mySpotsLayerGroup.addLayer(m);
+  });
+  if(!map.hasLayer(mySpotsLayerGroup)) mySpotsLayerGroup.addTo(map);
 }
 
 function _fbStartListening(){
@@ -2155,8 +2452,13 @@ window.onFreddyAuthReady = function(bridge){
     if(!user){
       setAuthLoggedInUI(false);
       if(document.getElementById('fangbuchPanel').classList.contains('open')) closeFangbuchPanel();
+      if(document.getElementById('spotsPanel').classList.contains('open')) closeSpotsPanel();
+      _favStopListening();
+      _spotsStopListening();
       return;
     }
+    _favStartListening();
+    _spotsStartListening();
     var profile = await bridge.getUserProfile();
     if(profile && profile.username){
       setAuthLoggedInUI(true, profile.username);
@@ -2317,6 +2619,18 @@ function initMap() {
         var confirmBtn = banner.querySelector('#fb-pick-confirm');
         confirmBtn.style.display = 'inline-flex';
         confirmBtn.onclick = function(){ _fbConfirmPickLocation(); };
+      }
+      return;
+    }
+    if(_spotPicking){
+      if(_spotPickMarker){ _spotPickMarker.setLatLng(e.latlng); }
+      else { _spotPickMarker = L.marker(e.latlng,{zIndexOffset:9500}).addTo(map); }
+      var spotBanner = document.getElementById('spot-pick-banner');
+      if(spotBanner){
+        spotBanner.querySelector('span').textContent = '🗺️ Punkt gesetzt — durch erneutes Tippen verschieben';
+        var spotConfirmBtn = spotBanner.querySelector('#spot-pick-confirm');
+        spotConfirmBtn.style.display = 'inline-flex';
+        spotConfirmBtn.onclick = function(){ _spotsConfirmPickLocation(); };
       }
       return;
     }
@@ -2575,9 +2889,11 @@ function renderMarkers(){
       if(activeFilters.has('vertragsgewaesser')&&!row.Gewässer_Nr.match(/^V[CFP]/))return false;
       if(activeFilters.has('salmonide')&&row.ist_salmonide!=='ja'&&!row.Gewässer_Nr.startsWith('Salmo-'))return false;
       if(activeFilters.has('pachtgewaesser')&&row.gewässer_typ!=='Pachtgewässer'&&row.gewässer_typ!=='Sperrgewässer')return false;
+      if(activeFilters.has('favoriten')&&!_favoriteNrs.has(row.Gewässer_Nr||''))return false;
       // Fischarten-Filter (OR)
       var fishFilters=['hecht','zander','barsch','wels','aal','karpfen','schleie','forelle','maraene',
-                       'rapfen','döbel','quappe','weissfisch','aesche'];
+                       'rapfen','döbel','quappe','weissfisch','aesche',
+                       'meerforelle','dorsch','hering','hornhecht','plattfisch','makrele'];
       var activeFish=fishFilters.filter(function(f){return activeFilters.has(f);});
       if(activeFish.length>0){
         var hasOne=activeFish.every(function(f){return row['fisch_'+f]==='ja';});
@@ -2705,6 +3021,7 @@ function openPanel(row, opts){
 
   document.getElementById('p-nr').textContent=nr;
   document.getElementById('p-name').textContent=name;
+  _updateFavButton();
 
   // Distance (async)
   getDrivingInfo(lat,lon);
@@ -4620,7 +4937,7 @@ import {
   GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, deleteUser
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, writeBatch, collection, addDoc, query, orderBy,
+  getFirestore, doc, getDoc, setDoc, writeBatch, collection, addDoc, query, orderBy,
   onSnapshot, deleteDoc, updateDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import {
@@ -4841,6 +5158,86 @@ async function uploadCatchPhoto(catchId, blob){
   }
 }
 
+async function toggleFavorite(gewaesserNr, gewaesserName){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid || !gewaesserNr) return { ok:false, message:'Nicht angemeldet.' };
+  try {
+    var favRef = doc(db, 'users', uid, 'favorites', gewaesserNr);
+    var snap = await getDoc(favRef);
+    if(snap.exists()){
+      await deleteDoc(favRef);
+      return { ok:true, isFavorite:false };
+    }
+    await setDoc(favRef, {
+      gewaesserNr: gewaesserNr, gewaesserName: gewaesserName || '', addedAt: serverTimestamp()
+    });
+    return { ok:true, isFavorite:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Speichern des Favoriten.' };
+  }
+}
+
+function listenFavorites(cb){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid){ cb([]); return function(){}; }
+  return onSnapshot(collection(db, 'users', uid, 'favorites'), function(snap){
+    var list = [];
+    snap.forEach(function(d){ list.push(d.id); });
+    cb(list);
+  }, function(err){
+    // z.B. permission-denied beim Abmelden während der Listener noch aktiv ist
+    console.warn('Favoriten-Listener beendet:', err.code);
+  });
+}
+
+async function addSpot(data){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  try {
+    var docRef = await addDoc(collection(db, 'users', uid, 'spots'), Object.assign({
+      uid: uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    }, data));
+    return { ok:true, id: docRef.id };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Speichern des Spots.' };
+  }
+}
+
+function listenSpots(cb){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid){ cb([]); return function(){}; }
+  var q = query(collection(db, 'users', uid, 'spots'), orderBy('createdAt', 'desc'));
+  return onSnapshot(q, function(snap){
+    var list = [];
+    snap.forEach(function(d){ list.push(Object.assign({ id: d.id }, d.data())); });
+    cb(list);
+  }, function(err){
+    console.warn('Spots-Listener beendet:', err.code);
+  });
+}
+
+async function updateSpot(spotId, data){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  try {
+    await updateDoc(doc(db, 'users', uid, 'spots', spotId), Object.assign({ updatedAt: serverTimestamp() }, data));
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Aktualisieren.' };
+  }
+}
+
+async function deleteSpot(spotId){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false };
+  try {
+    await deleteDoc(doc(db, 'users', uid, 'spots', spotId));
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Löschen.' };
+  }
+}
+
 function onAuthChange(cb){
   onAuthStateChanged(auth, cb);
 }
@@ -4851,7 +5248,9 @@ getRedirectResult(auth).catch(function(){ /* kein Redirect-Flow aktiv, ignoriere
 window.FreddyAuth = {
   onAuthChange, signUpEmail, signInEmail, signInGoogle, signOutUser,
   claimUsername, changeUsername, getUserProfile, getCurrentUser,
-  addCatch, updateCatch, listenCatches, deleteCatch, uploadCatchPhoto
+  addCatch, updateCatch, listenCatches, deleteCatch, uploadCatchPhoto,
+  toggleFavorite, listenFavorites,
+  addSpot, listenSpots, updateSpot, deleteSpot
 };
 
 if (typeof window.onFreddyAuthReady === 'function') {
