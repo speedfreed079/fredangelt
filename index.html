@@ -416,6 +416,18 @@ body.outdoor .metric{background:rgba(45,110,69,.14)}
   display:flex;align-items:center;justify-content:center;cursor:pointer;
   background:transparent;border:1px solid transparent;color:var(--d);font-size:.95rem;transition:all .14s}
 .catch-del:hover{background:rgba(192,58,43,.12);border-color:rgba(192,58,43,.4);color:var(--danger)}
+.catch-locate{flex-shrink:0;align-self:flex-start;width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  background:transparent;border:1px solid transparent;color:var(--d);font-size:.95rem;transition:all .14s}
+.catch-locate:hover{background:rgba(61,153,112,.12);border-color:rgba(61,153,112,.4);color:var(--accent)}
+.catch-actions{flex-shrink:0;display:flex;gap:4px}
+.catch-ico.photo-ico{cursor:zoom-in}
+/* Foto-Lightbox (07.07.2026) -- Fangbuch-Fotos groß ansehen */
+#imageLightbox{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.88);
+  align-items:center;justify-content:center;padding:26px;cursor:zoom-out}
+#imageLightbox.show{display:flex}
+#imageLightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6);
+  object-fit:contain}
 .fb-export-bar{display:flex;gap:8px;align-items:center}
 .fb-export-bar select{flex:1;min-width:0}
 .fb-export-bar .btn-secondary{width:auto;flex-shrink:0;padding:9px 12px;font-size:.76rem}
@@ -1084,6 +1096,10 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 <div id="spotsPanel"></div>
 <div id="adminPanel"></div>
 <div id="friendsPanel"></div>
+<div id="imageLightbox" onclick="closeImageLightbox()">
+  <button class="panel-close" onclick="event.stopPropagation();closeImageLightbox()" style="position:fixed">✕</button>
+  <img id="imageLightboxImg" alt="Foto">
+</div>
 
 <!-- Fisch-Filterbar — unten, Daumen-erreichbar -->
 <div class="filterbar">
@@ -1111,7 +1127,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.43.0";
+const APP_VERSION = "4.43.1";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1586,7 +1602,10 @@ function _spotsRenderList(){
         +   '<div class="catch-name">'+_fbEsc(s.name||'Unbenannter Spot')+(s.shared?' <span class="metric">🤝 Geteilt</span>':'')+'</div>'
         +   (s.notiz ? '<div class="catch-sub">'+_fbEsc(s.notiz)+'</div>' : '')
         + '</div>'
-        + '<div class="catch-del" onclick="event.stopPropagation();_spotsDelete(\''+s.id+'\')" title="Löschen">🗑</div>'
+        + '<div class="catch-actions">'
+        +   '<div class="catch-locate" onclick="event.stopPropagation();_spotsShowOnMap(\''+s.id+'\')" title="Auf Karte zeigen">📍</div>'
+        +   '<div class="catch-del" onclick="event.stopPropagation();_spotsDelete(\''+s.id+'\')" title="Löschen">🗑</div>'
+        + '</div>'
         + '</div>';
     }).join('');
   }
@@ -1630,6 +1649,23 @@ function _spotsOpenEdit(spotId){
 async function _spotsDelete(spotId){
   if(!confirm('Diesen Spot wirklich löschen?')) return;
   await window.FreddyAuth.deleteSpot(spotId);
+}
+
+function _spotsShowOnMap(spotId){
+  var s = _spotsState.spots.filter(function(x){ return x.id===spotId; })[0];
+  if(!s || s.lat==null || s.lon==null) return;
+  closeSpotsPanel();
+  map.setView([s.lat, s.lon], 15);
+}
+
+// ── Foto-Lightbox (07.07.2026, Fangbuch-Fotos groß ansehen) ─────────────────
+function openImageLightbox(url){
+  document.getElementById('imageLightboxImg').src = url;
+  document.getElementById('imageLightbox').classList.add('show');
+}
+function closeImageLightbox(){
+  document.getElementById('imageLightbox').classList.remove('show');
+  document.getElementById('imageLightboxImg').src = '';
 }
 
 function _spotsRenderLocStatus(){
@@ -2250,6 +2286,13 @@ function _fbRenderList(){
 
   host.querySelectorAll('.catch-card').forEach(function(card){
     card.onclick = function(){ _fbOpenEditForm(card.getAttribute('data-id')); };
+  });
+  host.querySelectorAll('.catch-ico.photo-ico').forEach(function(ico){
+    ico.onclick = function(ev){
+      ev.stopPropagation();
+      var img = ico.querySelector('img');
+      if(img) openImageLightbox(img.src);
+    };
   });
   host.querySelectorAll('[data-del]').forEach(function(btn){
     btn.onclick = function(ev){
@@ -4851,6 +4894,7 @@ function renderList(filtered) {
       '<span class="li-ampel">' + ampelIcon(row) + '</span>' +
       '<div class="li-name">' + escHtml(row.Gewässername) +
         '<div class="li-sub">' + escHtml(row.Gewässer_Nr) +
+        ' &middot; ' + escHtml(BUNDESLAND_PANEL_LABELS[bundeslandKey(row)]) +
         (row.gewässer_art ? ' &middot; ' + escHtml(row.gewässer_art) : '') + '</div>' +
       '</div>' + distHtml + '</div>';
   }).join('');
