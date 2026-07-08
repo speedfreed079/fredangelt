@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Fred angelt</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/branding/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/branding/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/branding/apple-touch-icon.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
@@ -105,7 +108,8 @@ body{background:var(--bg);color:var(--t);font-family:var(--sans);height:100dvh;o
 header{background:var(--surface);border-bottom:1px solid var(--border);
        padding:8px 12px;display:flex;flex-direction:column;gap:6px;z-index:1000;flex-shrink:0}
 .header-top{display:flex;align-items:center;gap:8px}
-.logo{font-family:var(--mono);font-size:.9rem;font-weight:700;color:var(--accent);white-space:nowrap;flex-shrink:0}
+.logo{font-family:var(--mono);font-size:.9rem;font-weight:700;color:var(--accent);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:5px}
+.logo img{height:20px;width:auto;flex-shrink:0}
 /* Font size toggle */
 .font-toggle{display:flex;align-items:center;gap:2px;margin-left:4px;flex-shrink:0}
 .font-btn{background:none;border:1px solid var(--border);border-radius:5px;color:var(--d);
@@ -133,7 +137,8 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
    verengen statt Buttons ausblenden, damit keine Funktion verloren geht. */
 @media(max-width:480px){
   header{padding:8px 7px}
-  .logo{font-size:.78rem}
+  .logo{font-size:.78rem;gap:3px}
+  .logo img{height:16px}
   .header-top{gap:4px}
   .icon-btn{padding:4px 5px;font-size:.9rem}
   .header-right{gap:3px}
@@ -383,6 +388,31 @@ body:not(.outdoor) #map .leaflet-tile-pane {
          transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
   #friendsPanel.open{transform:translateY(0)}
 }
+/* ===== Lizenz-Safe-Panel (08.07.2026) -- gleiche Sheet-Mechanik, eigene ID ===== */
+#licensesPanel{position:fixed;top:0;right:0;width:var(--panel-w);height:100dvh;
+       background:var(--surface);border-left:1px solid var(--border);
+       transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+       z-index:2000;display:flex;flex-direction:column;overflow:hidden}
+#licensesPanel.open{transform:translateX(0)}
+@media(max-width:640px){
+  #licensesPanel{top:auto;bottom:0;right:0;left:0;width:100%;height:83vh;
+         border-left:none;border-top:1px solid var(--border);border-radius:16px 16px 0 0;
+         transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+  #licensesPanel.open{transform:translateY(0)}
+}
+/* Lizenz-Karten: gleiche Optik wie .catch-card, mit Ablauf-Warnfarben am Rand
+   (< 30 Tage bis Ablauf = warn, bereits abgelaufen = danger) -- analog zu den
+   bestehenden Gewaesser-Warnboxen, nicht neu erfunden. */
+.license-card.lic-warn{border-color:rgba(192,137,42,.55)}
+.license-card.lic-danger{border-color:rgba(192,58,43,.55)}
+.lic-badge{font-family:var(--mono);font-size:.66rem;font-weight:600;border-radius:5px;
+  padding:2px 6px;line-height:1.3;white-space:nowrap}
+.lic-badge.warn{color:#ddc080;background:rgba(192,137,42,.14)}
+.lic-badge.danger{color:#f0a89e;background:rgba(192,58,43,.14)}
+body.outdoor .lic-badge.warn{color:var(--warn)}
+body.outdoor .lic-badge.danger{color:var(--danger)}
+.lic-betreiber{display:flex;align-items:center;gap:6px;font-size:.7rem;color:var(--d);font-family:var(--mono)}
+.lic-betreiber .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .fb-grip{flex-shrink:0;display:flex;justify-content:center;padding:9px 0 4px;cursor:grab}
 .fb-grip span{width:38px;height:4px;border-radius:99px;background:var(--border)}
 .sheet-head{flex-shrink:0;display:flex;align-items:center;gap:10px;
@@ -941,7 +971,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 
 <header>
   <div class="header-top">
-    <div class="logo">🎣 Fred <span>angelt</span></div>
+    <div class="logo"><img src="assets/branding/logo_header.png" alt="" width="240" height="230">Fred <span>angelt</span></div>
     <span id="version-badge" style="font-size:.52rem;color:var(--border);font-family:var(--mono);margin-left:2px;align-self:flex-end;padding-bottom:1px"></span>
     <div class="font-toggle">
       <button class="font-btn" data-size="14" onclick="setFontSize(14)" title="Kleine Schrift">A</button>
@@ -1014,6 +1044,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
     <button class="btn-primary" onclick="openFangbuchPanel()">📖 Fangbuch öffnen</button>
     <button class="btn-secondary" onclick="openSpotsPanel()">📌 Meine Spots</button>
     <button class="btn-secondary" onclick="openFriendsPanel()">🤝 Freunde</button>
+    <button class="btn-secondary" onclick="openLicensesPanel()">🪪 Lizenz-Safe</button>
     <button class="btn-secondary" id="adminEntryBtn" onclick="openAdminPanel()" style="display:none">🛡️ Zugelassene E-Mails</button>
     <button class="btn-secondary" onclick="handleAuthRename()">Namen ändern</button>
     <button class="btn-secondary" onclick="handleAuthSignOut()">Abmelden</button>
@@ -1112,6 +1143,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 <div id="spotsPanel"></div>
 <div id="adminPanel"></div>
 <div id="friendsPanel"></div>
+<div id="licensesPanel"></div>
 <div id="imageLightbox" onclick="closeImageLightbox()">
   <button class="panel-close" onclick="event.stopPropagation();closeImageLightbox()" style="position:fixed">✕</button>
   <img id="imageLightboxImg" alt="Foto">
@@ -1143,7 +1175,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.44.1";
+const APP_VERSION = "4.46.0";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -1845,6 +1877,371 @@ async function _spotsSave(){
     : await window.FreddyAuth.addSpot(data);
   if(!res.ok){ alert(res.message || 'Fehler beim Speichern.'); return; }
   _spotsBackToList();
+}
+
+// -- Lizenz-Safe (08.07.2026) -- gleiche Sheet-Mechanik wie Spots/Fangbuch,
+// eigene Panel-ID. Datenmodell siehe FreddyAuth.addLicense-Kommentar:
+// { typ, typ_custom, aussteller, gueltig_von, gueltig_bis, notiz,
+//   betreiber_id, betreiber_name, fotoURL, fotoPath }
+var _LICENSE_TYPEN = ['Fischereischein', 'Vereins-Angelkarte', 'Tageskarte', 'Gastkarte'];
+var _licensesState = { view: 'list', licenses: [], editId: null, photoFile: null, photoRemoved: false, existingPhotoURL: null };
+var _licensesUnsubscribe = null;
+var _licensesDraftBetreiberId = null, _licensesDraftBetreiberName = null;
+
+function _licensesStartListening(){
+  if(_licensesUnsubscribe) return;
+  _licensesUnsubscribe = window.FreddyAuth.listenLicenses(function(list){
+    _licensesState.licenses = list;
+    if(_licensesState.view === 'list' && document.getElementById('licensesPanel').classList.contains('open')) _licensesRenderList();
+  });
+}
+function _licensesStopListening(){
+  if(_licensesUnsubscribe){ _licensesUnsubscribe(); _licensesUnsubscribe = null; }
+  _licensesState.licenses = [];
+}
+
+function openLicensesPanel(){
+  if(!_fbRequireAuth()) return;
+  document.getElementById('authPopover').classList.remove('show');
+  _licensesState.view = 'list';
+  _licensesStartListening();
+  _licensesRenderList();
+  document.getElementById('licensesPanel').classList.add('open');
+  if(window.innerWidth<=640) document.getElementById('overlay').classList.add('show');
+}
+function closeLicensesPanel(){
+  document.getElementById('licensesPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+function _licensesBackToList(){
+  _licensesState.view = 'list';
+  _licensesState.editId = null;
+  _licensesState.photoFile = null;
+  _licensesState.photoRemoved = false;
+  _licensesState.existingPhotoURL = null;
+  _licensesRenderList();
+}
+
+// Betreiber-Liste fuer die Verknuepfung: dedupliziert aus allData, da es keine
+// eigene Betreiber-Tabelle gibt -- betreiber_name dient hier zugleich als betreiber_id.
+function _licensesBetreiberList(){
+  var seen = {}, out = [];
+  allData.forEach(function(row){
+    var name = (row.betreiber_name||'').trim();
+    if(!name || seen[name]) return;
+    seen[name] = true;
+    var farbe = /^#[0-9a-f]{6}$/i.test(row.betreiber_farbe||'') ? row.betreiber_farbe : '';
+    out.push({ id: name, name: name, farbe: farbe });
+  });
+  out.sort(function(a,b){ return a.name.localeCompare(b.name, 'de'); });
+  return out;
+}
+
+function _licensesFmtDate(iso){
+  if(!iso) return '';
+  var d = new Date(iso + 'T00:00:00');
+  if(isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+function _licensesDaysLeft(iso){
+  if(!iso) return null;
+  var d = new Date(iso + 'T00:00:00');
+  if(isNaN(d.getTime())) return null;
+  var today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((d - today) / 86400000);
+}
+function _licensesStatus(l){
+  var days = _licensesDaysLeft(l.gueltig_bis);
+  if(days==null) return { cls:'', badge:'' };
+  if(days < 0) return { cls:'lic-danger', badge:'<span class="lic-badge danger">Abgelaufen</span>' };
+  if(days < 30) return { cls:'lic-warn', badge:'<span class="lic-badge warn">Läuft in '+days+' Tag'+(days===1?'':'en')+' ab</span>' };
+  return { cls:'', badge:'' };
+}
+
+function _licensesRenderList(){
+  var host = document.getElementById('licensesPanel');
+  var body;
+  if(_licensesState.licenses.length === 0){
+    body = '<div class="fb-empty"><div class="fb-empty-ico">🪪</div>'
+      + '<div class="fb-empty-h">Noch keine Karten hinterlegt</div>'
+      + '<div class="fb-empty-p">Speichere deinen Fischereischein und deine Angelkarten hier als digitales Backup — ersetzt nicht die Mitführpflicht.</div></div>';
+  } else {
+    body = _licensesState.licenses.map(function(l){
+      var st = _licensesStatus(l);
+      var typLabel = l.typ === '__custom__' ? (l.typ_custom || 'Sonstige') : (l.typ || 'Sonstige');
+      var dates = l.gueltig_von ? _licensesFmtDate(l.gueltig_von) : '?';
+      dates += ' – ' + (l.gueltig_bis ? _licensesFmtDate(l.gueltig_bis) : 'unbefristet');
+      var thumb = l.fotoURL
+        ? '<div class="catch-ico photo-ico" onclick="event.stopPropagation();openImageLightbox(\''+l.fotoURL+'\')"><img src="'+l.fotoURL+'" alt=""></div>'
+        : '<div class="catch-ico">🪪</div>';
+      return '<div class="catch-card license-card '+st.cls+'" onclick="_licensesOpenEdit(\''+l.id+'\')">'
+        + thumb
+        + '<div class="catch-main">'
+        +   '<div class="catch-name">'+_fbEsc(typLabel)+'</div>'
+        +   '<div class="catch-sub">'+_fbEsc(l.aussteller||'')+'</div>'
+        +   '<div class="catch-sub">'+_fbEsc(dates)+'</div>'
+        +   (l.betreiber_name ? '<div class="lic-betreiber">'+(l.betreiber_farbe?'<span class="dot" style="background:'+l.betreiber_farbe+'"></span>':'')+_fbEsc(l.betreiber_name)+'</div>' : '')
+        +   (st.badge ? '<div>'+st.badge+'</div>' : '')
+        + '</div>'
+        + '<div class="catch-actions">'
+        +   '<div class="catch-del" onclick="event.stopPropagation();_licensesDelete(\''+l.id+'\')" title="Löschen">🗑</div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+  host.innerHTML =
+     '<div class="fb-grip"><span></span></div>'
+    +'<div class="sheet-head">'
+    +  '<div class="sheet-title">🪪 Lizenz-Safe</div>'
+    +  '<div class="fb-icon-btn" onclick="closeLicensesPanel()" title="Schließen">✕</div>'
+    +'</div>'
+    +'<div class="sheet-body">'+body+'</div>'
+    +'<div class="sheet-foot">'
+    +  '<button class="btn-primary" onclick="_licensesStartAdd()">➕ Neue Karte hinzufügen</button>'
+    +'</div>';
+}
+
+function _licensesStartAdd(){
+  _licensesState.view = 'form';
+  _licensesState.editId = null;
+  _licensesState.photoFile = null;
+  _licensesState.photoRemoved = false;
+  _licensesState.existingPhotoURL = null;
+  _licensesDraftBetreiberId = null;
+  _licensesDraftBetreiberName = null;
+  _licensesRenderForm();
+}
+function _licensesOpenEdit(licenseId){
+  var l = _licensesState.licenses.filter(function(x){ return x.id===licenseId; })[0];
+  if(!l) return;
+  _licensesState.view = 'form';
+  _licensesState.editId = licenseId;
+  _licensesState.photoFile = null;
+  _licensesState.photoRemoved = false;
+  _licensesState.existingPhotoURL = l.fotoURL || null;
+  _licensesDraftBetreiberId = l.betreiber_id || null;
+  _licensesDraftBetreiberName = l.betreiber_name || null;
+  _licensesRenderForm();
+}
+async function _licensesDelete(licenseId){
+  if(!confirm('Diese Karte wirklich löschen?')) return;
+  var l = _licensesState.licenses.filter(function(x){ return x.id===licenseId; })[0];
+  await window.FreddyAuth.deleteLicense(licenseId, l && l.fotoPath);
+}
+
+function _licensesShowBetreiberDropdown(q){
+  var dd = document.getElementById('lic-betreiber-dropdown');
+  if(!dd) return;
+  q = (q||'').trim().toLowerCase();
+  var list = _licensesBetreiberList();
+  var matches = q ? list.filter(function(b){ return b.name.toLowerCase().indexOf(q)!==-1; }) : list;
+  matches = matches.slice(0, 20);
+  var html = matches.map(function(b){
+    return '<div class="wd-item" data-id="'+_fbEsc(b.id)+'" data-name="'+_fbEsc(b.name)+'">'
+      + (b.farbe ? '<span class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+b.farbe+';margin-right:6px;vertical-align:middle"></span>' : '')
+      + _fbEsc(b.name) + '</div>';
+  }).join('');
+  if(!matches.length) html = '<div class="wd-empty">Kein Betreiber gefunden.</div>';
+  dd.innerHTML = html;
+  dd.classList.add('show');
+  dd.querySelectorAll('.wd-item').forEach(function(item){
+    item.onclick = function(){
+      _licensesDraftBetreiberId = item.getAttribute('data-id');
+      _licensesDraftBetreiberName = item.getAttribute('data-name');
+      document.getElementById('lic-betreiber-input').value = _licensesDraftBetreiberName;
+      dd.classList.remove('show');
+    };
+  });
+}
+
+function _licensesRenderForm(){
+  var isEdit = !!_licensesState.editId;
+  var l = isEdit ? _licensesState.licenses.filter(function(x){return x.id===_licensesState.editId;})[0] : null;
+  var typ = l ? (l.typ||'') : '';
+  var typCustom = l ? (l.typ_custom||'') : '';
+  var isCustomTyp = typ === '__custom__';
+  var aussteller = l ? (l.aussteller||'') : '';
+  var von = l ? (l.gueltig_von||'') : '';
+  var bis = l ? (l.gueltig_bis||'') : '';
+  var notiz = l ? (l.notiz||'') : '';
+  var typOptions = _LICENSE_TYPEN.map(function(t){
+    return '<option value="'+_fbEsc(t)+'"'+(typ===t?' selected':'')+'>'+_fbEsc(t)+'</option>';
+  }).join('') + '<option value="__custom__"'+(isCustomTyp?' selected':'')+'>Sonstige …</option>';
+
+  var host = document.getElementById('licensesPanel');
+  host.innerHTML =
+     '<div class="fb-grip"><span></span></div>'
+    +'<div class="sheet-head">'
+    +  '<div class="fb-icon-btn back" onclick="_licensesBackToList()" title="Zurück">‹</div>'
+    +  '<div class="sheet-title">'+(isEdit?'Karte bearbeiten':'Neue Karte')+'</div>'
+    +  '<div class="fb-icon-btn" onclick="_licensesBackToList()" title="Schließen ohne zu speichern">✕</div>'
+    +'</div>'
+    +'<div class="sheet-body">'
+    +  '<div class="field"><span class="f-label">Typ</span>'
+    +    '<select class="f-input" id="lic-typ">'+typOptions+'</select>'
+    +    '<input class="f-input" id="lic-typ-custom" placeholder="z.B. Nachtangel-Erlaubnis" value="'+_fbEsc(typCustom)+'" style="'+(isCustomTyp?'':'display:none;')+'margin-top:6px">'
+    +  '</div>'
+    +  '<div class="field"><span class="f-label">Aussteller</span>'
+    +    '<input class="f-input" id="lic-aussteller" placeholder="z.B. Landesfischereiverband" value="'+_fbEsc(aussteller)+'"></div>'
+    +  '<div class="two-col">'
+    +    '<div class="field"><span class="f-label">Gültig von</span>'
+    +      '<input class="f-input" id="lic-von" type="date" value="'+_fbEsc(von)+'"></div>'
+    +    '<div class="field"><span class="f-label">Gültig bis</span>'
+    +      '<input class="f-input" id="lic-bis" type="date" value="'+_fbEsc(bis)+'" placeholder="unbefristet"></div>'
+    +  '</div>'
+    +  '<div class="field water-field"><span class="f-label">Betreiber (optional)</span>'
+    +    '<input class="f-input" id="lic-betreiber-input" placeholder="Betreiber suchen — gilt dann für alle seine Gewässer" value="'+_fbEsc(_licensesDraftBetreiberName||'')+'" autocomplete="off">'
+    +    '<div class="water-dropdown" id="lic-betreiber-dropdown"></div>'
+    +  '</div>'
+    +  '<div class="field">'
+    +    '<span class="f-label">Notiz</span>'
+    +    '<textarea class="f-area" id="lic-notiz" placeholder="z.B. Original liegt im Auto">'+_fbEsc(notiz)+'</textarea>'
+    +  '</div>'
+    +  '<div class="field">'
+    +    '<span class="f-label">Foto</span>'
+    +    '<label class="photo" id="lic-photo">'
+    +      '<span class="thumb"><span class="thumb-ph">🖼️</span><img alt="Karte"></span>'
+    +      '<span class="p-info"><b class="p-name">Foto geladen</b><small>Tippen zum Ändern</small></span>'
+    +      '<span class="p-ico">📸</span>'
+    +      '<span class="p-txt"><b>Foto hinzufügen</b><br>Kamera oder Galerie</span>'
+    +      '<button type="button" class="p-remove">✕ entfernen</button>'
+    +      '<input type="file" accept="image/*" capture="environment" id="lic-photo-input">'
+    +    '</label>'
+    +  '</div>'
+    +  '<div class="form-actions">'
+    +    '<button class="btn-primary" id="lic-save">'+(isEdit?'💾 Änderungen speichern':'🎫 Karte speichern')+'</button>'
+    +    '<button class="btn-secondary" onclick="_licensesBackToList()">Abbrechen</button>'
+    +  '</div>'
+    +'</div>';
+
+  document.getElementById('lic-typ').onchange = function(){
+    var custom = this.value === '__custom__';
+    document.getElementById('lic-typ-custom').style.display = custom ? '' : 'none';
+  };
+  var betreiberInput = document.getElementById('lic-betreiber-input');
+  betreiberInput.oninput = function(){
+    if(betreiberInput.value.trim() !== (_licensesDraftBetreiberName||'').trim()){
+      _licensesDraftBetreiberId = null;
+      _licensesDraftBetreiberName = null;
+    }
+    _licensesShowBetreiberDropdown(betreiberInput.value);
+  };
+  betreiberInput.onfocus = function(){ _licensesShowBetreiberDropdown(betreiberInput.value); };
+  betreiberInput.onblur = function(){ setTimeout(function(){ document.getElementById('lic-betreiber-dropdown').classList.remove('show'); }, 150); };
+
+  var photo = document.getElementById('lic-photo');
+  var fileInput = document.getElementById('lic-photo-input');
+  var img = photo.querySelector('img');
+  if(isEdit && _licensesState.existingPhotoURL){
+    img.src = _licensesState.existingPhotoURL;
+    photo.classList.add('has');
+  }
+  fileInput.onchange = function(){
+    var f = fileInput.files && fileInput.files[0];
+    if(!f) return;
+    _licensesState.photoFile = f;
+    _licensesState.photoRemoved = false;
+    var url = URL.createObjectURL(f);
+    img.onload = function(){ URL.revokeObjectURL(url); };
+    img.src = url;
+    photo.classList.add('has');
+  };
+  photo.querySelector('.p-remove').onclick = function(ev){
+    ev.preventDefault(); ev.stopPropagation();
+    _licensesState.photoFile = null;
+    _licensesState.photoRemoved = true;
+    photo.classList.remove('has');
+    img.removeAttribute('src');
+    fileInput.value = '';
+  };
+
+  document.getElementById('lic-save').onclick = function(){ _licensesSave(); };
+}
+
+async function _licensesSave(){
+  var typSel = document.getElementById('lic-typ').value;
+  var typCustomVal = document.getElementById('lic-typ-custom').value.trim();
+  if(typSel==='__custom__' && !typCustomVal){
+    alert('Bitte einen Typ angeben.');
+    return;
+  }
+  var aussteller = document.getElementById('lic-aussteller').value.trim();
+  var von = document.getElementById('lic-von').value;
+  var bis = document.getElementById('lic-bis').value;
+  var notiz = document.getElementById('lic-notiz').value.trim();
+  if(!aussteller){
+    alert('Bitte einen Aussteller angeben.');
+    return;
+  }
+  if(!von){
+    alert('Bitte ein Gültig-von-Datum angeben.');
+    return;
+  }
+  if(bis && bis < von){
+    alert('"Gültig bis" darf nicht vor "Gültig von" liegen.');
+    return;
+  }
+
+  var saveBtn = document.getElementById('lic-save');
+  saveBtn.disabled = true;
+  var isEdit = !!_licensesState.editId;
+
+  var data = {
+    typ: typSel,
+    typ_custom: typSel==='__custom__' ? typCustomVal : null,
+    aussteller: aussteller,
+    gueltig_von: von,
+    gueltig_bis: bis || null,
+    notiz: notiz || null,
+    betreiber_id: _licensesDraftBetreiberId || null,
+    betreiber_name: _licensesDraftBetreiberName || null,
+    betreiber_farbe: (function(){
+      if(!_licensesDraftBetreiberId) return null;
+      var b = _licensesBetreiberList().filter(function(x){ return x.id===_licensesDraftBetreiberId; })[0];
+      return b ? b.farbe : null;
+    })()
+  };
+  if(!isEdit){ data.fotoURL = null; data.fotoPath = null; }
+  if(isEdit && _licensesState.photoRemoved && !_licensesState.photoFile){
+    data.fotoURL = null;
+    data.fotoPath = null;
+  }
+
+  var licenseId = isEdit ? _licensesState.editId : null;
+  if(isEdit){
+    var upd = await window.FreddyAuth.updateLicense(licenseId, data);
+    if(!upd.ok){
+      saveBtn.disabled = false;
+      alert(upd.message || 'Karte konnte nicht aktualisiert werden.');
+      return;
+    }
+  } else {
+    var res = await window.FreddyAuth.addLicense(data);
+    if(!res.ok){
+      saveBtn.disabled = false;
+      alert(res.message || 'Karte konnte nicht gespeichert werden.');
+      return;
+    }
+    licenseId = res.id;
+  }
+
+  if(_licensesState.photoFile){
+    saveBtn.textContent = '📸 Foto wird hochgeladen…';
+    try {
+      var blob = await _fbResizeImage(_licensesState.photoFile, 1600);
+      var up = await window.FreddyAuth.uploadLicensePhoto(licenseId, blob);
+      if(up.ok){
+        await window.FreddyAuth.updateLicense(licenseId, { fotoURL: up.fotoURL, fotoPath: up.fotoPath });
+      } else {
+        console.warn('Foto-Upload fehlgeschlagen (Karte wurde trotzdem gespeichert):', up.message);
+      }
+    } catch(e){
+      console.warn('Foto-Upload fehlgeschlagen (Karte wurde trotzdem gespeichert):', e);
+    }
+  }
+
+  saveBtn.disabled = false;
+  _licensesBackToList();
 }
 
 function _renderSpotMarkers(){
@@ -2945,15 +3342,18 @@ window.onFreddyAuthReady = function(bridge){
       if(document.getElementById('spotsPanel').classList.contains('open')) closeSpotsPanel();
       if(document.getElementById('adminPanel').classList.contains('open')) closeAdminPanel();
       if(document.getElementById('friendsPanel').classList.contains('open')) closeFriendsPanel();
+      if(document.getElementById('licensesPanel').classList.contains('open')) closeLicensesPanel();
       _favStopListening();
       _spotsStopListening();
       _adminStopListening();
       _friendsStopListening();
+      _licensesStopListening();
       return;
     }
     _favStartListening();
     _spotsStartListening();
     _friendsStartListening();
+    _licensesStartListening();
     var isAdmin = bridge.isAdminUser();
     if(isAdmin) _adminStartListening();
     var profile = await bridge.getUserProfile();
@@ -5774,6 +6174,76 @@ async function deleteSpot(spotId){
   }
 }
 
+// ── Lizenz-Safe (08.07.2026) ────────────────────────────────────────────────
+// Datenmodell pro Dokument: { typ, aussteller, gueltig_von, gueltig_bis, notiz,
+// betreiber_id (optional -- koppelt die Karte an einen Betreiber aus der
+// betreiber-Tabelle, siehe project_betreiber_lizenz_verband_architektur-Memory:
+// "eine Karte deckt alle Gewässer desselben Betreibers ab"), fotoURL/fotoPath (optional) }
+async function addLicense(data){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  try {
+    var docRef = await addDoc(collection(db, 'users', uid, 'licenses'), Object.assign({
+      uid: uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    }, data));
+    return { ok:true, id: docRef.id };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Speichern.' };
+  }
+}
+
+function listenLicenses(cb){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid){ cb([]); return function(){}; }
+  var q = query(collection(db, 'users', uid, 'licenses'), orderBy('createdAt', 'desc'));
+  return onSnapshot(q, function(snap){
+    var list = [];
+    snap.forEach(function(d){ list.push(Object.assign({ id: d.id }, d.data())); });
+    cb(list);
+  }, function(err){
+    console.warn('Lizenz-Safe-Listener beendet:', err.code);
+  });
+}
+
+async function updateLicense(licenseId, data){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  try {
+    await updateDoc(doc(db, 'users', uid, 'licenses', licenseId), Object.assign({ updatedAt: serverTimestamp() }, data));
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Aktualisieren.' };
+  }
+}
+
+async function deleteLicense(licenseId, fotoPath){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false };
+  try {
+    await deleteDoc(doc(db, 'users', uid, 'licenses', licenseId));
+    if(fotoPath){
+      try { await deleteObject(ref(storage, fotoPath)); } catch(e){ /* Foto evtl. schon weg, kein Blocker */ }
+    }
+    return { ok:true };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Löschen.' };
+  }
+}
+
+async function uploadLicensePhoto(licenseId, blob){
+  var uid = auth.currentUser && auth.currentUser.uid;
+  if(!uid) return { ok:false, message:'Nicht angemeldet.' };
+  try {
+    var path = 'lizenzsafe/' + uid + '/' + licenseId + '/foto.jpg';
+    var storageRef = ref(storage, path);
+    await uploadBytes(storageRef, blob, { contentType:'image/jpeg' });
+    var url = await getDownloadURL(storageRef);
+    return { ok:true, fotoURL:url, fotoPath:path };
+  } catch(e){
+    return { ok:false, message:'Fehler beim Foto-Upload.' };
+  }
+}
+
 var ADMIN_EMAILS = ['frederik.ruehmann@gmail.com', 'speedfreed@gmx.de'];
 
 function isAdminUser(){
@@ -5909,6 +6379,7 @@ window.FreddyAuth = {
   addCatch, updateCatch, listenCatches, deleteCatch, uploadCatchPhoto,
   toggleFavorite, listenFavorites,
   addSpot, listenSpots, updateSpot, deleteSpot,
+  addLicense, listenLicenses, updateLicense, deleteLicense, uploadLicensePhoto,
   isAdminUser, adminAddAllowlist, listenAllowlist, adminRemoveAllowlist,
   sendFriendRequest, listenFriendships, acceptFriendRequest, removeFriendship, getUsernameForUid,
   listenFriendSharedSpots
