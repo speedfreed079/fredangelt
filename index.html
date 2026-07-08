@@ -1127,7 +1127,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.43.1";
+const APP_VERSION = "4.43.2";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
@@ -5682,11 +5682,11 @@ async function deleteSpot(spotId){
   }
 }
 
-var ADMIN_EMAIL = 'frederik.ruehmann@gmail.com';
+var ADMIN_EMAILS = ['frederik.ruehmann@gmail.com', 'speedfreed@gmx.de'];
 
 function isAdminUser(){
   var email = auth.currentUser && auth.currentUser.email;
-  return !!email && email.toLowerCase() === ADMIN_EMAIL;
+  return !!email && ADMIN_EMAILS.indexOf(email.toLowerCase()) !== -1;
 }
 
 async function adminAddAllowlist(email){
