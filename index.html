@@ -109,7 +109,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
        padding:8px 12px;display:flex;flex-direction:column;gap:6px;z-index:1000;flex-shrink:0}
 .header-top{display:flex;align-items:center;gap:8px}
 .logo{font-family:var(--mono);font-size:.9rem;font-weight:700;color:var(--accent);white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:5px}
-.logo img{height:20px;width:auto;flex-shrink:0}
+.logo img{height:1.6rem;width:auto;flex-shrink:0}
 /* Font size toggle */
 .font-toggle{display:flex;align-items:center;gap:2px;margin-left:4px;flex-shrink:0}
 .font-btn{background:none;border:1px solid var(--border);border-radius:5px;color:var(--d);
@@ -138,7 +138,7 @@ header{background:var(--surface);border-bottom:1px solid var(--border);
 @media(max-width:480px){
   header{padding:8px 7px}
   .logo{font-size:.78rem;gap:3px}
-  .logo img{height:16px}
+  .logo img{height:1.15rem}
   .header-top{gap:4px}
   .icon-btn{padding:4px 5px;font-size:.9rem}
   .header-right{gap:3px}
@@ -1175,7 +1175,7 @@ body.outdoor #fangbuchPanel .f-input,body.outdoor #fangbuchPanel .f-area{backgro
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 // APP_VERSION (SemVer) — VOR jedem deploy_fredangelt.ps1-Lauf manuell erhöhen (siehe CLAUDE.md Versionierungs-Gesetz)
-const APP_VERSION = "4.46.0";
+const APP_VERSION = "4.46.2";
 // Einzige Quelle der Wahrheit fürs Versions-Badge im Header — kein zweiter, separat zu pflegender String mehr.
 document.getElementById('version-badge').textContent = 'v' + APP_VERSION;
 
