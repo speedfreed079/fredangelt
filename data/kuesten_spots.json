@@ -1,10 +1,11 @@
 {
   "_meta": {
-    "stand": "2026-07-03",
+    "stand": "2026-07-09",
     "korrektur_03_07_2026": "'Ostsee (Warnkenhagen)' war auf das gleichnamige Binnen-Warnkenhagen (Mecklenburgische Schweiz, Lkr. Rostock, ~53.8405/12.4530, ~40km landeinwärts) fehlgeocodet -- Namenskollision, es gibt 3 Orte 'Warnkenhagen' in MV. Korrigiert auf das küstennahe Warnkenhagen bei Kalkhorst/Klützer Winkel (54.00038/11.08687), nahe dem mefo_hotspots.json-Eintrag 'Brooker Wald / Kalkhorst'.",
     "quelle": "07_Recherchen/Angelregeln Ostseeküste M-V 2026.md (Gemini DeepResearch), Teil 2",
     "zweck": "Spot-Marker-Layer für MV-Küstengewässer (schema_phase2.md Abschnitt 0.4). Separat von gewaesser.json -- kein vollwertiger Gewässer-Datensatz, wird per bindPopup() statt openPanel() gerendert. Siehe auch mefo_hotspots.json (kuratierte Meerforellen-Reviere, redaktionell recherchiert -- eigene Datei/Layer, kein Crowd-Content).",
-    "typ_werte": "'spot' = benannter Angel-Hotspot, 'hafen' = Hafen mit fischereirechtlicher Sonderregel, 'meerforelle_community' = Crowd-Scrape alle-angeln.de (dünn, unkuratiert -- 4 Einträge am 02.07.2026 entfernt, da redundant zu neuen mefo_hotspots.json-Einträgen: Dranske, Lohme, Boltenhagen, Kägsdorf)"
+    "typ_werte": "'spot' = benannter Angel-Hotspot, 'hafen' = Hafen mit fischereirechtlicher Sonderregel, 'meerforelle_community' = Crowd-Scrape alle-angeln.de (dünn, unkuratiert -- 4 Einträge am 02.07.2026 entfernt, da redundant zu neuen mefo_hotspots.json-Einträgen: Dranske, Lohme, Boltenhagen, Kägsdorf)",
+    "update_09_07_2026": "Merge aus kuestenspots_konsolidiert_v4.csv (Pruefkarte-v3-Review, siehe 07_Recherchen/kueste_MV/kuestenspots_konsolidiert_v1_notizen.md): 37 bestehende Positionen korrigiert, 56 neue Spots ergaenzt (herkunft=gemini_basis), Dorsch/Kabeljau als Zielfisch ueberall entfernt (unionsrechtliches Fangverbot westliche Ostsee)."
   },
   "spots": [
     {
@@ -64,7 +65,6 @@
       "lat": 53.897802005276276,
       "lon": 11.459319591522219,
       "zielfisch": [
-        "Dorsch",
         "Hering"
       ],
       "saison": "Herbst",
@@ -652,6 +652,713 @@
       "saison": "",
       "hinweis": "Meerforelle, Hornhecht, Flunder. Gast-/Tageskarte: Freies Gewässer. Crowd-Content, keine amtliche Quelle.",
       "quelle": "alleangeln.de (Community, gescraped 02.07.2026): https://www.alleangeln.de/gewaesser/ostsee-usedom-%C3%BCckeritz"
+    },
+    {
+      "name": "Seebrücke Boltenhagen",
+      "typ": "spot",
+      "lat": 53.9899,
+      "lon": 11.2071,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Meerforelle"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Hauptsaison (01.05.-30.09.) von 22:00 bis 06:00 Uhr geduldet",
+      "quelle": "Gemeindeseite"
+    },
+    {
+      "name": "Marina Boltenhagen",
+      "typ": "hafen",
+      "lat": 53.974060800966235,
+      "lon": 11.249811061654432,
+      "zielfisch": [],
+      "saison": "Ganzjährig",
+      "hinweis": "Absolutes Betretungs- und Angelverbot auf den Molen",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Bad Wendorf",
+      "typ": "spot",
+      "lat": 53.9136,
+      "lon": 11.4344,
+      "zielfisch": [
+        "Plattfisch",
+        "Aal",
+        "Hornhecht",
+        "Hering"
+      ],
+      "saison": "Frühjahr/Sommer",
+      "hinweis": "Sehr flach abfallend, schlammiger Sandgrund, max. 2m Tiefe",
+      "quelle": "Gemeindeseite"
+    },
+    {
+      "name": "Hafen Timmendorf (Poel)",
+      "typ": "hafen",
+      "lat": 53.99255814299025,
+      "lon": 11.37439012527466,
+      "zielfisch": [
+        "Aal",
+        "Hornhecht",
+        "Plattfisch",
+        "Hering"
+      ],
+      "saison": "Frühjahr bis Herbst",
+      "hinweis": "Dorsch-Hafenregelung beachten",
+      "quelle": "Skipperguide + Skipperguide / LALLF M-V"
+    },
+    {
+      "name": "Hafen Kirchdorf (Poel)",
+      "typ": "hafen",
+      "lat": 53.995106246109934,
+      "lon": 11.441402435302736,
+      "zielfisch": [],
+      "saison": "Ganzjährig",
+      "hinweis": "Absolutes Angelverbot im gesamten Hafenbecken",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Kühlungsborn",
+      "typ": "spot",
+      "lat": 54.155,
+      "lon": 11.7621,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Meerforelle",
+        "Hering"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Hauptsaison 19:00 bis 07:00 Uhr; Nebensaison 16:00 bis 07:00 Uhr gestattet",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Heiligendamm",
+      "typ": "spot",
+      "lat": 54.14494224521813,
+      "lon": 11.843218803405763,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Meerforelle",
+        "Aal"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Hauptsaison (01.05.-30.09.) von 21:00 bis 08:00 Uhr; Nebensaison frei",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Ostmole Warnemünde",
+      "typ": "spot",
+      "lat": 54.18597077896507,
+      "lon": 12.093286514282227,
+      "zielfisch": [],
+      "saison": "Ganzjährig",
+      "hinweis": "Absolutes Angelverbot wegen intensiven Fahrwasserverkehrs",
+      "quelle": "Treffpunkt Ostsee"
+    },
+    {
+      "name": "Westmole Warnemünde",
+      "typ": "spot",
+      "lat": 54.18564431931071,
+      "lon": 12.086720466613771,
+      "zielfisch": [],
+      "saison": "Ganzjährig",
+      "hinweis": "Absolutes Angelverbot wegen intensiven Fahrwasserverkehrs",
+      "quelle": "Treffpunkt Ostsee"
+    },
+    {
+      "name": "Hafengebiet Rostock",
+      "typ": "hafen",
+      "lat": 54.09313688048288,
+      "lon": 12.129598259925844,
+      "zielfisch": [
+        "Hering",
+        "Plattfisch",
+        "Barsch"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Angelverbot auf Fähr- und Ro-Ro-Terminals sowie in geschlossenen Hafenbereichen",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Graal-Müritz",
+      "typ": "spot",
+      "lat": 54.2618,
+      "lon": 12.2398,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Meerforelle",
+        "Aal"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Hauptsaison (15.05.-15.09.) 21:00 bis 07:00 Uhr; Nebensaison 18:00 bis 07:00 Uhr",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Wustrow",
+      "typ": "spot",
+      "lat": 54.3524,
+      "lon": 12.3843,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Meerforelle",
+        "Aal"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Nur am Brückenkopf erlaubt; Hauptsaison (01.06.-30.09.) 22-6 Uhr",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Prerow",
+      "typ": "spot",
+      "lat": 54.4547,
+      "lon": 12.5704,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Meerforelle"
+      ],
+      "saison": "Ganzjährig",
+      "hinweis": "Hauptsaison (15.05.-15.10.) von 20:00 bis 08:00 Uhr, Nebensaison frei",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Prerower Hafen",
+      "typ": "hafen",
+      "lat": 54.4452029719338,
+      "lon": 12.585823163945204,
+      "zielfisch": [],
+      "saison": "Ganzjährig",
+      "hinweis": "Absolutes Angelverbot im Zeitraum vom 01.05. bis 30.09.",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Zingst",
+      "typ": "spot",
+      "lat": 54.4424,
+      "lon": 12.6817,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Meerforelle",
+        "Aal"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Ganzjährig von 22:00 bis 08:00 Uhr gestattet; Westseite Wurfrutenverbot",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Dranske",
+      "typ": "spot",
+      "lat": 54.62798429764056,
+      "lon": 13.233118057250977,
+      "zielfisch": [
+        "Barsch",
+        "Hecht",
+        "Aal",
+        "Plattfisch"
+      ],
+      "saison": "Ganzjährig",
+      "hinweis": "Ganzjährig ohne zeitliche Einschränkungen erlaubt",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Sellin",
+      "typ": "spot",
+      "lat": 54.3837,
+      "lon": 13.6992,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Meerforelle",
+        "Aal"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Sand- und Steingrund, steiler Abfall auf ca. 4m am Kopf",
+      "quelle": "Fiskado + LALLF M-V / Biosphärenreservat Südost-Rügen"
+    },
+    {
+      "name": "Seebrücke Binz",
+      "typ": "spot",
+      "lat": 54.4032,
+      "lon": 13.6173,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Meerforelle",
+        "Hering"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Hauptsaison (01.05.-30.09.) von 22:00 bis 09:00 Uhr; Nebensaison frei",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Göhren",
+      "typ": "spot",
+      "lat": 54.346689240530026,
+      "lon": 13.742533922195436,
+      "zielfisch": [],
+      "saison": "Ganzjährig",
+      "hinweis": "Absolutes Angelverbot auf der gesamten Seebrücke",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Yachthafen Lohme",
+      "typ": "hafen",
+      "lat": 54.58438639762969,
+      "lon": 13.608530759811403,
+      "zielfisch": [],
+      "saison": "Ganzjährig",
+      "hinweis": "Absolutes Angelverbot im gesamten Hafenbecken",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Hafen Vieregge",
+      "typ": "hafen",
+      "lat": 54.56816198283737,
+      "lon": 13.32689881324768,
+      "zielfisch": [],
+      "saison": "Ganzjährig",
+      "hinweis": "Absolutes Angelverbot im Hafenbecken",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Wittower Fähre",
+      "typ": "spot",
+      "lat": 54.5578,
+      "lon": 13.2472,
+      "zielfisch": [
+        "Hering",
+        "Hornhecht",
+        "Barsch",
+        "Zander",
+        "Aal"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Tief ausgespülte Fahrrinne; auf Fährverkehr ist strikt zu achten",
+      "quelle": "Rügenmagic"
+    },
+    {
+      "name": "Seebrücke Zinnowitz",
+      "typ": "spot",
+      "lat": 54.083,
+      "lon": 13.9162,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Aal",
+        "Hering"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Zeitlich eingeschränkt; vor Ort über lokale Freigaben informieren",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Bansin",
+      "typ": "spot",
+      "lat": 53.975360677878314,
+      "lon": 14.144060611724854,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Aal"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Angeln außerhalb des Schiffsbetriebs von 22:00 bis 08:00 Uhr gestattet",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Heringsdorf",
+      "typ": "spot",
+      "lat": 53.9571,
+      "lon": 14.172,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Aal"
+      ],
+      "saison": "Frühjahr bis Herbst",
+      "hinweis": "Ganzjährig von 20:00 Uhr bis Beginn des Schiffsverkehrs frei",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Seebrücke Ahlbeck",
+      "typ": "spot",
+      "lat": 53.9433820365924,
+      "lon": 14.191803932189943,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Aal",
+        "Hering"
+      ],
+      "saison": "Frühjahr bis Herbst",
+      "hinweis": "Ganzjährig erlaubt am Ende (Bereich Treppe) bis Schiffsverkehr beginnt",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Hafen Karlshagen",
+      "typ": "hafen",
+      "lat": 54.1083,
+      "lon": 13.8131,
+      "zielfisch": [
+        "Barsch",
+        "Zander",
+        "Hecht",
+        "Plötze"
+      ],
+      "saison": "Winter",
+      "hinweis": "Angeln im gesamten Hafenbecken nur vom 01.11. bis 31.03. gestattet",
+      "quelle": "Karlshagen.de"
+    },
+    {
+      "name": "Hafen Ueckeritz (Stöhrlaacke)",
+      "typ": "hafen",
+      "lat": 54.01101574870322,
+      "lon": 14.04031276702881,
+      "zielfisch": [
+        "Friedfisch",
+        "Barsch",
+        "Zander",
+        "Hecht"
+      ],
+      "saison": "Sommer bis Winter",
+      "hinweis": "01.04.-31.10. nur ausgewiesene Plätze; 01.11.-31.03. frei",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Hafen Greifswald-Wieck",
+      "typ": "hafen",
+      "lat": 54.0964,
+      "lon": 13.4544,
+      "zielfisch": [
+        "Barsch",
+        "Zander",
+        "Hecht",
+        "Aal",
+        "Hering"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Winterlager Ryck (12.10.-10.03.): eingeschränkt von 10-18 Uhr",
+      "quelle": "LALLF + LALLF M-V"
+    },
+    {
+      "name": "Seebrücke Lubmin",
+      "typ": "spot",
+      "lat": 54.1379,
+      "lon": 13.6125,
+      "zielfisch": [
+        "Plattfisch",
+        "Hornhecht",
+        "Aal",
+        "Hering"
+      ],
+      "saison": "Frühjahr bis Herbst",
+      "hinweis": "Hauptsaison (01.05.-30.09.) 21:00 bis 07:00 Uhr; Nebensaison ganztägig frei",
+      "quelle": "Fiskado"
+    },
+    {
+      "name": "Kommunalhafen Vitte",
+      "typ": "hafen",
+      "lat": 54.568628470522086,
+      "lon": 13.10823440551758,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Angeln erlaubt gemäß §5 Abs.1 Hafennutzungsordnung (Fischereischein + Küstenangelerlaubnis nötig, kein Fischabfall im Becken)",
+      "quelle": "Hafennutzungsordnung Gemeinde Seebad Insel Hiddensee (seebad-hiddensee.de) + Hafennutzungsordnung Hiddensee"
+    },
+    {
+      "name": "Hafen Kloster",
+      "typ": "hafen",
+      "lat": 54.58406930921556,
+      "lon": 13.111925125122072,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Angeln erlaubt gemäß §5 Abs.1 Hafennutzungsordnung; Sicherheitsabstand 3m zur Kaikante (1m im Fischereibereich), Linienverkehrs-Liegeplätze freihalten",
+      "quelle": "Hafennutzungsordnung Gemeinde Seebad Insel Hiddensee (seebad-hiddensee.de) + Hafennutzungsordnung Hiddensee"
+    },
+    {
+      "name": "Hafen Thiessow",
+      "typ": "hafen",
+      "lat": 54.28061051470209,
+      "lon": 13.708794632419183,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst/Winter",
+      "hinweis": "Kleines Hafenbecken, ca. 2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Lauterbach",
+      "typ": "hafen",
+      "lat": 54.34257415515324,
+      "lon": 13.50091128531788,
+      "zielfisch": [
+        "Flunder"
+      ],
+      "saison": "Frühjahr/Herbst",
+      "hinweis": "Yachthafenbecken, ca. 3-4m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Glowe",
+      "typ": "hafen",
+      "lat": 54.574,
+      "lon": 13.468,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Kein Totalverbot: Angeln nur an vom Hafenmeister zugewiesenen Plätzen erlaubt (§4 Abs.5 Hafennutzungsordnung Glowe).",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + Hafennutzungsordnung Glowe"
+    },
+    {
+      "name": "Hafen Breege",
+      "typ": "hafen",
+      "lat": 54.61241099070747,
+      "lon": 13.355523495101512,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Flacher Boddenhafen, ca. 2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Schaprode",
+      "typ": "hafen",
+      "lat": 54.51275352032586,
+      "lon": 13.16498190164566,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Fährhafenbecken am tiefen Fahrwasser, ca. 3-4m",
+      "quelle": "Kimi (Koordinate), DeepSeek (Rest, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Peenemünde",
+      "typ": "hafen",
+      "lat": 54.13719929584663,
+      "lon": 13.763380050659181,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Historisches Hafenbecken, ca. 4-5m",
+      "quelle": "DeepSeek+Kimi (unabhängig ähnliche Koordinate, sonst unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Zempin",
+      "typ": "hafen",
+      "lat": 54.05975942279911,
+      "lon": 13.954476719797569,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Sehr flaches Naturbecken am Achterwasser, ca. 1.5-2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Koserow",
+      "typ": "hafen",
+      "lat": 54.047471778004386,
+      "lon": 13.992161750793459,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Flaches Hafenbecken am Achterwasser, ca. 1.5-2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Loddin",
+      "typ": "hafen",
+      "lat": 54.02326374987846,
+      "lon": 14.004285335540773,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Naturhafenbecken am Achterwasser, ca. 1.5-2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Gollwitz",
+      "typ": "hafen",
+      "lat": 54.02230572436627,
+      "lon": 11.492935717105867,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Flaches Uferwasser am Gollwitzer Strand, ca. 1.5-2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + BSH / WSA Ostsee"
+    },
+    {
+      "name": "Alter Hafen Wismar",
+      "typ": "hafen",
+      "lat": 53.89919908285166,
+      "lon": 11.460660696029665,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Teilweise Hafenbecken gesperrt",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + ASV Wismar e.V."
+    },
+    {
+      "name": "Yachthafen Wismar",
+      "typ": "hafen",
+      "lat": 53.909394438039705,
+      "lon": 11.43712246919881,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Yachthafenbecken an den Liegeplätzen, ca. 3m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Warnemünde (Stadthafen)",
+      "typ": "hafen",
+      "lat": 54.177230816017286,
+      "lon": 12.09272861480713,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Ganzjährig, Herbst optimal",
+      "hinweis": "Hafenfahrrinne gesperrt, Mindestabstand zu Fähren",
+      "quelle": "DeepSeek + LALLF M-V"
+    },
+    {
+      "name": "Hafen Dierhagen",
+      "typ": "hafen",
+      "lat": 54.2938059455462,
+      "lon": 12.364726036384877,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Flacher Boddenhafen, ca. 2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Wustrow",
+      "typ": "hafen",
+      "lat": 54.343975081534026,
+      "lon": 12.398264408111574,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Kleines Hafenbecken am Saaler Bodden, ca. 2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Althagen",
+      "typ": "hafen",
+      "lat": 54.37159609642427,
+      "lon": 12.419453795144689,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Hafenbecken am Saaler Bodden, ca. 2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Born a. Darß",
+      "typ": "hafen",
+      "lat": 54.381682076348234,
+      "lon": 12.530722618103027,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Kleines Boddenbecken, ca. 1.5-2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Wieck a. Darß",
+      "typ": "hafen",
+      "lat": 54.408559666373634,
+      "lon": 12.593647241592409,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Kleines Boddenbecken, ca. 1.5-2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Zingst",
+      "typ": "hafen",
+      "lat": 54.43155060166255,
+      "lon": 12.689552307128906,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Hafenbecken am Boddenübergang, ca. 2m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Greifswald (Ryck/Museumshafen)",
+      "typ": "hafen",
+      "lat": 54.09987363575611,
+      "lon": 13.383184969425203,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Kanalisierter Ryck-Verlauf im Stadtgebiet, ca. 3m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Lubmin",
+      "typ": "hafen",
+      "lat": 54.14549525763451,
+      "lon": 13.660211563110352,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Yachthafenbecken, ca. 3-4m",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V"
+    },
+    {
+      "name": "Hafen Kröslin",
+      "typ": "hafen",
+      "lat": 54.120602386175754,
+      "lon": 13.754367828369142,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Totalverbot für Gastangler auf dem gesamten Gelände der privaten Marina Kröslin.",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V / Marina Kröslin"
+    },
+    {
+      "name": "Hafen Stahlbrode",
+      "typ": "hafen",
+      "lat": 54.23426466161464,
+      "lon": 13.289551734924318,
+      "zielfisch": [
+        "Hering"
+      ],
+      "saison": "Herbst",
+      "hinweis": "Absolutes Angelverbot im aktiven Fährbecken und an den Kaimauern (Fährverkehr Glewitzer Fähre).",
+      "quelle": "DeepSeek (allgemeines Wissen, unverifiziert) + LALLF M-V / Fährhafenordnung"
     }
   ]
 }
